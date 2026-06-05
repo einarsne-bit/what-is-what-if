@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WHATS</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+
+    <div class="page-wrapper">
+
+      <!-- 1. Site header + nav -->
+      <header class="site-header">
+        <span class="site-title">What is? / What if?</span>
+        <nav class="site-nav">
+          <a href="#" class="nav-link nav-link--active" data-type="what-is">What Is?</a>
+          <a href="#" class="nav-link" data-type="what-if">What If?</a>
+          <a href="#" class="nav-link">Creative</a>
+          <button class="nav-link" id="btn-print">Print</button>
+        </nav>
+      </header>
+
+      <!-- Print mode bar (hidden until activated) -->
+      <div class="print-bar" id="print-bar">
+        <span class="print-bar__label">Print mode — each card will be one A4 page</span>
+        <div class="print-bar__actions">
+          <button class="print-bar__btn print-bar__btn--cancel" id="btn-cancel-print">Cancel</button>
+          <button class="print-bar__btn print-bar__btn--save" id="btn-save-pdf">Save as PDF</button>
+        </div>
+      </div>
+
+      <!-- 2. Project intro -->
+      <div class="project-intro">
+        <h1 class="project-intro__name" id="project-name"></h1>
+        <p class="project-intro__description" id="project-description"></p>
+      </div>
+
+      <!-- 3. Filter bar -->
+      <div class="filter-bar">
+        <p class="filter-bar__heading">Sort and filter:</p>
+
+        <div class="filter-bar__group">
+          <span class="filter-bar__group-label">Structural</span>
+          <div class="filter-bar__controls">
+            <div class="filter-bar__sort" id="sort-filters">
+              <button class="filter-btn filter-btn--active" data-sort="newest">Newest first</button>
+              <button class="filter-btn" data-sort="oldest">Oldest first</button>
+            </div>
+            <div class="filter-bar__authors" id="author-filters"></div>
+          </div>
+        </div>
+
+        <div class="filter-bar__group">
+          <span class="filter-bar__group-label">Content</span>
+          <div class="filter-bar__tags" id="tag-filters"></div>
+        </div>
+      </div>
+
+      <!-- 4. New card button -->
+      <div class="new-card-bar">
+        <button class="btn-new-card" id="btn-new-card">+ New card</button>
+      </div>
+
+      <!-- 5. Card grid -->
+      <div class="cards-grid" id="cards-grid">
+        <!-- Cards are rendered here by js/app.js -->
+      </div>
+
+    </div><!-- /page-wrapper -->
+
+    <script src="js/app.js"></script>
+  </body>
+</html>

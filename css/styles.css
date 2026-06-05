@@ -1,0 +1,561 @@
+/* ═══════════════════════════════════════════════
+   WHATS — Card Styles
+   Phase 1: Static card component
+   Aesthetic: Mac System 6 / 80s sports comic
+   ═══════════════════════════════════════════════ */
+
+/* ── Design tokens ─────────────────────────────── */
+:root {
+  --color-black:       #000000;
+  --color-white:       #FFFFFF;
+  --color-bg:          #E8E8E8;     /* light grey base for halftone */
+  --color-dot:         #000000;     /* halftone dot color */
+  --color-card-bg:     #FFFFFF;
+  --color-border:      #000000;     /* hard black border */
+  --color-header-bg:   var(--color-riso-green);  /* What Is? header */
+  --color-header-text: #FFFFFF;
+  --color-image-bg:    #D0D0D0;
+  --color-tag-bg:      #FFFFFF;
+  --color-muted:       #555555;
+
+  /* Shadows */
+  --card-shadow:  6px 6px 0 var(--color-black);       /* hard shadow for cards */
+  --ui-shadow:    3px 3px 0 rgba(0,0,0,0.65);         /* softer shadow for UI elements */
+
+  /* Risograph spot colours — test palette */
+  --color-riso-pink:   #FF57B5;   /* Fluorescent Pink */
+  --color-riso-blue:   #0055B3;   /* Reflex Blue */
+  --color-riso-yellow: #FFE500;   /* Fluorescent Yellow */
+  --color-riso-orange: #FF6C2F;   /* Fluorescent Orange */
+  --color-riso-green:  #00A651;   /* Forest Green */
+
+  /* Card */
+  --card-width:        900px;
+  --border-width:      2px;
+
+  /* Typography */
+  --font-sans:         'Helvetica Neue', Helvetica, Arial, sans-serif;
+
+  /* Spacing */
+  --space-xs:   6px;
+  --space-sm:   12px;
+  --space-md:   20px;
+  --space-lg:   28px;
+}
+
+/* ── Reset ──────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ── Page: halftone dot background ─────────────── */
+body {
+  font-family: var(--font-sans);
+  color: var(--color-black);
+  min-height: 100vh;
+  padding: 48px 32px;
+
+  /* Halftone dot pattern — fine, low contrast */
+  background-color: var(--color-bg);
+  background-image: radial-gradient(
+    circle,
+    rgba(0,0,0,0.18) 0.75px,
+    transparent 0.75px
+  );
+  background-size: 16px 16px;
+}
+
+/* ── Site header ────────────────────────────────── */
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 40px;
+}
+
+.site-title {
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  color: var(--color-black);
+  background: var(--color-white);
+  border: var(--border-width) solid var(--color-black);
+  box-shadow: var(--ui-shadow);
+  padding: 4px 14px;
+}
+
+.site-nav {
+  display: flex;
+  gap: 0;
+}
+
+.nav-link {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-decoration: none;
+  padding: 6px 16px;
+  border: var(--border-width) solid var(--color-black);
+  background: var(--color-white);
+  color: var(--color-black);
+  margin-left: -2px; /* overlap borders */
+  transition: background 0.1s, color 0.1s;
+}
+
+.nav-link:first-child {
+  margin-left: 0;
+}
+
+.nav-link--active,
+.nav-link:hover {
+  background: var(--color-riso-blue);
+  color: var(--color-white);
+}
+
+/* ── Print bar ──────────────────────────────────── */
+.print-bar {
+  display: none; /* hidden until print mode is active */
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: var(--color-black);
+  color: var(--color-white);
+  padding: 12px var(--space-lg);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.print-bar__label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.print-bar__actions {
+  display: flex;
+  gap: 0;
+}
+
+.print-bar__btn {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 6px 16px;
+  border: 2px solid var(--color-white);
+  cursor: pointer;
+  margin-left: -2px;
+}
+
+.print-bar__btn--cancel {
+  background: transparent;
+  color: var(--color-white);
+}
+
+.print-bar__btn--cancel:hover {
+  background: var(--color-white);
+  color: var(--color-black);
+}
+
+.print-bar__btn--save {
+  background: var(--color-white);
+  color: var(--color-black);
+}
+
+.print-bar__btn--save:hover {
+  background: transparent;
+  color: var(--color-white);
+}
+
+/* When print mode is active on the body */
+body.is-print-mode .site-header,
+body.is-print-mode .project-intro,
+body.is-print-mode .filter-bar {
+  display: none;
+}
+
+body.is-print-mode .print-bar {
+  display: flex;
+}
+
+body.is-print-mode {
+  padding-top: 56px;
+}
+
+/* ── Project intro ──────────────────────────────── */
+.project-intro {
+  display: inline-block;
+  background: var(--color-white);
+  border: var(--border-width) solid var(--color-black);
+  box-shadow: var(--ui-shadow);
+  padding: var(--space-md) var(--space-lg);
+  margin-bottom: 32px;
+  max-width: 640px;
+}
+
+.project-intro__name {
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  margin-bottom: 6px;
+}
+
+.project-intro__description {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--color-muted);
+}
+
+/* ── Filter bar ─────────────────────────────────── */
+.filter-bar {
+  margin-bottom: 32px;
+  padding-bottom: 20px;
+  border-bottom: var(--border-width) solid var(--color-black);
+}
+
+.filter-bar__heading {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  margin-bottom: 12px;
+}
+
+.filter-bar__group {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.filter-bar__group-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  white-space: nowrap;
+  min-width: 72px;
+  padding-top: 6px;
+}
+
+.filter-bar__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0;
+}
+
+.filter-bar__sort,
+.filter-bar__authors,
+.filter-bar__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+}
+
+.filter-bar__authors {
+  margin-left: 16px;
+  padding-left: 16px;
+  border-left: var(--border-width) solid var(--color-black);
+}
+
+.filter-btn {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 5px 14px;
+  border: var(--border-width) solid var(--color-black);
+  background: var(--color-white);
+  color: var(--color-black);
+  cursor: pointer;
+  margin-left: -2px;
+  transition: background 0.1s, color 0.1s;
+}
+
+.filter-btn:first-child {
+  margin-left: 0;
+}
+
+.filter-btn--active,
+.filter-btn:hover {
+  background: var(--color-riso-blue);
+  color: var(--color-white);
+  border-color: var(--color-riso-blue);
+}
+
+/* ── New card button ────────────────────────────── */
+.new-card-bar {
+  margin-bottom: 32px;
+}
+
+.btn-new-card {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 10px 24px;
+  background: var(--color-riso-yellow);
+  color: var(--color-black);
+  border: var(--border-width) solid var(--color-black);
+  box-shadow: var(--ui-shadow);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.btn-new-card:hover {
+  background: var(--color-riso-orange);
+}
+
+/* ── Cards grid ─────────────────────────────────── */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 32px;
+}
+
+/* ── Card wrapper — holds the grid cell dimensions ─ */
+.card-wrapper {
+  width: 100%;
+  aspect-ratio: 297 / 210;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--card-shadow);  /* shadow here so it isn't clipped */
+}
+
+/* ── Card shell — always rendered at natural A4 size, scaled by JS ── */
+.card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 900px;
+  aspect-ratio: 297 / 210;
+  transform-origin: top left;
+  background: var(--color-card-bg);
+  border: var(--border-width) solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Card header ────────────────────────────────── */
+.card__header {
+  height: 48px;
+  background: var(--color-header-bg);
+  color: var(--color-header-text);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-md);
+  flex-shrink: 0;
+  border-bottom: var(--border-width) solid var(--color-border);
+}
+
+.card__header-project,
+.card__header-date {
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.card__header-type {
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* What If? header: Risograph Pink */
+.card--what-if .card__header {
+  background: var(--color-riso-pink);
+  color: var(--color-white);
+  border-bottom: var(--border-width) solid var(--color-border);
+}
+
+.card--what-if .card__header-project,
+.card--what-if .card__header-date {
+  color: var(--color-white);
+  opacity: 0.75;
+}
+
+.card--what-if .card__header-type {
+  color: var(--color-white);
+}
+
+/* ── Card body ──────────────────────────────────── */
+.card__body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Left column */
+.card__content {
+  width: 52%;
+  padding: var(--space-lg) var(--space-lg) var(--space-md) var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  border-right: var(--border-width) solid var(--color-border);
+}
+
+/* Right column */
+.card__image-col {
+  flex: 1;
+  position: relative;  /* anchors the .card__type-label */
+  background: var(--color-image-bg);
+
+  /* Subtle halftone in image placeholder area */
+  background-image: radial-gradient(
+    circle,
+    rgba(0,0,0,0.12) 1px,
+    transparent 1px
+  );
+  background-size: 8px 8px;
+  background-color: var(--color-image-bg);
+}
+
+/* ── Title ──────────────────────────────────────── */
+.card__title {
+  font-size: 34px;
+  font-weight: 900;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin-bottom: var(--space-md);
+}
+
+/* ── Description ────────────────────────────────── */
+.card__description {
+  font-size: 20px;
+  line-height: 1.6;
+  flex: 1;
+}
+
+/* ── Tags ───────────────────────────────────────── */
+.card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: auto;
+  padding-top: var(--space-sm);
+}
+
+.tag {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border: var(--border-width) solid var(--color-black);
+  background: var(--color-white);
+  white-space: nowrap;
+}
+
+/* ── Author — bottom-right of image column ──────── */
+.card__author {
+  position: absolute;
+  bottom: var(--space-md);
+  right: var(--space-md);
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--color-muted);
+  white-space: nowrap;
+}
+
+/* ── Card type label (bottom-right of image column) */
+.card__type-label {
+  position: absolute;
+  bottom: var(--space-md);
+  right: var(--space-md);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border: var(--border-width) solid var(--color-black);
+  background: var(--color-white);
+  color: var(--color-black);
+}
+
+/* ── Image area ─────────────────────────────────── */
+.card__image-area {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card__image-placeholder {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  background: var(--color-white);
+  border: var(--border-width) solid var(--color-black);
+  padding: 8px 18px;
+}
+
+.card__image-area img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ── Print ──────────────────────────────────────── */
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 0;
+  }
+
+  body {
+    background: white;
+    padding: 0;
+    margin: 0;
+  }
+
+  .site-header,
+  .print-bar,
+  .project-intro,
+  .filter-bar {
+    display: none;
+  }
+
+  .cards-grid {
+    display: block;
+    margin: 0;
+    padding: 0;
+  }
+
+  .card-wrapper {
+    width: 297mm;
+    height: 210mm;
+    position: static;
+    overflow: visible;
+    break-after: page;
+    page-break-after: always;
+  }
+
+  .card {
+    position: static;
+    width: 297mm;
+    height: 210mm;
+    transform: none !important;
+    box-shadow: none;
+    border: 1px solid #000;
+    overflow: hidden;
+  }
+}
