@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>New project — What is? / What if?</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+
+    <div class="page-wrapper create-project-layout">
+
+      <aside class="sidebar">
+
+        <div class="sidebar__header">
+          <a href="index.html" class="sidebar__back">← Projects</a>
+          <h2 class="sidebar__title">New project</h2>
+        </div>
+
+        <div class="sidebar__section">
+          <label class="sidebar__label" for="input-project-name">Project name</label>
+          <input class="sidebar__input" id="input-project-name" type="text"
+                 placeholder="e.g. Design for fellesskap 2026" autocomplete="off" />
+        </div>
+
+        <div class="sidebar__section">
+          <label class="sidebar__label" for="input-project-desc">Description</label>
+          <textarea class="sidebar__input sidebar__textarea" id="input-project-desc" rows="4"
+                    placeholder="What is this project about?"></textarea>
+        </div>
+
+        <div class="sidebar__section">
+          <label class="sidebar__label" for="input-project-by">Project by</label>
+          <input class="sidebar__input" id="input-project-by" type="text"
+                 placeholder="Name or organisation" />
+        </div>
+
+        <div class="sidebar__section">
+          <label class="sidebar__label" for="input-project-date">Period / date</label>
+          <input class="sidebar__input" id="input-project-date" type="text"
+                 placeholder="e.g. 2025–2026" />
+        </div>
+
+        <div class="sidebar__section">
+          <label class="sidebar__label" for="input-project-collaborators">Collaborators</label>
+          <input class="sidebar__input" id="input-project-collaborators" type="text"
+                 placeholder="Institutions, partners…" />
+        </div>
+
+        <div class="sidebar__section">
+          <label class="sidebar__label">Access</label>
+          <p class="sidebar__hint">Leave passwords blank for an open project (no login required).</p>
+
+          <label class="sidebar__label sidebar__label--sub" for="input-editor-pw">Editor password</label>
+          <input class="sidebar__input" id="input-editor-pw" type="text"
+                 placeholder="Team members who can create and edit cards"
+                 autocomplete="new-password" />
+
+          <label class="sidebar__label sidebar__label--sub" for="input-workshop-pw">Workshop password</label>
+          <input class="sidebar__input" id="input-workshop-pw" type="text"
+                 placeholder="Workshop participants — react and comment only"
+                 autocomplete="new-password" />
+        </div>
+
+        <div class="sidebar__footer">
+          <button class="btn-publish" id="btn-create-project">Create project</button>
+          <a href="index.html" class="sidebar__cancel">Cancel</a>
+        </div>
+
+      </aside>
+
+      <!-- Right: preview panel -->
+      <main class="create-project-main">
+        <div class="project-preview" id="project-preview">
+          <div class="project-preview__tile project-tile">
+            <div class="project-tile__header">
+              <span class="project-tile__type-label">WHAT IS? / WHAT IF?</span>
+            </div>
+            <div class="project-tile__body">
+              <h3 class="project-tile__name" id="preview-name">Project name</h3>
+              <p class="project-tile__desc" id="preview-desc">Description will appear here.</p>
+            </div>
+            <div class="project-tile__footer">
+              <span class="project-tile__meta" id="preview-by"></span>
+              <span class="project-tile__meta" id="preview-date"></span>
+            </div>
+          </div>
+
+          <div class="project-preview__info">
+            <h3 class="project-preview__info-title">Access summary</h3>
+            <div class="access-summary" id="access-summary">
+              <div class="access-row">
+                <span class="access-row__label">Editor access</span>
+                <span class="access-row__value" id="summary-editor">Open (no password)</span>
+              </div>
+              <div class="access-row">
+                <span class="access-row__label">Workshop access</span>
+                <span class="access-row__value" id="summary-workshop">Not enabled</span>
+              </div>
+            </div>
+
+            <div class="invite-block" id="invite-block" hidden>
+              <h3 class="project-preview__info-title">Share links</h3>
+              <p class="invite-block__hint">After creating the project, share these links with your team:</p>
+              <div class="invite-row">
+                <span class="invite-row__label">Project link</span>
+                <code class="invite-row__url" id="invite-url-editor"></code>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/create-project.js"></script>
+  </body>
+</html>

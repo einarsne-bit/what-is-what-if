@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Card — What is? / What if?</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+
+    <div class="page-wrapper">
+
+      <header class="site-header">
+        <a href="index.html" class="site-title">What is? / What if?</a>
+        <nav class="site-nav">
+          <a href="#" class="nav-link" data-type="what-is" id="nav-what-is">What Is?</a>
+          <a href="#" class="nav-link" data-type="what-if" id="nav-what-if">What If?</a>
+          <a href="about.html" class="nav-link">About</a>
+        </nav>
+      </header>
+
+      <!-- ── Card page: top bar, card+arrows, annotations ── -->
+      <div class="card-page">
+
+        <!-- Top action bar — back + position on left, print/edit/delete on right -->
+        <div class="card-view__actions">
+          <div class="card-view__actions-left">
+            <a href="index.html" class="card-view__back" id="btn-back">← Back</a>
+            <span class="card-view__position" id="card-position"></span>
+          </div>
+          <div class="card-view__actions-right">
+            <button class="btn-card-print" id="btn-print">Print</button>
+            <button class="btn-card-share" id="btn-share">Share</button>
+            <a href="#" class="btn-card-edit" id="btn-edit">Edit</a>
+            <button class="btn-card-delete" id="btn-delete">Delete</button>
+          </div>
+        </div>
+
+        <!-- Card with side navigation arrows -->
+        <div class="card-view">
+          <button class="card-view__arrow" id="btn-prev">←</button>
+          <div class="card-view__stage">
+            <div id="card-stage">
+              <!-- Card rendered here by card.js -->
+            </div>
+          </div>
+          <button class="card-view__arrow" id="btn-next">→</button>
+        </div>
+
+        <!-- ── Card links: shown only when links exist, rendered by card.js ── -->
+        <div class="card-links" id="card-links" hidden></div>
+
+        <!-- ── Annotations: two-column, aligned to card columns ── -->
+        <section class="card-annotations">
+
+          <!-- Left column: reaction buttons (aligns with text side of card) -->
+          <div class="annotations__reactions-col">
+            <div class="annotations__reactions" id="reactions-list">
+              <!-- Reaction buttons built by card.js -->
+            </div>
+          </div>
+
+          <!-- Right column: comment thread (aligns with image side of card) -->
+          <div class="annotations__comments-col">
+            <div class="annotations__comments-list" id="comments-list"></div>
+            <form class="annotations__comment-form" id="comment-form">
+              <input class="annotations__name-input"
+                     id="input-user-name" type="text"
+                     placeholder="Your name…" autocomplete="name" />
+              <textarea class="annotations__comment-textarea"
+                        id="input-comment-text"
+                        placeholder="Write a comment…" rows="2"></textarea>
+              <button class="annotations__action-btn" type="submit">Post</button>
+            </form>
+          </div>
+
+        </section>
+
+      </div><!-- /card-page -->
+
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/card.js"></script>
+  </body>
+</html>

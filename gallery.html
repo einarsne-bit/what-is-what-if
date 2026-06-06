@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>What is? / What if?</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body class="gallery-page">
+
+    <!-- Sticky site header -->
+    <header class="site-header">
+      <a href="#" class="site-title" id="header-logo">
+        <span class="site-title__wordmark">WHAT IS? / WHAT IF?</span>
+        <span class="site-title__sep">—</span>
+        <span class="site-title__project" id="header-project-name"></span>
+      </a>
+      <nav class="site-nav">
+        <a href="#" class="nav-link" id="nav-analysis">Analysis</a>
+        <button class="nav-link" id="btn-print">Print</button>
+        <a href="about.html" class="nav-link">About</a>
+      </nav>
+    </header>
+
+    <!-- Print mode bar (fixed) -->
+    <div class="print-bar" id="print-bar">
+      <span class="print-bar__label">Print mode — each card will be one A4 page</span>
+      <div class="print-bar__actions">
+        <button class="print-bar__btn print-bar__btn--cancel" id="btn-cancel-print">Cancel</button>
+        <button class="print-bar__btn print-bar__btn--save" id="btn-save-pdf">Save as PDF</button>
+      </div>
+    </div>
+
+    <div class="page-wrapper">
+
+      <!-- Compact project bar -->
+      <div class="project-bar">
+        <div class="project-bar__main">
+          <span class="project-bar__name" id="project-name"></span>
+          <span class="project-bar__by">By <span id="meta-project-by"></span></span>
+          <span class="project-bar__date" id="meta-date"></span>
+          <button class="project-bar__toggle" id="btn-project-details">Info ↓</button>
+        </div>
+        <div class="project-bar__details" id="project-details" hidden>
+          <p class="project-bar__description" id="project-description"></p>
+          <span class="project-bar__collaborators" id="meta-collaborators"></span>
+          <div class="project-bar__data-actions" id="project-data-actions" hidden>
+            <button class="project-bar__data-btn" id="btn-export-json">↓ Export cards</button>
+            <label class="project-bar__data-btn project-bar__data-btn--import">
+              ↑ Import cards
+              <input type="file" id="input-import-json" accept=".json" hidden />
+            </label>
+            <span class="project-bar__import-status" id="import-status"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sticky action bar: type toggle (always) + new card (editor only) -->
+      <div class="new-card-bar" id="new-card-bar">
+        <div class="filter-bar__type-toggle">
+          <button class="type-btn type-btn--what-is" data-type="what-is">What Is?</button>
+          <button class="type-btn type-btn--what-if" data-type="what-if">What If?</button>
+        </div>
+        <a href="create.html" class="btn-new-card" id="btn-new-card" hidden>+ New card</a>
+      </div>
+      <div class="workshop-notice" id="workshop-notice" hidden>
+        <span>Workshop mode — you can react and comment on cards, but not create or edit them.</span>
+      </div>
+
+      <!-- Filter bar -->
+      <div class="filter-bar" id="filter-bar">
+
+        <!-- Row 1: Search -->
+        <div class="filter-bar__top">
+          <input class="filter-search" id="filter-search" type="search"
+                 placeholder="Search cards…" autocomplete="off" />
+        </div>
+
+        <!-- Row 2: Sort + Organise -->
+        <div class="filter-bar__row">
+          <span class="filter-bar__group-label">Sort</span>
+          <div id="sort-filters">
+            <button class="filter-btn filter-btn--active" data-sort="newest">Newest</button>
+            <button class="filter-btn" data-sort="oldest">Oldest</button>
+          </div>
+          <span class="filter-bar__group-label filter-bar__group-label--gap">Organise</span>
+          <div id="view-filters">
+            <button class="filter-btn filter-btn--active" data-view="flat">Grid</button>
+            <button class="filter-btn" data-view="theme">By theme</button>
+            <button class="filter-btn" data-view="creator">By creator</button>
+          </div>
+        </div>
+
+        <!-- Row 3: Author filters -->
+        <div class="filter-bar__row">
+          <span class="filter-bar__group-label">Creator</span>
+          <div class="filter-bar__authors" id="author-filters"></div>
+        </div>
+
+        <!-- Row 4: Tag filters -->
+        <div class="filter-bar__row">
+          <span class="filter-bar__group-label">Theme</span>
+          <div class="filter-bar__tags" id="tag-filters"></div>
+        </div>
+
+      </div>
+
+      <!-- Card grid -->
+      <div class="cards-grid" id="cards-grid"></div>
+
+    </div><!-- /page-wrapper -->
+
+    <!-- Password modal -->
+    <div class="modal-overlay" id="modal-overlay" hidden>
+      <div class="modal">
+        <h2 class="modal__title" id="modal-title">Enter password</h2>
+        <p class="modal__desc" id="modal-desc">This project is password-protected.</p>
+        <input class="modal__input" id="modal-password" type="password"
+               placeholder="Password" autocomplete="current-password" />
+        <p class="modal__error" id="modal-error" hidden>Incorrect password. Try again.</p>
+        <div class="modal__actions">
+          <button class="modal__btn modal__btn--primary" id="modal-submit">Enter</button>
+          <a href="index.html" class="modal__btn modal__btn--cancel">Back to projects</a>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>

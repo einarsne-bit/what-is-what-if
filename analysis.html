@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Analysis — What is? / What if?</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+
+    <div class="page-wrapper">
+
+      <header class="site-header">
+        <a href="index.html" class="site-title">What is? / What if?</a>
+        <nav class="site-nav">
+          <a href="#" class="nav-link" id="nav-what-is">What Is?</a>
+          <a href="#" class="nav-link" id="nav-what-if">What If?</a>
+          <a href="#" class="nav-link nav-link--active" id="nav-analysis">Analysis</a>
+          <a href="about.html" class="nav-link">About</a>
+        </nav>
+      </header>
+
+      <div class="analysis-header">
+        <div class="analysis-header__inner">
+          <h1 class="analysis-title">Analysis</h1>
+          <span class="analysis-project-name" id="page-project-name"></span>
+        </div>
+      </div>
+
+      <!-- Summary stats -->
+      <div class="stat-row">
+        <div class="stat-tile">
+          <span class="stat-tile__value" id="stat-total">—</span>
+          <span class="stat-tile__label">Total cards</span>
+        </div>
+        <div class="stat-tile stat-tile--wi">
+          <span class="stat-tile__value" id="stat-wi">—</span>
+          <span class="stat-tile__label">What Is?</span>
+        </div>
+        <div class="stat-tile stat-tile--wif">
+          <span class="stat-tile__value" id="stat-wif">—</span>
+          <span class="stat-tile__label">What If?</span>
+        </div>
+        <div class="stat-tile">
+          <span class="stat-tile__value" id="stat-coverage">—</span>
+          <span class="stat-tile__label">Observations with ideas</span>
+        </div>
+        <div class="stat-tile">
+          <span class="stat-tile__value" id="stat-tags">—</span>
+          <span class="stat-tile__label">Tags in use</span>
+        </div>
+        <div class="stat-tile">
+          <span class="stat-tile__value" id="stat-authors">—</span>
+          <span class="stat-tile__label">Authors</span>
+        </div>
+        <div class="stat-tile stat-tile--separator"></div>
+        <div class="stat-tile">
+          <span class="stat-tile__value" id="stat-reactions">—</span>
+          <span class="stat-tile__label">Reactions</span>
+        </div>
+        <div class="stat-tile">
+          <span class="stat-tile__value" id="stat-comments">—</span>
+          <span class="stat-tile__label">Comments</span>
+        </div>
+        <div class="stat-tile">
+          <span class="stat-tile__value" id="stat-commenters">—</span>
+          <span class="stat-tile__label">Commenters</span>
+        </div>
+      </div>
+
+      <div class="analysis-grid">
+
+        <!-- Annotation activity — full width, first -->
+        <section class="analysis-panel analysis-panel--full" id="panel-annotations">
+          <header class="analysis-panel__header">
+            <h2 class="analysis-panel__title">Annotation activity</h2>
+            <p class="analysis-panel__desc">Cards ranked by total engagement — reactions and comments. Hover a bar to see the card title.</p>
+          </header>
+          <div class="annotation-activity" id="annotation-activity">
+            <p class="outlier-empty">No annotations yet. Reactions and comments added in the card view will appear here.</p>
+          </div>
+        </section>
+
+        <!-- Tag frequency -->
+        <section class="analysis-panel analysis-panel--half">
+          <header class="analysis-panel__header">
+            <h2 class="analysis-panel__title">Tag frequency</h2>
+            <p class="analysis-panel__desc">Top tags across both card types. Green = What Is?, pink = What If?</p>
+          </header>
+          <div class="tag-chart" id="tag-chart"></div>
+        </section>
+
+        <!-- Coverage map -->
+        <section class="analysis-panel analysis-panel--half">
+          <header class="analysis-panel__header">
+            <h2 class="analysis-panel__title">Coverage map</h2>
+            <p class="analysis-panel__desc">Lines show What If? ideas linked to What Is? observations. Grey dots = unlinked.</p>
+          </header>
+          <div class="coverage-map" id="coverage-map"></div>
+        </section>
+
+        <!-- Timeline -->
+        <section class="analysis-panel analysis-panel--full">
+          <header class="analysis-panel__header">
+            <h2 class="analysis-panel__title">Timeline</h2>
+            <p class="analysis-panel__desc">Card creation over time. What Is? above the line, What If? below.</p>
+          </header>
+          <div class="timeline-wrap" id="timeline"></div>
+        </section>
+
+        <!-- Affinity groups -->
+        <section class="analysis-panel analysis-panel--full">
+          <header class="analysis-panel__header">
+            <h2 class="analysis-panel__title">Affinity groups</h2>
+            <p class="analysis-panel__desc">Cards clustered by shared tags. Click any card chip to open it.</p>
+          </header>
+          <div class="affinity-groups" id="affinity-groups"></div>
+        </section>
+
+        <!-- Outlier panels -->
+        <section class="analysis-panel analysis-panel--quarter">
+          <header class="analysis-panel__header">
+            <h2 class="analysis-panel__title">Unaddressed observations</h2>
+            <p class="analysis-panel__desc">What Is? cards with no What If? ideas linked to them.</p>
+          </header>
+          <div class="outlier-list" id="outlier-unlinked-wi"></div>
+        </section>
+
+        <section class="analysis-panel analysis-panel--quarter">
+          <header class="analysis-panel__header">
+            <h2 class="analysis-panel__title">Ungrounded ideas</h2>
+            <p class="analysis-panel__desc">What If? cards not linked to any observation.</p>
+          </header>
+          <div class="outlier-list" id="outlier-unlinked-wif"></div>
+        </section>
+
+        <section class="analysis-panel analysis-panel--quarter">
+          <header class="analysis-panel__header">
+            <h2 class="analysis-panel__title">Cards without tags</h2>
+            <p class="analysis-panel__desc">May need categorisation or review.</p>
+          </header>
+          <div class="outlier-list" id="outlier-no-tags"></div>
+        </section>
+
+        <section class="analysis-panel analysis-panel--quarter">
+          <header class="analysis-panel__header">
+            <h2 class="analysis-panel__title">Single-author themes</h2>
+            <p class="analysis-panel__desc">Tags where only one person has contributed so far.</p>
+          </header>
+          <div class="outlier-tag-list" id="outlier-single-author"></div>
+        </section>
+
+      </div>
+
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/analysis.js"></script>
+  </body>
+</html>

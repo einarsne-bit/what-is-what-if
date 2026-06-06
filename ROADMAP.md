@@ -1,5 +1,5 @@
-# Project Roadmap: Insight & Idea Card Tool
-*A web tool for creating, sharing, and exploring "What Is?" and "What If?" cards in collaborative design and innovation processes.*
+# Project Roadmap: What Is? / What If? Card Tool
+*A web tool for creating, sharing, and exploring "What Is?" and "What If?" cards in collaborative design and research processes.*
 
 > **How to use this file:**
 > Claude reads this file at the start of each working session to understand where we are, what decisions have been made, and what comes next. Update the status markers and decisions table as the project progresses. See BRIEF.md for full project context and R&D.md for the research knowledge base.
@@ -10,40 +10,63 @@
 
 | | |
 |---|---|
-| **Active phase** | Phase 1 — Static Card Component |
-| **Last session** | Phase 1 started — static card built in HTML/CSS, working in browser. Switching to Claude in VS Code. |
-| **Next action** | Continue Phase 1 in VS Code: iterate card design, then move to Phase 2 (data model + dynamic rendering) |
-| **Wireframes** | Simple wireframe shared. Design is intentionally minimal for now — full visual design pass comes later. |
-| **Dev environment** | VS Code + Live Server. Claude extension being installed for in-editor AI assistance. |
+| **Active phase** | Phase 6 — Deploy & Share |
+| **Last session** | Completed 10 gallery UX improvements: floating type-toggle + new-card bar, What Is?/What If? background modes, grouped-by-theme and grouped-by-creator horizontal scroll views, search, author/tag All buttons, compact project bar, sticky header with project-name back button. Two follow-up fixes: horizontal swim-lane layout for grouped sections, type buttons moved into sticky bar. |
+| **Immediate next** | Phase 6: data portability (JSON export/import) → Git setup → GitHub → Netlify deploy. |
+| **localStorage keys** | `whats-cards`, `whats-projects`, `whats-annotations`, `whats-session-id`, `whats-deleted-samples`, `whats-deleted-projects` |
+| **sessionStorage keys** | `whats-active-project`, `whats-access-{projectId}` |
+| **Dev environment** | VS Code + Live Server + Claude extension |
 
 ---
 
-## What We're Building
+## What We've Built
 
-A web application where individuals and teams can:
-- Create **insight cards** ("What Is?") — observations from research, with a headline, body text, quotes, an image, and tags
-- Create **idea cards** ("What If?") — speculative ideas connected to insights, with the same basic structure
-- Browse and filter all cards by tags, type, or author
-- Share cards and collections with collaborators
+A complete multi-project research card platform with:
 
-The card format is based on an existing Figma/print template. The tool should eventually support export back to that print format.
+- **Landing page** (`index.html`) — project grid with search, "Create new project" CTA, password modal
+- **Card gallery** (`gallery.html?project=id`) — filterable grid of A4 cards, What Is? / What If? tabs, print mode
+- **Single card view** (`card.html`) — full-size card, prev/next nav, edit/delete, print, share, linked card chips, reactions + comments
+- **Card creation** (`create.html`) — edit-in-place A4 card with image drag/drop/pan/zoom, tag autocomplete, What Is?→What If? link picker
+- **Project creation** (`create-project.html`) — name/description/passwords form with live tile preview
+- **Analysis dashboard** (`analysis.html`) — tag frequency chart, coverage map (WI↔WIF links), timeline, affinity groups, outlier panels
+- **About** (`about.html`)
+
+### Access model (client-side prototype)
+- Editor password → full CRUD
+- Workshop password → annotate-only (reactions + comments, no create/edit/delete)
+- No password → automatically editor access
+- Stored in `sessionStorage` per project
 
 ---
 
-## Figma / Illustrator Workflow
+## File Structure (current)
 
-Wireframes are being developed in Figma and Illustrator in parallel with development.
-
-**Agreed workflow:**
-1. When ready to build a screen → export the Figma frame as PNG and paste into chat
-2. Claude translates the layout into HTML/CSS
-3. Iterate by describing changes or pasting updated screenshots
-4. For pixel-accurate values → use Figma Dev Mode (`</>`) to copy exact spacing, font sizes, hex colors
-5. Export final assets (images, icons, illustrations) as SVG or PNG into `assets/images/`
-
-**Principle:** Build alongside the wireframes, not after. Coding reveals things the wireframe didn't anticipate — let the two inform each other.
-
-**Design approach:** Keep it simple and functional first. Full visual design pass (typography, colours, spacing, card label system) comes once the tool is working end-to-end.
+```
+WHATS/
+├── index.html              ← landing page (project grid, password modal)
+├── gallery.html            ← card gallery (project-specific, ?project=id)
+├── card.html               ← single card view + annotations
+├── create.html             ← card creation + edit mode
+├── create-project.html     ← new project form
+├── analysis.html           ← analysis dashboard (?project=id)
+├── about.html
+├── css/
+│   └── styles.css          ← all styles (design tokens, cards, landing, analysis, modal, print)
+├── js/
+│   ├── data.js             ← shared: project mgmt, SAMPLE_CARDS, tag helpers, renderCard, etc.
+│   ├── app.js              ← gallery logic (project-aware, access control, filtering)
+│   ├── card.js             ← single card view logic
+│   ├── create.js           ← card creation/edit logic
+│   ├── create-project.js   ← project creation logic
+│   ├── landing.js          ← landing page logic (project grid, password modal)
+│   └── analysis.js         ← analysis dashboard logic (all visualisations)
+├── assets/
+│   └── images/
+├── ROADMAP.md
+├── BRIEF.md
+├── R&D.md
+└── suggestions.md
+```
 
 ---
 
@@ -51,59 +74,53 @@ Wireframes are being developed in Figma and Illustrator in parallel with develop
 
 | Layer | Choice | Why |
 |---|---|---|
-| Frontend | HTML + CSS + vanilla JS → **Alpine.js** when needed | Vanilla to learn fundamentals; Alpine (~10KB, no build step) as the planned escape hatch around Phase 3 when the dynamic grid makes raw DOM work painful (see R&D §4.1) |
-| Fonts | **System fonts or self-hosted web fonts** — not CDN Google Fonts | GDPR: CDN Google Fonts leaks visitor IPs to a US company (R&D §4.4). Decide exact choice in Phase 1 |
-| Icons | Lucide (self-hosted/bundled, not CDN) | Lightweight, free; self-host for same GDPR reason |
-| Data storage v1 | `localStorage` in browser | No backend needed to start |
-| Data storage v2 | Supabase (Postgres + RLS) — **EU region (Frankfurt)** | Free tier, beginner-friendly. RLS is mandatory, not optional (R&D §4.3). EU region + DPA for GDPR |
-| PDF export | **Browser print + `@media print`** (primary); html2canvas only for PNG | Print gives vector, selectable-text, true A4. html2canvas breaks on flexbox/grid (R&D §4.2) |
-| Hosting | Netlify (v1) — keep stack portable | Free, Git-connected. Migration path to self-hosted Supabase on Hetzner if sovereignty tightens (R&D §4.4) |
-| Dev environment | VS Code + Live Server extension + **Claude extension (Anthropic)** | In-editor AI assistance from Phase 1 onward |
-| Version control | Git + GitHub | Backup + powers Netlify deploy |
+| Frontend | HTML + CSS + vanilla JS | No framework needed yet — keeping it simple |
+| Data storage v1 | `localStorage` + `sessionStorage` | No backend needed for prototype |
+| Data storage v2 | Supabase (Postgres + RLS) — **EU region (Frankfurt)** | Free tier, beginner-friendly. RLS mandatory. |
+| PDF export | **Browser print + `@media print`** | Print gives vector, selectable-text, true A4 |
+| Hosting | Netlify (v1) | Free, Git-connected |
+| Dev environment | VS Code + Live Server + Claude extension | In-editor AI |
 
 ---
 
 ## Research-Informed Principles
 
-*From the R&D session. These shape decisions across all phases — see R&D.md for full reasoning.*
-
-1. **This is not "another Miro."** The value is a *structured, research-grounded method* (two card types, A4 template, grounded linking), not a freeform whiteboard. Resist feature creep toward generic canvas tools.
-2. **Design for print from Phase 1.** The card's HTML/CSS must be print-friendly from the first line — PDF export quality depends on it.
-3. **Grounded speculation is the method's soul.** "What If?" cards linking back to "What Is?" cards is a *core* idea, not a nice-to-have. Build the data model for it now.
-4. **Security is a design task, not an afterthought.** The shared-password model must be deliberately designed against Supabase's RLS behaviour before Phase 7. Add `project_id` + access-level fields to the data model early.
-5. **Low threshold wins or loses citizen users.** Playfulness, minimal text entry, and one-clear-action entry points drive non-designer engagement.
-6. **Minimise personal data.** Legally protective under GDPR and aligned with the brief. The no-accounts model makes annotations naturally anonymous — an advantage.
+1. **This is not "another Miro."** The value is a *structured, research-grounded method* — two card types, A4 template, grounded linking. Resist feature creep toward generic canvas tools.
+2. **Design for print from Phase 1.** The card HTML/CSS must stay print-friendly.
+3. **Grounded speculation is the method's soul.** What If? cards linking to What Is? cards is core, not optional.
+4. **Security is a design task.** The shared-password model must map deliberately to Supabase RLS before Phase 7.
+5. **Low threshold wins or loses citizen users.** Playfulness, minimal text entry, one clear action per screen.
+6. **Minimise personal data.** No-accounts model keeps annotations naturally anonymous.
 
 ---
 
 ## Decisions Log
 
-*Resolved decisions are recorded here permanently so Claude can reference them in any session.*
-
-| # | Question | Decision | Phase resolved |
+| # | Question | Decision | Phase |
 |---|---|---|---|
-| 1 | Project name | **"What?"** (working title) | Brief |
-| 2 | "What If?" card accent color (exact hex) | TBD — full design pass comes later | Phase 1+ |
-| 3 | Typography | TBD — full design pass comes later | Phase 1+ |
-| 4 | Card proportions — A4 landscape or screen-native? | **A4 landscape** — matches print template | Brief |
-| 5 | Tags — free-form, predefined, or hybrid? | **Hybrid** — suggest existing, allow new | Brief |
-| 6 | Collaboration model | **Two passwords per project** — editor (full access) + workshop (annotate only). No user accounts. | Brief |
-| 7 | Languages | **English UI for v1** — Norwegian possible later | Brief |
-| 8 | Card types — just "What Is?" + "What If?", or more? | **Two types only for now** — What Is? + What If? | Brief |
-| 9 | Folder / project name for the codebase | **`WHATS`** | Phase 0 |
-| 10 | Hosting platform | **Netlify + Supabase** — independent, not Big Tech | Brief |
-| 11 | User accounts / login | **No accounts** — name typed manually per card | Brief |
-| 12 | Scale (v1) | **Single project, up to 500 cards** | Brief |
-| 13 | Author attribution | **Name field on card template** — no login needed | Brief |
-| 14 | Frontend framework path | **Vanilla JS → Alpine.js** around Phase 3; reassess only if it outgrows Alpine | R&D |
-| 15 | PDF export method | **Browser print + `@media print`** primary; html2canvas for PNG only | R&D |
-| 16 | Fonts & GDPR | **System or self-hosted fonts**, not CDN Google Fonts | R&D |
-| 17 | Supabase security | **RLS mandatory**; design access model deliberately before Phase 7 | R&D |
-| 18 | Data model forethought | **Include `project_id` + access-level fields now** so RLS layers on cleanly later | R&D |
-| 19 | Visual design approach | **Function first, design later.** Build working tool with simple placeholder styling. Full visual design pass (colours, type, card label system) after tool works end-to-end. | Phase 1 |
-| 20 | Card distinction (What Is vs What If) | **Header text only for now** — black header for What Is?, white header for What If?. Coloured label/badge added in design pass. | Phase 1 |
-| 21 | Page background aesthetic | **Halftone dot pattern** — Mac System 6 / 80s sports comic aesthetic. Black dots on light grey. | Phase 1 |
-| 22 | Card shadow style | **Hard offset shadow** — solid black, 5px offset bottom-right. No blur. Classic OS/comic feel. | Phase 1 |
+| 1 | Project name | **"What Is? / What If?"** | Brief |
+| 2 | Card proportions | **A4 landscape** — matches print template | Brief |
+| 3 | Tags | **Hybrid** — suggest existing, allow new | Brief |
+| 4 | Collaboration model | **Two passwords per project** — editor (full access) + workshop (annotate only). No user accounts. | Brief |
+| 5 | Languages | **English UI for v1** | Brief |
+| 6 | Card types | **Two types only** — What Is? + What If? | Brief |
+| 7 | Hosting | **Netlify + Supabase** | Brief |
+| 8 | User accounts | **No accounts** — name typed manually per card | Brief |
+| 9 | Author attribution | **Name field on card template** — no login needed | Brief |
+| 10 | Frontend framework | **Vanilla JS** — no framework needed, reassess if complexity grows | R&D |
+| 11 | PDF export | **Browser print + `@media print`** primary | R&D |
+| 12 | Fonts | **System fonts** for now | R&D |
+| 13 | Supabase security | **RLS mandatory** — design access model before Phase 7 | R&D |
+| 14 | Data model | **`projectId` on every card** — enables RLS and multi-project from day 1 | Phase 2 |
+| 15 | Visual approach | **Function first, design later.** Full visual pass after tool works end-to-end. | Phase 1 |
+| 16 | Card shadow | **Hard offset shadow** — solid, 5px offset. No blur. | Phase 1 |
+| 17 | Background | **Halftone dot pattern** — Mac System 6 / 80s comic aesthetic | Phase 1 |
+| 18 | Card distinction | **Shadow colour** — green for What Is?, pink for What If? | Phase D |
+| 19 | Annotation model | **Session reactions + named comments.** UUID in localStorage for reactions; display name for comments. | Phase 5 |
+| 20 | Shared data layer | **`js/data.js` loaded first on every page** — project mgmt, cards, tag helpers, renderCard, etc. | Phase 5 |
+| 21 | Multi-project | **Multiple projects in localStorage** — `whats-projects` array; sample project always available | Phase M |
+| 22 | Access control | **sessionStorage per project** — `whats-access-{id}` = "editor" \| "workshop". Password checked client-side (Supabase RLS in Phase 7). | Phase M |
+| 23 | URL design | `gallery.html?project=id`, `card.html?id=&project=id`, `analysis.html?project=id` | Phase M |
 
 ---
 
@@ -114,267 +131,186 @@ Wireframes are being developed in Figma and Illustrator in parallel with develop
 | 0 | Environment Setup | ✅ Complete |
 | 1 | Static Card Component | ✅ Complete |
 | 2 | Card Data Model & Dynamic Rendering | ✅ Complete |
-| 3 | Gallery View & Filtering | 🔄 In progress |
-| 4 | Card Creation Form | ⬜ Not started |
-| 5 | Single Card View & Export | ⬜ Not started |
-| 6 | Deploy & Share | ⬜ Not started |
+| 3 | Gallery View & Filtering | ✅ Complete |
+| 4 | Card Creation (edit-in-place) | ✅ Complete |
+| D | Design & Gallery UX | ✅ Complete |
+| 5 | Single Card View & Annotations | ✅ Complete |
+| M | Multi-project Platform | ✅ Complete |
+| 6 | Deploy & Share | 🔄 Active |
 | 7 | Backend & Collaboration (Supabase) | ⬜ Not started |
-| 8 | Polish & Advanced Features | ⬜ Not started |
+| 8 | Polish, Visual Design & Advanced Features | ⬜ Not started |
 
 Status key: ⬜ Not started · 🔄 In progress · ✅ Complete · ⏸ Paused
 
 ---
 
-## Phase 0 — Environment Setup
-**Goal:** Your computer is ready to build. You can open a file in VS Code, save it, and see changes live in the browser.
-**Status:** ✅ Complete
-
-### Steps
-- [x] Install VS Code
-- [x] Install the **Live Server** extension inside VS Code
-- [x] Install the **Claude** extension inside VS Code (Anthropic) — switching to in-editor AI from Phase 1
-- [x] Create the project folder (`WHATS`)
-- [x] Create basic file structure and verify Live Server works
-- [x] Save ROADMAP.md, BRIEF.md, R&D.md into folder
-- [ ] Install [Git](https://git-scm.com/) and create a [GitHub](https://github.com) account ← *Phase 6*
-
-### Folder structure
-```
-WHATS/
-├── index.html            ← main page (card gallery)
-├── create.html           ← form to create a new card
-├── card.html             ← single card view
-├── css/
-│   └── styles.css
-├── js/
-│   └── app.js
-├── assets/
-│   └── images/
-├── ROADMAP.md            ← this file
-├── BRIEF.md              ← project brief
-├── R&D.md                ← research knowledge base
-└── README.md             ← added in Phase 6
-```
-
----
-
-## Phase 1 — Static Card Component
-**Goal:** A working HTML/CSS card that looks right and is print-ready. Both card types rendered. No data, no interactivity yet.
+## Phase M — Multi-project Platform
+**Goal:** The tool supports multiple projects, each with their own cards, passwords, and access levels.
 **Status:** ✅ Complete
 
 ### What was built
-- `index.html` — static cards replaced by dynamic rendering in Phase 2
-- `css/styles.css` — full card styles including:
-  - Halftone dot background (Mac System 6 / 80s comic aesthetic)
-  - Hard black border + 5px offset shadow on cards
-  - Black header bar (What Is?) / white header bar (What If?) for visual distinction
-  - Two-column layout: content left, image placeholder right
-  - Tag pills, author field (bottom-right of image column per wireframe)
-  - `@media print` block with `@page { size: A4 landscape }`
-  - CSS custom properties (design tokens) for easy later restyling
-- Card anatomy updated to match wireframe: quote field removed, author repositioned
+- [x] `index.html` replaced with landing page — hero intro, project grid with search, password modal
+- [x] `gallery.html` — project card gallery (moved from index.html), project-aware, access-enforced
+- [x] `create-project.html` — project creation form with name, passwords, live tile preview
+- [x] `analysis.html` — analysis dashboard: tag frequency, coverage map, timeline, affinity groups, outliers
+- [x] `js/landing.js` — renders project tiles, handles password flow, stores access in sessionStorage
+- [x] `js/create-project.js` — saves new project, grants editor access, redirects to gallery
+- [x] `js/analysis.js` — all five visualisation panels, responsive SVG-based
+- [x] `js/data.js` extended — `getProjects()`, `getProject()`, `saveProject()`, `getActiveProjectId()`, `getProjectAccess()`, `setProjectAccess()`, `loadActiveProject()`, `getProjectCards()`
+- [x] `js/app.js` rewritten — project-aware, access control, project-filtered cards
+- [x] `js/card.js` updated — project param in all URLs, edit/delete hidden for workshop users
+- [x] `js/create.js` updated — project-aware redirects, back/cancel links
 
-### Design decisions in this phase
-- [x] Card proportions: **A4 landscape** (`aspect-ratio: 297 / 210`)
-- [x] Background: **halftone dots** via CSS `radial-gradient`
-- [x] Shadow: **hard 5px offset**, no blur
-- [x] Card distinction: **header text only** for now
-- [ ] Typography: TBD — currently system Helvetica Neue / Arial
-- [ ] Exact accent colour for What If?: TBD — design pass later
-
-### What you'll learn / have learned
-- CSS custom properties (variables)
-- CSS Flexbox for two-column layout
-- `aspect-ratio` for proportional sizing
-- `@media print` and `@page` rules
+### Analysis visualisations
+- **Tag frequency** — horizontal dual bars per tag, WI green / WIF pink, top 24 tags
+- **Coverage map** — SVG dot diagram: WI cards left, WIF cards right, bezier lines for links, grey = unlinked
+- **Timeline** — SVG scatter with WI above / WIF below a date axis, jitter for overlapping dates
+- **Affinity groups** — cards clustered by top 16 tags, clickable chips linking to card view
+- **Outliers** — four panels: unaddressed WI observations, ungrounded WIF ideas, cards without tags, single-author tags
 
 ---
 
-## Phase 2 — Card Data Model & Dynamic Rendering
-**Goal:** Define what a card *is* as structured data, then write JavaScript that builds the card HTML from that data automatically.
+## Phase D — Design & Gallery UX
+**Goal:** Polish card template, gallery UX, filtering, background modes.
 **Status:** ✅ Complete
 
 ### What was built
-- `js/app.js` created with:
-  - A `project` object (id + name) — project name is project-level, not per-card
-  - A `cards` array of 3 sample cards (2× What Is?, 1× What If?)
-  - A `renderCard(card)` function that builds a card DOM element from data
-  - Init loop that renders all cards into `.cards-area`
-- Hardcoded HTML cards removed from `index.html`
-- A print mode button added (print layout to be properly resolved in Phase 5)
+- [x] Card shadow colour encodes type (green = WI, pink = WIF)
+- [x] Card header: type label centred via CSS grid
+- [x] References strip along right card edge
+- [x] Gallery: project credits box beside description
+- [x] Gallery: filter buttons scoped to current card type
+- [x] Tag colours: Risograph palette, consistent per tag via string hash
+- [x] Tag autocomplete in create mode
+- [x] Image drag/pan/zoom in create mode
+- [x] Sticky header with project name (acts as back-to-grid button)
+- [x] Sticky action bar: What Is? / What If? type toggle + New card button (always floating)
+- [x] What Is? / What If? background mode switching (warm rose halftone for WIF)
+- [x] Full-width search across card title, body, author, tags, references
+- [x] "Organise by theme" — horizontal swim-lane sections with divider lines
+- [x] "Organise by creator" — same swim-lane layout per author
+- [x] Author and tag filter rows with "All" button
+- [x] Compact project info bar with expandable details
 
-### Data model (as built)
-```javascript
-// Project — one per project, name shown in card header
-const project = { id: "kirkenes-study", name: "Kirkenes Study" };
-
-// Card
-{
-  id: "unique-string",
-  projectId: "project-slug",   // for RLS later (R&D §4.3)
-  type: "what-is",             // or "what-if"
-  title: "",
-  body: "",
-  tags: [],
-  imageUrl: "",
-  author: "",
-  date: "03.10.2025",
-  linkedInsightIds: [],        // What If? → What Is? links (core to method)
-  annotations: []              // workshop mode — built in Phase 3–5
-}
-```
+### Remaining design work → moved to Phase 8
+The visual design pass (GT Mechanik typography, Cedric Price RE:CP direction, card image effects) is deferred until the tool is deployed and used in a real project. Deploying first gives real usage context for design decisions.
 
 ---
 
-## Phase 3 — Gallery View & Filtering
-**Goal:** `index.html` shows all cards in a responsive grid. Users can filter by type and tag.
-**Status:** ⬜ Not started
+## Phase 5 — Single Card View & Annotations
+**Status:** ✅ Complete
 
-### Steps
-- [ ] Responsive card grid layout
-- [ ] Filter bar (type toggle + tag filter)
-- [ ] Filter logic in JavaScript
-- [ ] "Create new card" button → `create.html`
-- [ ] **Performance:** add `content-visibility: auto` to cards early; plan virtualised rendering for 500-card scale (R&D §3.1)
+### What was built
+- [x] `card.html` + `js/card.js` — full-size card, prev/next nav, keyboard arrows
+- [x] Action bar: Back, position indicator, Print, Share, Edit, Delete
+- [x] Edit → `create.html?edit=id&project=id`
+- [x] Delete — removes from localStorage or adds to deleted-samples list
+- [x] Print — popup window, auto-print, auto-close
+- [x] Share — copies clean URL to clipboard
+- [x] Card links — "Grounded in" (WIF→WI) and "Related ideas" (WI→WIF) chips
+- [x] Annotations — session reactions + named comment thread
 
-> **Framework checkpoint:** This is where vanilla JS DOM manipulation for a dynamic filterable grid tends to get painful. Reassess whether to bring in **Alpine.js** (~10KB, no build step) — see R&D §4.1.
-
-### Decisions to make in this phase
-- [ ] Grid: fixed columns or responsive auto-fill?
-- [ ] Card in gallery: scaled-down full card (per brief) — not a thumbnail
-- [ ] Zoom/density control: compact ↔ comfortable toggle?
-- [ ] Sorting: newest first · by project · manual?
-- [ ] Filter UI: button row · dropdown · sidebar?
-- [ ] Tag canonicalisation: how to handle Politics/politics/Political at scale?
-- [ ] Search: text search on title/body?
-- [ ] Empty state: onboarding message?
-- [ ] Navigation: what goes in the top nav bar?
-
----
-
-## Phase 4 — Card Creation Form
-**Goal:** A form where a user fills in all fields and saves a card. Card appears in the gallery.
-**Status:** ⬜ Not started
-
-### Steps
-- [ ] Build form HTML for all card fields
-- [ ] Add live card preview alongside the form
-- [ ] Save to `localStorage` on submit
-- [ ] Redirect to gallery on save
-
-### Important note — card fields = filter metadata
-The filter system reads directly from the card data object (`tags`, `author`, `date`). There is no separate metadata layer. Whatever the user fills in when creating a card automatically feeds the filters — no extra wiring needed. Make sure the form saves using the exact same field names as the data model.
-
-### Decisions to make in this phase
-- [ ] Form layout: single column · two-column with live preview
-- [ ] Image input v1: paste a URL · leave blank
-- [ ] Tag input UX: type + Enter to add pill · free text · checkboxes from existing tags
-- [ ] Validation: which fields required? Inline errors or summary?
-- [ ] Edit mode: same form for editing existing cards?
-- [ ] Card ID: `Date.now()` or `crypto.randomUUID()`
-
----
-
-## Phase 5 — Single Card View & Export
-**Goal:** Clicking a card opens it full-size. Card can be exported as image or PDF.
-**Status:** ⬜ Not started
-
-### Steps
-- [ ] Build `card.html` — reads card ID from URL, displays full card
-- [ ] **Print / Save as PDF** — a dedicated print mode that produces clean A4 landscape output, one card per page. A basic print button was built in Phase 2 but the output doesn't fit the page correctly yet — this needs a proper fix here.
-- [ ] "Download as image" button (html2canvas) — PNG only
-
-### Decisions to make in this phase
-- [ ] Export format: PNG (html2canvas) + PDF (browser print) — both
-- [ ] Print layout: A4 landscape via `@media print` + `@page`
-- [ ] "Export all cards": test browser-print multi-card first
-- [ ] Delete card: from single view or gallery only?
-- [ ] Back navigation: breadcrumb · back button · both?
+### Still to do
+- [ ] Print cross-browser testing (Chrome, Firefox, Safari)
+- [ ] "Download as image" PNG (html2canvas fallback)
 
 ---
 
 ## Phase 6 — Deploy & Share
-**Goal:** The tool is live at a real public URL.
-**Status:** ⬜ Not started
+**Status:** 🔄 Active
 
-### Steps
-- [ ] Install Git and create GitHub account
-- [ ] Create [Netlify](https://netlify.com) account
-- [ ] Connect GitHub repo (`what-is-what-if-webtool`) to Netlify
-- [ ] Deploy — auto-publishes on every push
-- [ ] Write `README.md`
+### Why this comes before the visual design pass
+The tool works end-to-end. Real usage in a real project will give better context for design decisions than designing speculatively. Deploy first, then design for what actually needs improving.
 
-### Decisions to make in this phase
-- [ ] Domain: free Netlify subdomain or custom domain?
+### Part A — Data portability (do first, enables sharing before Supabase)
+Without this, collaborators on different devices have no way to share cards. JSON export/import is a one-afternoon build that unblocks real multi-person use.
+
+- [ ] **Export**: "Download project as JSON" button in the project settings or analysis page — exports all project cards + metadata as a `.json` file
+- [ ] **Import**: "Import from JSON" file picker — merges cards by ID, skips duplicates, places into the active project
+- [ ] Decide where the import/export UI lives (project bar on gallery? settings panel?)
+
+### Part B — Deploy to Netlify
+- [ ] Create GitHub repo (`what-is-what-if` or `whats-tool`), push current codebase
+- [ ] Create Netlify account, connect to GitHub repo — auto-deploys on push to `main`
+- [ ] Test all pages on live URL (no build step — pure HTML/CSS/JS, serves directly)
+- [ ] Write `README.md` with tool description + how to use
+
+### Decisions to make
+- [ ] Domain: free Netlify subdomain or custom?
+- [ ] Import/export UI location: gallery project bar? analysis page sidebar?
+
+### What to check before deploying
+- All asset paths are relative ✓
+- `js/data.js` loads first on every page ✓
+- No `localhost` hardcoded URLs ✓
+- `crypto.randomUUID()` requires HTTPS — deploy actually fixes this ✓
 
 ---
 
 ## Phase 7 — Backend & Collaboration (Supabase)
-**Goal:** Cards stored in a real database. Multiple users can contribute and see each other's cards.
 **Status:** ⬜ Not started
 
-> **⚠️ Security is a design task here, not an afterthought (R&D §4.3).** Supabase exposes the DB via a public API + anon key. **Without Row Level Security (RLS), every row is publicly readable/writable.** RLS is mandatory. Design the access model *before* writing table code.
+> **⚠️ Security is a design task here.** Supabase exposes the DB via a public API + anon key. **Without RLS, every row is publicly readable/writable.** RLS is mandatory. Design the access model *before* writing table code.
 
-### Pre-phase: Access & Security Design (do first)
-- [ ] Design how the **two-password model** maps to Supabase. Two approaches (R&D §4.3):
-  - **A — Anonymous Auth + password gate:** Edge Function validates password, grants editor/workshop access; RLS enforces permissions.
-  - **B — Edge Function gatekeeper:** DB fully private; server function handles all reads/writes.
-- [ ] Write RLS policies: workshop (read + annotate) vs editor (full CRUD), scoped by `projectId`
+### Pre-phase: Access design (do first)
+- [ ] Map the two-password model to Supabase auth — Edge Function validates password, grants editor/workshop JWT claim; RLS enforces
+- [ ] Write RLS policies scoped by `projectId` and access level
 
 ### Steps
 - [ ] Create Supabase project — **EU region (Frankfurt)**, accept DPA
-- [ ] Create `cards` table (includes `projectId` + access fields from Phase 2)
+- [ ] Create `projects` and `cards` tables
 - [ ] Enable RLS on every table; test from client SDK (not SQL editor — bypasses RLS)
 - [ ] Replace `localStorage` with Supabase API calls
-- [ ] Implement two-password access flow
-- [ ] Add project/collection grouping
+- [ ] Migrate `whats-annotations` to Supabase
+- [ ] Real-time updates — Supabase Realtime subscription so workshop participants see new cards live
 
 ---
 
-## Phase 8 — Polish & Advanced Features
-*Detail once earlier phases are complete. Candidate features:*
+## Phase 8 — Polish, Visual Design & Advanced Features
 
-- [ ] Connection map — visual graph of What Is? → What If? links (builds on `linkedInsightIds`)
-- [ ] **Full visual design pass** — typography, colour system, card label/badge, spacing
-- [ ] **Creative mode growth** — "prompt + constraint + capture" abstraction (R&D §5):
-  - Forced association (v1) → Mash-up → SCAMPER, Random Word, Crazy 8s
-  - Smarter shuffle: weight toward low-tag-overlap pairs
-- [ ] **Annotation aggregation view** — most-starred / most-flagged cards (R&D §3.3)
-- [ ] Collections / boards
-- [ ] Comments on cards
+Candidate features (prioritise in Phase 8 based on real usage feedback):
+
+### Visual design pass (deferred from Phase D)
+- [ ] Full typography pass — GT Mechanik + Cedric Price RE:CP direction (see [design_references.md](design_references_ref.md))
+- [ ] Landing page design — currently functional but plain
+- [ ] Analysis page design — currently functional but plain
+- [ ] Expand Risograph tag colour palette beyond current 5 colours
+- [ ] Card image effects: halftone, riso-look, b&w, contrast treatments
+- [ ] References strip legibility pass
+- [ ] Card background: warm off-white instead of pure white (blueprint paper feel)
+
+### Analysis v2
+- [ ] Tag co-occurrence matrix (n×n grid, pure HTML table)
+- [ ] Author × tag contribution matrix
+- [ ] Interactive zoom on coverage map
+- [ ] Annotation heatmap — most-reacted cards surfaced at top of Analysis
+
+### Advanced features
+- [ ] Catalogue export — print-all popup (one card per A4 page) or 4-up grid layout
 - [ ] Duplicate card
-- [ ] Mobile view polish
-- [ ] Offline / PWA for fieldwork in low-connectivity areas (R&D §7)
-- [ ] Catalogue / booklet export (A5 PDF) — layout to be shared when we reach it
-- [ ] Import from Figma (stretch goal)
+
+### Creative mode (stimulus shuffle)
+A standalone view — separate nav link — for generative ideation. Not a gallery feature; its own mode.
+
+**What it does:** Two cards side by side — one What Is? observation (from the project's real cards) + one constraint prompt. The juxtaposition is the prompt: *"Here is what you observed. Here is a constraint. What happens to the observation under this pressure?"* This is the forced-association technique from design ideation.
+
+**Build in two versions:**
+- **V1 — no AI:** A library of ~50 constraint prompts stored in `data.js` (e.g. "Reverse it", "Make it 10× cheaper", "What if it only lasted 24 hours?", "Who is excluded from this?"). The shuffle picks one random What Is? card + one random prompt. The user can lock either side and re-shuffle the other.
+- **V2 — with AI:** Constraint prompt generated by Claude given the card's title + body. Calibrated to the specific observation rather than generic. Requires Anthropic API key (Phase 7+).
+
+**Interaction:**
+- [ ] Shuffle button — picks a new random pair
+- [ ] Lock left card / lock right prompt — re-shuffle the other independently
+- [ ] "Turn this into a What If? card" — pre-fills create.html with the What Is? card pre-linked and the prompt in the body field
+- [ ] Keyboard shortcut: spacebar = shuffle
+
+**UI:** Same card aesthetic, two cards at full display size side by side. Constraint prompt displayed as a styled card-like tile (distinct colour — not green or pink, maybe yellow/orange) so it reads as a different kind of input.
+
+**Data:** Constraint prompt library lives in `data.js` as a plain array. No schema changes. The "lock" state is ephemeral (not saved).
+- [ ] Mobile view polish (gallery + card view read-only; create stays desktop-only)
+- [ ] Force-directed affinity cluster view (D3.js — requires 15+ cards)
+
 
 ---
 
-## Reference: Card Anatomy
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│ [WHAT IS?]  Project name              Date      Page/Frame  │  ← header bar (black bg)
-├───────────────────────────┬─────────────────────────────────┤
-│                           │                                 │
-│  HEADLINE                 │                                 │
-│  (large, bold)            │         IMAGE                   │
-│                           │         (drag to add)           │
-│  Body text paragraph(s)   │                                 │
-│                           │                                 │
-│  "Quote in italics"       │                    [WHAT IS?]   │  ← label (TBD design)
-│                           │                                 │
-│  [tag] [tag] [tag]        │                                 │
-│                           │                                 │
-│  Author name              │                                 │
-└───────────────────────────┴─────────────────────────────────┘
-```
-
-- **What Is? cards:** black header bar, white card body
-- **What If? cards:** white header bar, white card body. Accent colour TBD — design pass later.
-- Both: hard black border, 5px offset shadow
-
----
-
-*Last updated: end of planning + Phase 1 start session. Switching to Claude in VS Code.*
-*Codebase: `WHATS/` folder locally. GitHub repo `what-is-what-if-webtool` to be created in Phase 6.*
+*Last updated: 2026-06-06 — Phase D gallery UX complete (10 improvements + horizontal grouped view + floating type bar). Phase 6 Deploy is active: data portability first, then Netlify.*

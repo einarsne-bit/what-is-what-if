@@ -1,242 +1,400 @@
-// ── Project ───────────────────────────────────────────────────────────────────
-const project = {
-  id: "kirkenes-study",
-  name: "Kirkenes Study",
-  description: "A mapping of local resources, conditions, and perspectives in the Kirkenes region — exploring questions of political representation, community belonging, and regional development."
-};
+// data.js is loaded first
 
-// ── Cards ─────────────────────────────────────────────────────────────────────
-const cards = [
-  {
-    id: "1",
-    projectId: "kirkenes-study",
-    type: "what-is",
-    title: "Locals feel politically and socially deprioritized",
-    body: "Many residents express a deep sense of being overlooked by national decision-makers. Infrastructure, services, and investment are seen as consistently directed elsewhere, creating a perception that the region is treated as a peripheral concern rather than a valued part of the country.",
-    tags: ["Politics", "Divide", "Priorities", "Distances"],
-    imageUrl: "",
-    author: "Synne",
-    date: "03.10.2025",
-    linkedInsightIds: [],
-    annotations: []
-  },
-  {
-    id: "2",
-    projectId: "kirkenes-study",
-    type: "what-is",
-    title: "The town centre is emptying out",
-    body: "Shops, services, and social venues that once defined daily life in the town centre have closed over the past decade. Residents describe a growing sense that there is less reason to gather, and fewer places to do so. Younger residents in particular mention this as a factor in decisions to move away.",
-    tags: ["Urbanisation", "Community", "Decline"],
-    imageUrl: "",
-    author: "Magnus",
-    date: "04.10.2025",
-    linkedInsightIds: [],
-    annotations: []
-  },
-  {
-    id: "3",
-    projectId: "kirkenes-study",
-    type: "what-if",
-    title: "What if local communities had direct budget control over infrastructure?",
-    body: "Imagine a system where communities in peripheral regions could allocate a percentage of national infrastructure budgets directly, bypassing centralised planning cycles entirely. Local knowledge and lived priorities would shape where investment goes.",
-    tags: ["Politics", "Infrastructure", "Autonomy"],
-    imageUrl: "",
-    author: "Synne",
-    date: "05.10.2025",
-    linkedInsightIds: ["1"],
-    annotations: []
-  }
-];
+// ── Project context & access ──────────────────────────────────────────────────
+const activeProject = loadActiveProject();
+const projectId     = activeProject.id;
 
-// ── renderCard ────────────────────────────────────────────────────────────────
-// Returns a wrapper div containing the full-size card.
-// The wrapper holds the correct grid dimensions; the card scales inside it via JS.
-function renderCard(card) {
-  const wrapper = document.createElement("div");
-  wrapper.className = "card-wrapper";
-  wrapper.dataset.id = card.id;
+let accessLevel = getProjectAccess(projectId);
+const modalOverlay = document.getElementById("modal-overlay");
 
-  const el = document.createElement("div");
-  el.className = "card" + (card.type === "what-if" ? " card--what-if" : "");
+if (accessLevel === null) {
+  if (!activeProject.editorPassword && !activeProject.workshopPassword) {
+    setProjectAccess(projectId, "editor");
+    accessLevel = "editor";
+  } else {
+    document.getElementById("modal-title").textContent = `Enter password — ${activeProject.name}`;
+    document.getElementById("modal-desc").textContent  =
+      "Enter your editor or workshop password to access this project.";
+    modalOverlay.hidden = false;
 
-  const typeLabel = card.type === "what-if" ? "WHAT IF?" : "WHAT IS?";
+    const pwInput  = document.getElementById("modal-password");
+    const pwError  = document.getElementById("modal-error");
+    const pwSubmit = document.getElementById("modal-submit");
 
-  const tagsHTML = card.tags
-    .map(tag => `<span class="tag">${tag}</span>`)
-    .join("");
-
-  const imageHTML = card.imageUrl
-    ? `<img src="${card.imageUrl}" alt="">`
-    : `<span class="card__image-placeholder">Place image here</span>`;
-
-  el.innerHTML = `
-    <header class="card__header">
-      <span class="card__header-project">${project.name}</span>
-      <span class="card__header-type">${typeLabel}</span>
-      <span class="card__header-date">${card.date}</span>
-    </header>
-    <div class="card__body">
-      <div class="card__content">
-        <h1 class="card__title">${card.title}</h1>
-        <p class="card__description">${card.body}</p>
-        <div class="card__tags">${tagsHTML}</div>
-      </div>
-      <div class="card__image-col">
-        <div class="card__image-area">${imageHTML}</div>
-        <span class="card__author">${card.author}</span>
-      </div>
-    </div>
-  `;
-
-  wrapper.appendChild(el);
-  return wrapper;
-}
-
-// ── Scale cards ───────────────────────────────────────────────────────────────
-// Each card is rendered at 900px wide. This scales it to fill its wrapper.
-function scaleCards() {
-  document.querySelectorAll(".card-wrapper").forEach(wrapper => {
-    const scale = wrapper.offsetWidth / 900;
-    wrapper.querySelector(".card").style.transform = `scale(${scale})`;
-  });
-}
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-// Parses "DD.MM.YYYY" into a sortable timestamp
-function parseDate(dateStr) {
-  const [d, m, y] = dateStr.split(".");
-  return new Date(+y, +m - 1, +d).getTime();
-}
-
-// ── Filter & sort state ───────────────────────────────────────────────────────
-let activeType    = "what-is";
-let activeSort    = "newest";
-let activeTags    = new Set();
-let activeAuthors = new Set();
-
-function applySortAndFilters() {
-  // 1. Filter
-  const filtered = cards.filter(card => {
-    const typeMatch   = card.type === activeType;
-    const tagMatch    = activeTags.size === 0    || card.tags.some(t => activeTags.has(t));
-    const authorMatch = activeAuthors.size === 0 || activeAuthors.has(card.author);
-    return typeMatch && tagMatch && authorMatch;
-  });
-
-  // 2. Sort
-  filtered.sort((a, b) =>
-    activeSort === "newest"
-      ? parseDate(b.date) - parseDate(a.date)
-      : parseDate(a.date) - parseDate(b.date)
-  );
-
-  // 3. Hide all, then re-append visible ones in sorted order
-  document.querySelectorAll(".card-wrapper").forEach(w => { w.hidden = true; });
-  filtered.forEach(card => {
-    const wrapper = cardsGrid.querySelector(`.card-wrapper[data-id="${card.id}"]`);
-    if (wrapper) {
-      wrapper.hidden = false;
-      cardsGrid.appendChild(wrapper); // moves to end = sorted order
+    function tryPassword() {
+      const pw = pwInput.value;
+      if (pw === activeProject.editorPassword && pw !== "") {
+        setProjectAccess(projectId, "editor");
+        modalOverlay.hidden = true;
+        initGallery("editor");
+      } else if (pw === activeProject.workshopPassword && pw !== "") {
+        setProjectAccess(projectId, "workshop");
+        modalOverlay.hidden = true;
+        initGallery("workshop");
+      } else {
+        pwError.hidden = false;
+        pwInput.focus();
+      }
     }
-  });
+    pwSubmit.addEventListener("click", tryPassword);
+    pwInput.addEventListener("keydown", e => { if (e.key === "Enter") tryPassword(); });
+  }
+} else {
+  initGallery(accessLevel);
 }
 
-// ── Init ──────────────────────────────────────────────────────────────────────
+// ── Gallery ───────────────────────────────────────────────────────────────────
+function initGallery(access) {
+  const isEditor = access === "editor";
 
-// Project intro
-document.getElementById("project-name").textContent = project.name;
-document.getElementById("project-description").textContent = project.description;
+  // ── Access UI ───────────────────────────────────────────────────────────────
+  const workshopNotice = document.getElementById("workshop-notice");
+  if (workshopNotice) workshopNotice.hidden = isEditor;
+  // ── Nav / header wiring ─────────────────────────────────────────────────────
+  const navAnalysis = document.getElementById("nav-analysis");
+  if (navAnalysis) navAnalysis.href = `analysis.html?project=${projectId}`;
 
-// Render cards
-const cardsGrid = document.getElementById("cards-grid");
-cards.forEach(card => cardsGrid.appendChild(renderCard(card)));
+  // new-card-bar is always visible (holds type toggle); only the button is editor-only
+  const btnNewCard = document.getElementById("btn-new-card");
+  if (btnNewCard) {
+    btnNewCard.hidden = !isEditor;
+    btnNewCard.href = `create.html?project=${projectId}`;
+  }
 
-// Scale cards to fit columns, and re-scale on window resize
-scaleCards();
-window.addEventListener("resize", scaleCards);
+  // Project name in sticky header logo
+  document.getElementById("header-project-name").textContent = activeProject.name;
 
-// Nav type links (What Is? / What If?)
-document.querySelectorAll(".site-nav [data-type]").forEach(link => {
-  link.addEventListener("click", e => {
+  // ── Compact project bar ─────────────────────────────────────────────────────
+  document.getElementById("project-name").textContent        = activeProject.name;
+  document.getElementById("project-description").textContent = activeProject.description || "";
+  document.getElementById("meta-project-by").textContent     = activeProject.projectBy    || "—";
+  document.getElementById("meta-date").textContent           = activeProject.projectDate  || "—";
+  document.getElementById("meta-collaborators").textContent  = activeProject.collaborators || "";
+
+  document.getElementById("btn-project-details").addEventListener("click", () => {
+    const det = document.getElementById("project-details");
+    const btn = document.getElementById("btn-project-details");
+    det.hidden = !det.hidden;
+    btn.textContent = det.hidden ? "Info ↓" : "Info ↑";
+  });
+
+  // ── Logo click resets all filters ───────────────────────────────────────────
+  document.getElementById("header-logo").addEventListener("click", e => {
     e.preventDefault();
-    activeType = link.dataset.type;
-    document.querySelectorAll(".site-nav [data-type]").forEach(l => l.classList.remove("nav-link--active"));
-    link.classList.add("nav-link--active");
+    resetFilters();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  // ── Sticky header height → CSS custom property ──────────────────────────────
+  const headerEl = document.querySelector(".site-header");
+  const syncHeaderHeight = () =>
+    document.documentElement.style.setProperty("--header-h", headerEl.offsetHeight + "px");
+  syncHeaderHeight();
+  window.addEventListener("resize", syncHeaderHeight);
+
+  // ── Cards + state ───────────────────────────────────────────────────────────
+  const cards = getProjectCards(projectId);
+
+  const urlType = new URLSearchParams(window.location.search).get("type");
+  let activeType    = urlType === "what-if" ? "what-if" : "what-is";
+  let activeSort    = "newest";
+  let activeTags    = new Set();
+  let activeAuthors = new Set();
+  let viewMode      = "flat";   // "flat" | "theme" | "creator"
+  let searchQuery   = "";
+
+  const cardsGrid      = document.getElementById("cards-grid");
+  const authorFiltersEl = document.getElementById("author-filters");
+  const tagFiltersEl    = document.getElementById("tag-filters");
+
+  // ── Background mode ─────────────────────────────────────────────────────────
+  function updateBackground() {
+    document.body.classList.toggle("mode-what-if", activeType === "what-if");
+  }
+
+  // ── Type button highlight ───────────────────────────────────────────────────
+  function updateTypeButtons() {
+    document.querySelectorAll(".type-btn").forEach(btn => {
+      btn.classList.toggle("type-btn--active", btn.dataset.type === activeType);
+    });
+  }
+
+  // ── Search match ────────────────────────────────────────────────────────────
+  function matchesSearch(card) {
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    return [card.title, card.body, card.author, (card.tags || []).join(" "), card.references || ""]
+      .some(s => (s || "").toLowerCase().includes(q));
+  }
+
+  // ── Scale ───────────────────────────────────────────────────────────────────
+  function scaleAll() {
+    document.querySelectorAll(".card-wrapper").forEach(scaleCard);
+  }
+
+  // ── Grouped section renderer ────────────────────────────────────────────────
+  function renderSection(label, sectionCards, tagStyle) {
+    const section = document.createElement("div");
+    section.className = "card-section";
+
+    const heading = document.createElement("h2");
+    heading.className = "card-section__heading";
+    if (tagStyle) heading.setAttribute("style", tagStyle);
+    heading.innerHTML =
+      `${escHtml(label)}<span class="card-section__count">${sectionCards.length}</span>`;
+    section.appendChild(heading);
+
+    const grid = document.createElement("div");
+    grid.className = "card-section__grid";
+    sectionCards.forEach(card => grid.appendChild(renderCard(card)));
+    section.appendChild(grid);
+
+    cardsGrid.appendChild(section);
+  }
+
+  // ── Main render ─────────────────────────────────────────────────────────────
+  function renderCards() {
+    let filtered = cards
+      .filter(c => c.type === activeType)
+      .filter(c => !activeTags.size    || c.tags.some(t => activeTags.has(t)))
+      .filter(c => !activeAuthors.size || activeAuthors.has(c.author))
+      .filter(matchesSearch);
+
+    filtered.sort((a, b) => activeSort === "newest"
+      ? parseDate(b.date) - parseDate(a.date)
+      : parseDate(a.date) - parseDate(b.date));
+
+    cardsGrid.innerHTML = "";
+    cardsGrid.classList.toggle("cards-grid--grouped", viewMode !== "flat");
+
+    if (!filtered.length) {
+      cardsGrid.innerHTML = `<p class="cards-empty">No cards match the current filters.</p>`;
+      return;
+    }
+
+    if (viewMode === "flat") {
+      filtered.forEach(card => cardsGrid.appendChild(renderCard(card)));
+
+    } else if (viewMode === "theme") {
+      const usedTags = [...new Set(filtered.flatMap(c => c.tags))].sort();
+      usedTags.forEach(tag => {
+        const tagCards = filtered.filter(c => c.tags.includes(tag));
+        if (!tagCards.length) return;
+        const tc = tagColor(tag);
+        renderSection(tag, tagCards, `--tag-bg:${tc.bg};--tag-color:${tc.text}`);
+      });
+      const untagged = filtered.filter(c => !c.tags.length);
+      if (untagged.length) renderSection("Untagged", untagged, "");
+
+    } else if (viewMode === "creator") {
+      const authors = [...new Set(filtered.map(c => c.author).filter(Boolean))].sort();
+      authors.forEach(author => {
+        const ac = filtered.filter(c => c.author === author);
+        renderSection(author, ac, "");
+      });
+      const anon = filtered.filter(c => !c.author);
+      if (anon.length) renderSection("—", anon, "");
+    }
+
+    scaleAll();
+  }
+
+  // ── Filter button builder ───────────────────────────────────────────────────
+  function buildFilterButtons() {
+    const typeCards = cards.filter(c => c.type === activeType);
+
+    // AUTHORS
+    authorFiltersEl.innerHTML = "";
+
+    const allAuthBtn = document.createElement("button");
+    allAuthBtn.className = "filter-btn" + (activeAuthors.size === 0 ? " filter-btn--active" : "");
+    allAuthBtn.textContent = "All";
+    allAuthBtn.addEventListener("click", () => {
+      activeAuthors.clear(); buildFilterButtons(); renderCards();
+    });
+    authorFiltersEl.appendChild(allAuthBtn);
+
+    [...new Set(typeCards.map(c => c.author).filter(Boolean))].sort().forEach(author => {
+      const btn = document.createElement("button");
+      btn.className = "filter-btn" + (activeAuthors.has(author) ? " filter-btn--active" : "");
+      btn.textContent = author;
+      btn.addEventListener("click", () => {
+        if (activeAuthors.has(author)) activeAuthors.delete(author); else activeAuthors.add(author);
+        buildFilterButtons(); renderCards();
+      });
+      authorFiltersEl.appendChild(btn);
+    });
+
+    // TAGS
+    tagFiltersEl.innerHTML = "";
+
+    const allTagBtn = document.createElement("button");
+    allTagBtn.className = "filter-btn" + (activeTags.size === 0 ? " filter-btn--active" : "");
+    allTagBtn.textContent = "All";
+    allTagBtn.addEventListener("click", () => {
+      activeTags.clear(); buildFilterButtons(); renderCards();
+    });
+    tagFiltersEl.appendChild(allTagBtn);
+
+    [...new Set(typeCards.flatMap(c => c.tags))].sort().forEach(tag => {
+      const btn = document.createElement("button");
+      btn.className = "filter-btn" + (activeTags.has(tag) ? " filter-btn--active" : "");
+      btn.textContent = tag;
+      const tc = tagColor(tag);
+      btn.style.setProperty("--tag-bg", tc.bg);
+      btn.style.setProperty("--tag-color", tc.text);
+      btn.addEventListener("click", () => {
+        if (activeTags.has(tag)) activeTags.delete(tag); else activeTags.add(tag);
+        buildFilterButtons(); renderCards();
+      });
+      tagFiltersEl.appendChild(btn);
+    });
+  }
+
+  // ── Reset all filters ───────────────────────────────────────────────────────
+  function resetFilters() {
+    activeType = "what-is";
+    activeSort = "newest";
     activeTags.clear();
     activeAuthors.clear();
-    document.querySelectorAll(".filter-btn").forEach(b => {
-      if (!b.dataset.sort) b.classList.remove("filter-btn--active");
+    viewMode   = "flat";
+    searchQuery = "";
+    document.getElementById("filter-search").value = "";
+    document.querySelectorAll("#sort-filters .filter-btn").forEach((b, i) =>
+      b.classList.toggle("filter-btn--active", i === 0));
+    document.querySelectorAll("#view-filters .filter-btn").forEach((b, i) =>
+      b.classList.toggle("filter-btn--active", i === 0));
+    updateTypeButtons();
+    updateBackground();
+    buildFilterButtons();
+    renderCards();
+  }
+
+  // ── Type toggle ─────────────────────────────────────────────────────────────
+  document.querySelectorAll(".type-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (btn.dataset.type === activeType) return;
+      activeType = btn.dataset.type;
+      activeTags.clear();
+      activeAuthors.clear();
+      updateTypeButtons();
+      updateBackground();
+      buildFilterButtons();
+      renderCards();
     });
-    applySortAndFilters();
   });
-});
 
-// Sort buttons (Newest / Oldest)
-document.querySelectorAll("#sort-filters .filter-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    activeSort = btn.dataset.sort;
-    document.querySelectorAll("#sort-filters .filter-btn").forEach(b => b.classList.remove("filter-btn--active"));
-    btn.classList.add("filter-btn--active");
-    applySortAndFilters();
+  // ── Sort ────────────────────────────────────────────────────────────────────
+  document.querySelectorAll("#sort-filters .filter-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (btn.dataset.sort === activeSort) return;
+      activeSort = btn.dataset.sort;
+      document.querySelectorAll("#sort-filters .filter-btn")
+        .forEach(b => b.classList.toggle("filter-btn--active", b === btn));
+      renderCards();
+    });
   });
-});
 
-// Author filter buttons — generated from unique authors across all cards
-const allAuthors = [...new Set(cards.map(c => c.author))].sort();
-const authorFiltersEl = document.getElementById("author-filters");
-
-allAuthors.forEach(author => {
-  const btn = document.createElement("button");
-  btn.className = "filter-btn";
-  btn.textContent = author;
-  btn.addEventListener("click", () => {
-    if (activeAuthors.has(author)) {
-      activeAuthors.delete(author);
-      btn.classList.remove("filter-btn--active");
-    } else {
-      activeAuthors.add(author);
-      btn.classList.add("filter-btn--active");
-    }
-    applySortAndFilters();
+  // ── Organise (view mode) ────────────────────────────────────────────────────
+  document.querySelectorAll("#view-filters .filter-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (btn.dataset.view === viewMode) return;
+      viewMode = btn.dataset.view;
+      document.querySelectorAll("#view-filters .filter-btn")
+        .forEach(b => b.classList.toggle("filter-btn--active", b === btn));
+      renderCards();
+    });
   });
-  authorFiltersEl.appendChild(btn);
-});
 
-// Tag filter buttons — generated from all unique tags across all cards
-const allTags = [...new Set(cards.flatMap(c => c.tags))].sort();
-const tagFiltersEl = document.getElementById("tag-filters");
-
-allTags.forEach(tag => {
-  const btn = document.createElement("button");
-  btn.className = "filter-btn";
-  btn.textContent = tag;
-  btn.addEventListener("click", () => {
-    if (activeTags.has(tag)) {
-      activeTags.delete(tag);
-      btn.classList.remove("filter-btn--active");
-    } else {
-      activeTags.add(tag);
-      btn.classList.add("filter-btn--active");
-    }
-    applySortAndFilters();
+  // ── Search ──────────────────────────────────────────────────────────────────
+  document.getElementById("filter-search").addEventListener("input", e => {
+    searchQuery = e.target.value.trim();
+    renderCards();
   });
-  tagFiltersEl.appendChild(btn);
-});
 
-// Apply initial filter and sort on load
-applySortAndFilters();
+  // ── Card click ──────────────────────────────────────────────────────────────
+  cardsGrid.addEventListener("click", e => {
+    const wrapper = e.target.closest(".card-wrapper");
+    if (!wrapper) return;
+    const id = wrapper.dataset.id;
+    const card = cards.find(c => c.id === id);
+    if (!card) return;
+    window.location.href = `card.html?id=${id}&type=${card.type}&project=${projectId}`;
+  });
 
-// ── Print mode ────────────────────────────────────────────────────────────────
+  // ── Resize ──────────────────────────────────────────────────────────────────
+  window.addEventListener("resize", scaleAll);
 
-document.getElementById("btn-print").addEventListener("click", () => {
-  document.body.classList.add("is-print-mode");
-});
+  // ── Data portability (editor only) ─────────────────────────────────────────
+  const dataActionsEl = document.getElementById("project-data-actions");
+  if (dataActionsEl && isEditor) dataActionsEl.hidden = false;
 
-document.getElementById("btn-cancel-print").addEventListener("click", () => {
-  document.body.classList.remove("is-print-mode");
-});
+  document.getElementById("btn-export-json").addEventListener("click", () => {
+    const exportData = {
+      project: activeProject,
+      cards: getProjectCards(projectId),
+      exportedAt: new Date().toISOString(),
+      version: 1
+    };
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `${projectId}-cards.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
 
-document.getElementById("btn-save-pdf").addEventListener("click", () => {
-  window.print();
-});
+  document.getElementById("input-import-json").addEventListener("change", e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const statusEl = document.getElementById("import-status");
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        const incoming = Array.isArray(data) ? data
+          : Array.isArray(data.cards) ? data.cards
+          : null;
+        if (!incoming) throw new Error("Unrecognised format");
+
+        const allCards = getAllCards();
+        const existingIds = new Set(allCards.map(c => c.id));
+        let added = 0;
+        incoming.forEach(card => {
+          if (!card.id || !card.type) return;
+          card.projectId = projectId;
+          if (!existingIds.has(card.id)) {
+            allCards.push(card);
+            added++;
+          }
+        });
+        localStorage.setItem("whats-cards", JSON.stringify(allCards));
+        statusEl.textContent = `${added} card${added !== 1 ? "s" : ""} imported.`;
+        statusEl.className = "project-bar__import-status project-bar__import-status--ok";
+        setTimeout(() => window.location.reload(), 800);
+      } catch {
+        statusEl.textContent = "Import failed — invalid file.";
+        statusEl.className = "project-bar__import-status project-bar__import-status--err";
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  });
+
+  // ── Print ───────────────────────────────────────────────────────────────────
+  document.getElementById("btn-print").addEventListener("click", () => {
+    document.body.classList.add("is-print-mode");
+  });
+  document.getElementById("btn-cancel-print").addEventListener("click", () => {
+    document.body.classList.remove("is-print-mode");
+  });
+  document.getElementById("btn-save-pdf").addEventListener("click", () => {
+    window.print();
+  });
+
+  // ── Init ────────────────────────────────────────────────────────────────────
+  updateTypeButtons();
+  updateBackground();
+  buildFilterButtons();
+  renderCards();
+}

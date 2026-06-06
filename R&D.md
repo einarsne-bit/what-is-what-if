@@ -188,6 +188,13 @@ Based on the research, here are suggested adjustments to ROADMAP.md (recorded he
 - Webix, Arcenik — vanilla JS vs. framework decision guidance
 - DanubeData, Plausible — EU/GDPR hosting alternatives (Hetzner, Bunny CDN); self-hosted fonts
 
+*Sample research context*
+I would like you to reference these links for sample project context for when we need to work on simulated use and content: https://medium.com/digital-urban-living/design-for-coastal-development-57f0d1168721
+https://medium.com/digital-urban-living/the-coast-as-a-host-3c46f179f3a6
+https://medium.com/digital-urban-living/the-coast-as-a-host-4dad957dad8c
+https://medium.com/digital-urban-living/design-for-kystutvikling-2025-møteplasser-6dd35f05580a
+https://medium.com/digital-urban-living/design-for-møteplasser-589143c45c0d
+
 ---
 
 *Last updated: initial R&D session, pre-build*
