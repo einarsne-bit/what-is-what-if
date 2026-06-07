@@ -98,10 +98,10 @@
     // ── New card button (editor only) ────────────────────────────────────────
     const btnNewCard = document.getElementById("btn-new-card");
     if (btnNewCard && isEditor) {
-      btnNewCard.hidden = false;
+      btnNewCard.className = `btn-new-card btn-new-card--${activeType}`;
       btnNewCard.href = `create.html?project=${projectId}&type=${activeType}`;
       btnNewCard.textContent = activeType === "what-if" ? "+ New What If?" : "+ New What Is?";
-      btnNewCard.className = `btn-new-card btn-new-card--${activeType}`;
+      btnNewCard.hidden = false;
     }
 
     // ── Unified project header ────────────────────────────────────────────────

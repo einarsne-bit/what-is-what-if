@@ -34,8 +34,8 @@
 :root {
   --color-black:       #000000;
   --color-white:       #FFFFFF;
-  --color-bg:          #E8E8E8;     /* light grey base for halftone */
-  --color-dot:         #000000;     /* halftone dot color */
+  --color-bg:          #F8F8F6;     /* warm off-white — paper ground */
+  --color-dot:         #000000;     /* grid line color */
   --color-card-bg:     #FFFFFF;
   --color-border:      #000000;     /* hard black border */
   --color-header-bg:   var(--color-riso-green);  /* What Is? header */
@@ -44,17 +44,17 @@
   --color-tag-bg:      #FFFFFF;
   --color-muted:       #555555;
 
-  /* Shadows — dark grey, not pure black, to ease the contrast */
+  /* Shadows */
   --color-shadow: #3A3A3A;
   --card-shadow:  6px 6px 0 var(--color-shadow);
   --btn-shadow:   none;
 
-  /* Risograph spot colours — muted, as ink on paper */
-  --color-riso-pink:   #E898BE;   /* Soft Rose */
-  --color-riso-blue:   #7CA8D5;   /* Pale Cornflower */
-  --color-riso-yellow: #EDD765;   /* Pale Sunflower */
-  --color-riso-orange: #EAA070;   /* Soft Coral */
-  --color-riso-green:  #68BE8C;   /* Muted Sage */
+  /* GT Mechanik–derived palette */
+  --color-riso-green:  #0B6B00;   /* Forest green — What Is? */
+  --color-riso-pink:   #FF4CB2;   /* Electric magenta — What If? */
+  --color-riso-yellow: #E8F80D;   /* Acid yellow — CTA / highlight */
+  --color-riso-blue:   #CEE4DB;   /* Muted mint — hover / subtle */
+  --color-riso-orange: #90991A;   /* Olive — tertiary accent */
 
   /* Card */
   --card-width:        900px;
@@ -95,14 +95,12 @@ body {
   min-height: 100vh;
   padding: 48px 32px;
 
-  /* Halftone dot pattern — fine, low contrast */
+  /* Fine grid — 24px × 8pt, faint ink on paper */
   background-color: var(--color-bg);
-  background-image: radial-gradient(
-    circle,
-    rgba(0,0,0,0.18) 0.75px,
-    transparent 0.75px
-  );
-  background-size: 10px 10px;
+  background-image:
+    linear-gradient(rgba(0,0,0,0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.07) 1px, transparent 1px);
+  background-size: 24px 24px;
   transition: background-color 0.35s ease;
 }
 
@@ -125,12 +123,10 @@ body.project-page .site-header {
   margin-bottom: 0;
   padding: 0;
   background-color: var(--color-bg);
-  background-image: radial-gradient(
-    circle,
-    rgba(0,0,0,0.18) 0.75px,
-    transparent 0.75px
-  );
-  background-size: 10px 10px;
+  background-image:
+    linear-gradient(rgba(0,0,0,0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.07) 1px, transparent 1px);
+  background-size: 24px 24px;
 }
 
 
@@ -145,18 +141,9 @@ body.gallery-page .new-card-bar {
   position: sticky;
   top: var(--header-h);
   z-index: 150;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 0;
-  margin-bottom: 0;
-  background-color: var(--color-bg);
-  background-image: radial-gradient(
-    circle,
-    rgba(0,0,0,0.18) 0.75px,
-    transparent 0.75px
-  );
-  background-size: 10px 10px;
+  padding: 16px 0;
+  margin-bottom: 8px;
+  background: none;
 }
 
 
@@ -274,10 +261,15 @@ body.gallery-page .new-card-bar {
   margin-left: 0;
 }
 
-.nav-link--active,
 .nav-link:hover {
   background: var(--color-riso-blue);
   color: var(--color-black);
+  z-index: 1;
+}
+
+.nav-link--active {
+  background: var(--color-riso-green);
+  color: var(--color-white);
   z-index: 1;
 }
 
@@ -386,8 +378,10 @@ body.print-page {
   gap: 16px;
   padding: 10px 32px;
   background-color: var(--color-bg);
-  background-image: radial-gradient(circle, rgba(0,0,0,0.18) 0.75px, transparent 0.75px);
-  background-size: 10px 10px;
+  background-image:
+    linear-gradient(rgba(0,0,0,0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.07) 1px, transparent 1px);
+  background-size: 24px 24px;
   border-bottom: var(--border-width) solid var(--color-black);
 }
 
@@ -627,7 +621,13 @@ body.print-page {
 
 .filter-bar__type-toggle {
   display: flex;
-  gap: 0;
+  gap: 4px;
+}
+
+/* Sort / view / author / tag button containers */
+#sort-filters, #view-filters {
+  display: flex;
+  gap: 4px;
 }
 
 /* Type toggle buttons — dominant, larger than filter buttons */
@@ -653,12 +653,14 @@ body.print-page {
 .type-btn--what-is.type-btn--active {
   background: var(--color-riso-green);
   border-color: var(--color-riso-green);
+  color: var(--color-white);
   z-index: 1;
 }
 
 .type-btn--what-if.type-btn--active {
   background: var(--color-riso-pink);
   border-color: var(--color-riso-pink);
+  color: var(--color-black);
   z-index: 1;
 }
 
@@ -720,7 +722,7 @@ body.print-page {
 .filter-bar__tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 0;
+  gap: 4px;
 }
 
 .filter-btn {
@@ -730,34 +732,33 @@ body.print-page {
   text-transform: uppercase;
   padding: 6px 14px;
   border: var(--border-width) solid var(--color-black);
-  background: var(--tag-bg, var(--color-white));
-  color: var(--tag-color, var(--color-black));
+  background: var(--color-white);
+  color: var(--color-black);
   cursor: pointer;
-  margin-left: -2px;
-  box-shadow: var(--btn-shadow);
-  position: relative;
-  transition: background 0.1s, color 0.1s;
+  transition: background 0.1s;
 }
 
-.filter-btn:first-child {
-  margin-left: 0;
-}
-
-.filter-btn--active,
 .filter-btn:hover {
   background: var(--color-riso-blue);
-  color: var(--color-black);
-  border-color: var(--color-riso-blue);
-  z-index: 1;
+}
+
+.filter-btn--active {
+  background: var(--color-riso-yellow);
+  border-color: var(--color-black);
 }
 
 .filter-btn:active {
-  transform: translate(2px, 2px);
-  box-shadow: none;
+  transform: translate(1px, 1px);
 }
 
-/* ── New card buttons ───────────────────────────── */
+/* ── New card bar — white panel containing mode label + create button ── */
 .new-card-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--color-white);
+  border: var(--border-width) solid var(--color-black);
+  padding: 16px 24px;
   margin-bottom: 24px;
 }
 
@@ -796,18 +797,21 @@ body.print-page {
 
 .btn-new-card--what-is {
   background: var(--color-riso-green);
+  color: var(--color-white);
 }
 
 .btn-new-card--what-is:hover {
-  background: #88d8ac;
+  background: #0d8500;
+  color: var(--color-white);
 }
 
 .btn-new-card--what-if {
   background: var(--color-riso-pink);
+  color: var(--color-black);
 }
 
 .btn-new-card--what-if:hover {
-  background: #f0aed0;
+  background: #ff70c6;
 }
 
 /* ── Cards grid ─────────────────────────────────── */
@@ -940,6 +944,10 @@ body.print-page {
   text-transform: uppercase;
   justify-self: center;
 }
+
+/* Type colour coding on the card header label */
+.card:not(.card--what-if) .card__header-type { color: var(--color-riso-green); }
+.card--what-if .card__header-type            { color: var(--color-riso-pink); }
 
 .card__header-date {
   font-size: 14px;
@@ -1283,13 +1291,16 @@ body.print-page {
   margin-left: 0;
 }
 
-.sidebar-btn--active,
 .sidebar-btn:hover {
   background: var(--color-riso-blue);
   color: var(--color-black);
   border-color: var(--color-riso-blue);
-  position: relative;
-  z-index: 1;
+}
+
+.sidebar-btn--active {
+  background: var(--color-riso-yellow);
+  color: var(--color-black);
+  border-color: var(--color-black);
 }
 
 .sidebar__input {
