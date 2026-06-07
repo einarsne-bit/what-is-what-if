@@ -60,15 +60,25 @@
   --card-width:        900px;
   --border-width:      2px;
 
-  /* Typography */
-  --font-sans:         'IBM Plex Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  --font-mono:         'IBM Plex Mono', 'Courier New', Courier, monospace;
+  /* Typography — six-level scale */
+  --font-sans:    'IBM Plex Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-mono:    'IBM Plex Mono', 'Courier New', Courier, monospace;
+  --text-micro:   11px;   /* uppercase meta labels, tags */
+  --text-sm:      13px;   /* nav, filters, secondary UI */
+  --text-base:    15px;   /* body copy */
+  --text-md:      18px;   /* mode heading, section heads */
+  --text-lg:      24px;   /* project name */
+  --text-xl:      32px;   /* display / stat values */
 
-  /* Spacing */
-  --space-xs:   6px;
-  --space-sm:   12px;
-  --space-md:   20px;
-  --space-lg:   28px;
+  /* Spacing — 8pt grid */
+  --space-xs:   8px;
+  --space-sm:   16px;
+  --space-md:   24px;
+  --space-lg:   32px;
+
+  /* Layout */
+  --header-h:     56px;   /* explicit sticky header height */
+  --page-gutter:  32px;   /* consistent horizontal page margin */
 }
 
 /* ── Reset ──────────────────────────────────────── */
@@ -111,8 +121,9 @@ body.project-page .site-header {
   position: sticky;
   top: 0;
   z-index: 200;
+  height: var(--header-h);
   margin-bottom: 0;
-  padding: 10px 0;
+  padding: 0;
   background-color: var(--color-bg);
   background-image: radial-gradient(
     circle,
@@ -123,10 +134,16 @@ body.project-page .site-header {
 }
 
 
+/* Max-width page container used on all project pages */
+.page-wrapper {
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
 /* Sticky new-card-bar: sits just below the sticky header */
 body.gallery-page .new-card-bar {
   position: sticky;
-  top: var(--header-h, 60px);
+  top: var(--header-h);
   z-index: 150;
   display: flex;
   align-items: center;
@@ -153,7 +170,7 @@ body.gallery-page .new-card-bar {
 }
 
 .project-info-box__col {
-  padding: 16px 20px;
+  padding: 16px 24px;
 }
 
 .project-info-box__col--meta {
@@ -161,14 +178,14 @@ body.gallery-page .new-card-bar {
 }
 
 .project-info-box__name {
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 900;
   letter-spacing: -0.01em;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .project-info-box__description {
-  font-size: 13px;
+  font-size: var(--text-sm);
   line-height: 1.65;
   color: var(--color-black);
   margin: 0;
@@ -176,17 +193,17 @@ body.gallery-page .new-card-bar {
 
 .project-info-box__meta-row {
   display: flex;
-  gap: 10px;
-  font-size: 12px;
+  gap: 8px;
+  font-size: var(--text-sm);
   line-height: 1.5;
-  margin-bottom: 5px;
+  margin-bottom: 8px;
   color: var(--color-black);
 }
 
 .project-info-box__meta-row:last-child { margin-bottom: 0; }
 
 .project-info-box__meta-label {
-  font-size: 10px;
+  font-size: var(--text-micro);
   font-weight: 700;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -199,14 +216,14 @@ body.gallery-page .new-card-bar {
 /* site-title with project name */
 
 .site-title__sep {
-  font-size: 14px;
+  font-size: var(--text-sm);
   font-weight: 400;
   opacity: 0.5;
   margin: 0 4px;
 }
 
 .site-title__project {
-  font-size: 14px;
+  font-size: var(--text-sm);
   font-weight: 700;
   letter-spacing: -0.01em;
   opacity: 0.85;
@@ -217,17 +234,17 @@ body.gallery-page .new-card-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 40px;
+  margin-bottom: 32px;
 }
 
 .site-title {
-  font-size: 22px;
+  font-size: var(--text-md);
   font-weight: 900;
   letter-spacing: -0.03em;
   color: var(--color-black);
   background: var(--color-white);
   border: var(--border-width) solid var(--color-black);
-  padding: 4px 14px;
+  padding: 6px 14px;
 }
 
 .site-nav {
@@ -237,12 +254,12 @@ body.gallery-page .new-card-bar {
 
 .nav-link {
   font-family: inherit;
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   text-decoration: none;
-  padding: 6px 16px;
+  padding: 8px 16px;
   border: var(--border-width) solid var(--color-black);
   background: var(--color-white);
   color: var(--color-black);
@@ -303,7 +320,7 @@ body.gallery-page .new-card-bar {
 
 .nav-more__item {
   font-family: inherit;
-  font-size: 11px;
+  font-size: var(--text-sm);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -339,7 +356,7 @@ body.gallery-page .new-card-bar {
 
 /* ── Site header home link ──────────────────────── */
 .site-header__home {
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -347,7 +364,7 @@ body.gallery-page .new-card-bar {
   color: var(--color-black);
   background: var(--color-white);
   border: var(--border-width) solid var(--color-black);
-  padding: 6px 14px;
+  padding: 8px 14px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -375,7 +392,7 @@ body.print-page {
 }
 
 .print-controls__back {
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -385,7 +402,7 @@ body.print-page {
 }
 
 .print-controls__project {
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 900;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -399,18 +416,18 @@ body.print-page {
 }
 
 .print-controls__count {
-  font-size: 11px;
+  font-size: var(--text-sm);
   color: var(--color-muted);
   white-space: nowrap;
 }
 
 .print-controls__sel-btn {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--text-sm);
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  padding: 5px 12px;
+  padding: 6px 12px;
   background: transparent;
   color: var(--color-black);
   border: var(--border-width) solid var(--color-black);
@@ -425,11 +442,11 @@ body.print-page {
 
 .btn-print-now {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 900;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  padding: 7px 18px;
+  padding: 8px 18px;
   background: var(--color-black);
   color: var(--color-white);
   border: var(--border-width) solid var(--color-black);
@@ -460,15 +477,15 @@ body.print-page {
 .pdf-progress__box {
   background: var(--color-white);
   border: var(--border-width) solid var(--color-black);
-  padding: 28px 36px;
+  padding: 32px;
   min-width: 320px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 }
 
 .pdf-progress__label {
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -491,11 +508,11 @@ body.print-page {
 
 .pdf-progress__cancel {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--text-sm);
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  padding: 5px 14px;
+  padding: 6px 14px;
   background: transparent;
   color: var(--color-black);
   border: var(--border-width) solid var(--color-black);
@@ -555,14 +572,14 @@ body.print-page {
 }
 
 .project-intro__name {
-  font-size: 24px;
+  font-size: var(--text-lg);
   font-weight: 900;
   letter-spacing: -0.03em;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .project-intro__description {
-  font-size: 15px;
+  font-size: var(--text-base);
   line-height: 1.6;
   color: var(--color-muted);
 }
@@ -582,7 +599,7 @@ body.print-page {
 }
 
 .project-meta__label {
-  font-size: 10px;
+  font-size: var(--text-micro);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -592,19 +609,19 @@ body.print-page {
 }
 
 .project-meta__value {
-  font-size: 14px;
+  font-size: var(--text-sm);
   line-height: 1.5;
   color: var(--color-black);
 }
 
 /* ── Filter bar ─────────────────────────────────── */
 .filter-bar {
-  margin-bottom: 24px;
+  margin-bottom: 32px;
 }
 
 /* Row 1: search bar */
 .filter-bar__top {
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   padding-top: 8px;
 }
 
@@ -616,11 +633,11 @@ body.print-page {
 /* Type toggle buttons — dominant, larger than filter buttons */
 .type-btn {
   font-family: inherit;
-  font-size: 14px;
+  font-size: var(--text-base);
   font-weight: 900;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  padding: 9px 28px;
+  padding: 10px 28px;
   border: var(--border-width) solid var(--color-black);
   background: var(--color-white);
   color: var(--color-black);
@@ -683,13 +700,13 @@ body.print-page {
 }
 
 .filter-bar__group-label {
-  font-size: 10px;
+  font-size: var(--text-micro);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-muted);
   white-space: nowrap;
-  min-width: 56px;
+  min-width: 64px;
   padding-top: 5px;
   flex-shrink: 0;
 }
@@ -707,11 +724,11 @@ body.print-page {
 }
 
 .filter-btn {
-  font-size: 11px;
+  font-size: var(--text-sm);
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  padding: 5px 14px;
+  padding: 6px 14px;
   border: var(--border-width) solid var(--color-black);
   background: var(--tag-bg, var(--color-white));
   color: var(--tag-color, var(--color-black));
@@ -745,7 +762,7 @@ body.print-page {
 }
 
 .mode-heading {
-  font-size: 20px;
+  font-size: var(--text-md);
   font-weight: 900;
   letter-spacing: 0.03em;
   margin: 0;
@@ -754,7 +771,7 @@ body.print-page {
 
 .btn-new-card {
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 900;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -796,7 +813,7 @@ body.print-page {
 /* ── Cards grid ─────────────────────────────────── */
 .cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
   gap: 32px;
 }
 
@@ -856,7 +873,7 @@ body.print-page {
   grid-column: 1 / -1;
   text-align: center;
   padding: 64px 0;
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--color-muted);
   letter-spacing: 0.04em;
 }
@@ -1222,7 +1239,7 @@ body.print-page {
 }
 
 .sidebar__title {
-  font-size: 18px;
+  font-size: var(--text-md);
   font-weight: 900;
   letter-spacing: -0.02em;
 }
@@ -1232,7 +1249,7 @@ body.print-page {
   border-bottom: var(--border-width) solid var(--color-black);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .sidebar__label {
@@ -1566,11 +1583,11 @@ body.print-page {
 
 .btn-card-print {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--text-sm);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  padding: 7px 18px;
+  padding: 8px 18px;
   background: var(--color-white);
   color: var(--color-black);
   border: var(--border-width) solid var(--color-black);
@@ -1590,12 +1607,12 @@ body.print-page {
 
 .btn-card-edit {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--text-sm);
   font-weight: 900;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   text-decoration: none;
-  padding: 7px 18px;
+  padding: 8px 18px;
   background: var(--color-riso-yellow);
   color: var(--color-black);
   border: var(--border-width) solid var(--color-black);
@@ -1614,11 +1631,11 @@ body.print-page {
 
 .btn-card-delete {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--text-sm);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  padding: 7px 18px;
+  padding: 8px 18px;
   background: var(--color-white);
   color: var(--color-black);
   border: var(--border-width) solid var(--color-black);
@@ -2023,7 +2040,7 @@ body.print-page {
 
 .analysis-header {
   border-bottom: 1px solid var(--color-border);
-  padding: 28px 48px 20px;
+  padding: 32px 48px 24px;
 }
 
 .analysis-header__inner {
@@ -2063,7 +2080,7 @@ body.print-page {
 .stat-tile:last-child { border-right: none; }
 
 .stat-tile__value {
-  font-size: 36px;
+  font-size: var(--text-xl);
   font-weight: 900;
   letter-spacing: -0.03em;
   line-height: 1;
