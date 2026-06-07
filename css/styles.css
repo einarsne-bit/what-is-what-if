@@ -377,6 +377,25 @@ body.print-page {
   white-space: nowrap;
 }
 
+.print-controls__sel-btn {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  background: transparent;
+  color: var(--color-black);
+  border: var(--border-width) solid var(--color-black);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.print-controls__sel-btn:hover {
+  background: var(--color-black);
+  color: var(--color-white);
+}
+
 .btn-print-now {
   font-family: var(--font-sans);
   font-size: 12px;
@@ -459,10 +478,33 @@ body.print-page {
 }
 
 .print-cards {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
   gap: 24px;
   padding: 32px;
+}
+
+/* Card selection state on print page */
+.print-cards .card-wrapper {
+  opacity: 0.35;
+  transition: opacity 0.15s;
+}
+
+.print-cards .card-wrapper.is-selected {
+  opacity: 1;
+}
+
+.print-cards .card-wrapper::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 3px solid transparent;
+  pointer-events: none;
+  transition: border-color 0.15s;
+}
+
+.print-cards .card-wrapper.is-selected::after {
+  border-color: var(--color-black);
 }
 
 /* ── Project header row ─────────────────────────── */

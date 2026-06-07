@@ -8,20 +8,22 @@
   </head>
   <body class="print-page">
 
-    <!-- On-screen controls -->
+    <!-- Controls bar -->
     <div class="print-controls" id="print-controls">
       <a class="print-controls__back" id="print-back" href="#">← Back</a>
       <span class="print-controls__project" id="print-project-name"></span>
       <div class="print-controls__filters">
-        <button class="filter-btn filter-btn--active" data-filter="all">All cards</button>
-        <button class="filter-btn" data-filter="what-is">What Is? only</button>
-        <button class="filter-btn" data-filter="what-if">What If? only</button>
+        <button class="filter-btn filter-btn--active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="what-is">What Is?</button>
+        <button class="filter-btn" data-filter="what-if">What If?</button>
       </div>
+      <button class="print-controls__sel-btn" id="btn-select-all">Select all</button>
+      <button class="print-controls__sel-btn" id="btn-deselect-all">Deselect all</button>
       <span class="print-controls__count" id="print-count"></span>
       <button class="btn-print-now" id="btn-export-pdf">Export PDF</button>
     </div>
 
-    <!-- Progress overlay — shown during PDF generation -->
+    <!-- Progress overlay -->
     <div class="pdf-progress" id="pdf-progress" hidden>
       <div class="pdf-progress__box">
         <p class="pdf-progress__label" id="pdf-progress-label">Preparing…</p>
@@ -32,7 +34,7 @@
       </div>
     </div>
 
-    <!-- Cards rendered here -->
+    <!-- Selectable card grid -->
     <div class="print-cards" id="print-cards"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

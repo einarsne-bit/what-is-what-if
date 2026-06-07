@@ -12,6 +12,7 @@
   document.getElementById("print-back").href = `gallery.html?project=${projectId}`;
 
   let activeFilter = params.get("type") || "all";
+  const selected   = new Set(); // card IDs currently selected for export
 
   const cardsEl    = document.getElementById("print-cards");
   const countEl    = document.getElementById("print-count");
@@ -22,16 +23,13 @@
 
   let cancelled = false;
 
-  // Cancel immediately closes the overlay — html2canvas may finish in background
-  // but we check cancelled before adding each page to the PDF
+  // Cancel: immediately close overlay regardless of what is running
   cancelBtn.addEventListener("click", () => {
     cancelled = true;
     progressEl.hidden = true;
   });
 
-  document.querySelectorAll(".print-controls__filters .filter-btn").forEach(btn => {
-    btn.classList.toggle("filter-btn--active", btn.dataset.filter === activeFilter);
-  });
+  // ── Helpers ───────────────────────────────────────────────────────────────────
 
   function getFiltered() {
     return cards
@@ -42,19 +40,58 @@
       });
   }
 
+  function updateCount() {
+    const n = selected.size;
+    countEl.textContent = `${n} card${n !== 1 ? "s" : ""} selected`;
+    document.getElementById("btn-export-pdf").textContent =
+      n ? `Export PDF (${n})` : "Export PDF";
+  }
+
+  function setSelected(id, on) {
+    on ? selected.add(id) : selected.delete(id);
+    const wrapper = cardsEl.querySelector(`[data-id="${id}"]`);
+    if (wrapper) wrapper.classList.toggle("is-selected", on);
+    updateCount();
+  }
+
+  // ── Render selectable card grid ───────────────────────────────────────────────
+
   function renderPrintCards() {
     cardsEl.innerHTML = "";
     const filtered = getFiltered();
-    countEl.textContent = `${filtered.length} card${filtered.length !== 1 ? "s" : ""}`;
-    filtered.forEach(card => cardsEl.appendChild(renderCard(card)));
+
+    // Keep previously selected cards that are still visible; select new ones
+    const visibleIds = new Set(filtered.map(c => c.id));
+    // Remove selected IDs no longer visible
+    for (const id of selected) {
+      if (!visibleIds.has(id)) selected.delete(id);
+    }
+    // Select all newly visible cards by default
+    filtered.forEach(c => selected.add(c.id));
+
+    filtered.forEach(card => {
+      const wrapper = renderCard(card);
+      wrapper.classList.add("is-selected");
+      wrapper.style.cursor = "pointer";
+      wrapper.title = "Click to select / deselect";
+      wrapper.addEventListener("click", () => {
+        setSelected(card.id, !selected.has(card.id));
+      });
+      cardsEl.appendChild(wrapper);
+    });
+
     document.querySelectorAll("#print-cards .card-wrapper").forEach(scaleCard);
+    updateCount();
   }
 
   window.addEventListener("resize", () => {
     document.querySelectorAll("#print-cards .card-wrapper").forEach(scaleCard);
   });
 
+  // ── Filter buttons ────────────────────────────────────────────────────────────
+
   document.querySelectorAll(".print-controls__filters .filter-btn").forEach(btn => {
+    btn.classList.toggle("filter-btn--active", btn.dataset.filter === activeFilter);
     btn.addEventListener("click", () => {
       activeFilter = btn.dataset.filter;
       document.querySelectorAll(".print-controls__filters .filter-btn")
@@ -63,20 +100,33 @@
     });
   });
 
+  // ── Select / deselect all ─────────────────────────────────────────────────────
+
+  document.getElementById("btn-select-all").addEventListener("click", () => {
+    cardsEl.querySelectorAll(".card-wrapper").forEach(w => {
+      selected.add(w.dataset.id);
+      w.classList.add("is-selected");
+    });
+    updateCount();
+  });
+
+  document.getElementById("btn-deselect-all").addEventListener("click", () => {
+    cardsEl.querySelectorAll(".card-wrapper").forEach(w => {
+      selected.delete(w.dataset.id);
+      w.classList.remove("is-selected");
+    });
+    updateCount();
+  });
+
   // ── PDF export ────────────────────────────────────────────────────────────────
+
   document.getElementById("btn-export-pdf").addEventListener("click", async () => {
-    const filtered = getFiltered();
-    if (!filtered.length) return;
+    const toExport = getFiltered().filter(c => selected.has(c.id));
+    if (!toExport.length) { alert("No cards selected."); return; }
 
-    if (typeof html2canvas === "undefined") {
-      alert("html2canvas is still loading — please try again in a moment.");
-      return;
-    }
-
-    // jsPDF can be at window.jspdf.jsPDF or window.jsPDF depending on build
     const JsPDF = window?.jspdf?.jsPDF ?? window?.jsPDF;
-    if (!JsPDF) {
-      alert("jsPDF is still loading — please try again in a moment.");
+    if (typeof html2canvas === "undefined" || !JsPDF) {
+      alert("PDF libraries are still loading — please wait a moment and try again.");
       return;
     }
 
@@ -86,38 +136,41 @@
     barEl.style.width = "0%";
     barEl.style.background = "";
 
-    // Capture zone: off-screen but NOT visibility:hidden — html2canvas needs
-    // the element to have a normal visibility so it can measure and render it
-    const zone = document.createElement("div");
-    zone.style.cssText = "position:fixed;left:-2000px;top:0;width:900px;overflow:visible;";
-    document.body.appendChild(zone);
+    // Strip body background-image before capture — the halftone radial-gradient
+    // causes html2canvas to hang as it tries to composite the repeating pattern
+    const savedBodyBg = document.body.style.backgroundImage;
+    document.body.style.backgroundImage = "none";
 
     try {
       const pdf = new JsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
 
-      for (let i = 0; i < filtered.length; i++) {
+      for (let i = 0; i < toExport.length; i++) {
         if (cancelled) break;
 
-        labelEl.textContent = `Card ${i + 1} of ${filtered.length}…`;
-        barEl.style.width = `${Math.round((i / filtered.length) * 100)}%`;
+        labelEl.textContent = `Card ${i + 1} of ${toExport.length}…`;
+        barEl.style.width = `${Math.round((i / toExport.length) * 100)}%`;
 
-        // Render a fresh card into the zone (no transform, position:static)
-        const freshWrapper = renderCard(filtered[i]);
-        const cardNode = freshWrapper.querySelector(".card");
-        cardNode.style.cssText += ";position:static;transform:none;width:900px;";
-        zone.innerHTML = "";
-        zone.appendChild(cardNode);
+        // Use the card wrapper already rendered on screen — no offscreen clone
+        const wrapper = cardsEl.querySelector(`[data-id="${toExport[i].id}"]`);
+        const cardEl  = wrapper.querySelector(".card");
 
-        // Yield two animation frames so the browser has painted the card
+        // Remove box-shadow and transform so we capture a clean, natural-size card
+        const savedShadow    = wrapper.style.boxShadow;
+        const savedTransform = cardEl.style.transform;
+        wrapper.style.boxShadow = "none";
+        cardEl.style.transform  = "none";
+
+        // Let the browser repaint before capture
         await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-        if (cancelled) break;
+        if (cancelled) {
+          wrapper.style.boxShadow = savedShadow;
+          cardEl.style.transform  = savedTransform;
+          break;
+        }
 
-        // Race html2canvas against a 15-second timeout so it can never hang forever
         const canvas = await Promise.race([
-          html2canvas(zone, {
+          html2canvas(cardEl, {
             scale: 2,
-            width: 900,
-            height: Math.round(900 * (210 / 297)),
             useCORS: true,
             allowTaint: true,
             backgroundColor: "#ffffff",
@@ -125,9 +178,13 @@
             logging: false,
           }),
           new Promise((_, reject) =>
-            setTimeout(() => reject(new Error("Timed out — card took too long to render")), 15000)
+            setTimeout(() => reject(new Error("Card timed out after 15 s")), 15000)
           ),
         ]);
+
+        // Restore styles
+        wrapper.style.boxShadow = savedShadow;
+        cardEl.style.transform  = savedTransform;
 
         if (cancelled) break;
 
@@ -137,21 +194,21 @@
 
       if (!cancelled) {
         barEl.style.width = "100%";
-        labelEl.textContent = "Saving PDF…";
-        const filename = `${activeProject.name.replace(/[^a-z0-9]/gi, "-").toLowerCase()}-cards.pdf`;
-        pdf.save(filename);
+        labelEl.textContent = "Saving…";
+        const name = activeProject.name.replace(/[^a-z0-9]/gi, "-").toLowerCase();
+        pdf.save(`${name}-cards.pdf`);
         labelEl.textContent = "Done!";
         setTimeout(() => { progressEl.hidden = true; }, 1500);
       }
 
     } catch (err) {
-      console.error("PDF export failed:", err);
-      // Error stays visible until user clicks Cancel
+      console.error("PDF export error:", err);
+      // Error stays until user clicks Cancel
       labelEl.textContent = `Error: ${err.message}`;
       barEl.style.background = "#c00";
       barEl.style.width = "100%";
     } finally {
-      if (document.body.contains(zone)) document.body.removeChild(zone);
+      document.body.style.backgroundImage = savedBodyBg;
     }
   });
 
