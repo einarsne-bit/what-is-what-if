@@ -10,9 +10,9 @@
 
 | | |
 |---|---|
-| **Active phase** | Phase 8 — Polish, Visual Design & Advanced Features |
-| **Last session** | Phase 7 complete: Supabase backend live. All data (projects, cards, annotations) stored in Postgres. 160 sample cards seeded. Create/edit/delete/annotate all write to Supabase. Deployed and verified on https://what-is-what-if.netlify.app. |
-| **Immediate next** | Phase 8 — visual design pass, Creative mode, analysis improvements |
+| **Active phase** | Phase 8 — Visual Design Pass |
+| **Last session** | v000.3 complete. Navigation overhaul (unified 6-item header, URL-driven type switching). Dedicated print page with selectable card grid and working PDF export (html2canvas + jsPDF). Branch: `design-phase` created for visual work. |
+| **Immediate next** | Typography first — establish font stack and scale. Then card design, then page chrome. |
 | **Supabase project** | `https://bnqmmdymxfcptfxgvxzm.supabase.co` — EU West (Frankfurt) |
 | **sessionStorage keys** | `whats-active-project`, `whats-access-{projectId}`, `whats-seeded` |
 | **localStorage keys** | `whats-session-id`, `whats-user-name` (annotation identity only — all card/project data now in Supabase) |
@@ -140,7 +140,7 @@ WHATS/
 | M | Multi-project Platform | ✅ Complete |
 | 6 | Deploy & Share | ✅ Complete |
 | 7 | Backend & Collaboration (Supabase) | ✅ Complete |
-| 8 | Polish, Visual Design & Advanced Features | ⬜ Not started |
+| 8 | Visual Design Pass | 🔄 In progress |
 
 Status key: ⬜ Not started · 🔄 In progress · ✅ Complete · ⏸ Paused
 
@@ -312,4 +312,4 @@ A standalone view — separate nav link — for generative ideation. Not a galle
 
 ---
 
-*Last updated: 2026-06-07 — Phase 7 complete. Supabase backend live. All data in Postgres. Deployed and verified at https://what-is-what-if.netlify.app (dev password: whats2026). Next: Phase 8 — visual design pass + Creative mode.*
+*Last updated: 2026-06-07 — v000.3 tagged. Navigation, gallery UX, and PDF export complete. Branch `design-phase` open. Phase 8 active: typography first, then cards, then chrome.*
