@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Creative — What is? / What if?</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body class="project-page creative-page">
+
+    <header class="site-header">
+      <a href="#" class="site-header__home" id="header-logo">WHAT IS? / WHAT IF? / <span id="header-project-name"></span></a>
+      <nav class="site-nav">
+        <a class="nav-link" id="nav-what-is" href="#">What Is?</a>
+        <a class="nav-link" id="nav-what-if" href="#">What If?</a>
+        <a class="nav-link" id="nav-creative" href="#">Creative</a>
+        <a class="nav-link" id="nav-analysis" href="#">Analysis</a>
+        <a class="nav-link" id="nav-print" href="#">Print</a>
+        <div class="nav-more">
+          <button class="nav-link nav-more__trigger" id="nav-more-btn" aria-expanded="false">···</button>
+          <div class="nav-more__menu" id="nav-more-menu">
+            <button class="nav-more__item" id="btn-export-json" style="display:none">↓ Export</button>
+            <label class="nav-more__item" id="nav-import-label" style="display:none">↑ Import</label>
+            <div class="nav-more__status" id="import-status" style="display:none"></div>
+            <a class="nav-more__item" href="about.html">About</a>
+            <a class="nav-more__item" href="index.html">← All projects</a>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <div class="page-wrapper">
+
+      <!-- Mode bar -->
+      <div class="creative-bar">
+        <div class="creative-bar__left">
+          <span class="creative-bar__label">Spark mode</span>
+          <div class="creative-bar__modes" id="mode-btns">
+            <button class="filter-btn filter-btn--active" data-mode="random">Random</button>
+            <button class="filter-btn" data-mode="theme">By theme</button>
+            <button class="filter-btn" data-mode="cross">Cross-theme</button>
+          </div>
+        </div>
+        <div class="creative-bar__right">
+          <button class="spark-reshuffle" id="btn-reshuffle">↺ Reshuffle</button>
+        </div>
+      </div>
+
+      <!-- Theme selectors (shown in theme/cross-theme modes) -->
+      <div class="creative-theme-row" id="theme-row" hidden>
+        <div class="creative-theme-col" id="theme-col-a">
+          <span class="creative-theme-col__label" id="theme-label-a">Theme A</span>
+          <div class="creative-theme-col__tags" id="theme-tags-a"></div>
+        </div>
+        <div class="creative-theme-col creative-theme-col--b" id="theme-col-b" hidden>
+          <span class="creative-theme-col__label" id="theme-label-b">Theme B</span>
+          <div class="creative-theme-col__tags" id="theme-tags-b"></div>
+        </div>
+      </div>
+
+      <!-- Status line -->
+      <div class="creative-status" id="creative-status">
+        Select observations — then generate a What If? idea.
+      </div>
+
+      <!-- Card spark stage -->
+      <div class="spark-stage" id="spark-stage">
+        <p class="spark-empty" id="spark-empty">No observations found in this project yet.</p>
+      </div>
+
+      <!-- Generate CTA -->
+      <div class="creative-cta">
+        <a href="#" class="btn-generate" id="btn-generate" hidden>Generate What If? →</a>
+        <p class="creative-cta__hint">The selected observations will be pre-linked to your new card.</p>
+      </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/data.js"></script>
+    <script src="js/db.js"></script>
+    <script src="js/creative.js"></script>
+  </body>
+</html>

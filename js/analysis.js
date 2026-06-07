@@ -298,39 +298,324 @@ function renderAffinityGroups() {
   }).join("");
 }
 
-// ── 5. Outliers ───────────────────────────────────────────────────────────────
-function renderOutliers() {
-  const unlinkedWi  = wi.filter(c => !linkedWiIds.has(c.id));
-  const unlinkedWif = wif.filter(c => (c.linkedInsightIds || []).length === 0);
-  const noTags      = all.filter(c => !c.tags || c.tags.length === 0);
+// ── 6. Connection matrix ──────────────────────────────────────────────────────
+function renderConnectionMatrix() {
+  const el = document.getElementById("connection-matrix");
+  if (!wif.length || !wi.length) {
+    el.innerHTML = `<p class="outlier-empty">Need both What Is? and What If? cards to draw the matrix.</p>`;
+    return;
+  }
+
+  const MAX = 20;
+  const rows = wi.slice(0, MAX);
+  const cols = wif.slice(0, MAX);
+  const CELL = 22;
+  const LABEL_W = 160;
+  const LABEL_H = 100;
+  const W = LABEL_W + cols.length * CELL;
+  const H = LABEL_H + rows.length * CELL;
+
+  const svgNS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(svgNS, "svg");
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.setAttribute("width", "100%");
+  svg.style.maxHeight = "520px";
+  svg.style.overflow = "visible";
+  svg.style.fontFamily = "var(--font-mono)";
+  svg.style.fontSize = "9px";
+
+  // Column headers (What If? titles — rotated)
+  cols.forEach((card, ci) => {
+    const g = document.createElementNS(svgNS, "g");
+    g.setAttribute("transform", `translate(${LABEL_W + ci * CELL + CELL / 2}, ${LABEL_H - 4})`);
+    const text = document.createElementNS(svgNS, "text");
+    text.setAttribute("transform", "rotate(-55)");
+    text.setAttribute("text-anchor", "end");
+    text.setAttribute("fill", "var(--color-muted)");
+    text.textContent = card.title.length > 20 ? card.title.slice(0, 18) + "…" : card.title;
+    const title = document.createElementNS(svgNS, "title");
+    title.textContent = card.title;
+    g.appendChild(title);
+    g.appendChild(text);
+    svg.appendChild(g);
+  });
+
+  // Row headers + cells
+  rows.forEach((wiCard, ri) => {
+    const y = LABEL_H + ri * CELL;
+
+    // Row label
+    const text = document.createElementNS(svgNS, "text");
+    text.setAttribute("x", LABEL_W - 8);
+    text.setAttribute("y", y + CELL / 2 + 3);
+    text.setAttribute("text-anchor", "end");
+    text.setAttribute("fill", "var(--color-muted)");
+    text.textContent = wiCard.title.length > 22 ? wiCard.title.slice(0, 20) + "…" : wiCard.title;
+    const rowTitle = document.createElementNS(svgNS, "title");
+    rowTitle.textContent = wiCard.title;
+    text.appendChild(rowTitle);
+    svg.appendChild(text);
+
+    // Stripe for readability
+    if (ri % 2 === 0) {
+      const rect = document.createElementNS(svgNS, "rect");
+      rect.setAttribute("x", LABEL_W);
+      rect.setAttribute("y", y);
+      rect.setAttribute("width", cols.length * CELL);
+      rect.setAttribute("height", CELL);
+      rect.setAttribute("fill", "rgba(0,0,0,0.025)");
+      svg.appendChild(rect);
+    }
+
+    // Cells
+    cols.forEach((wifCard, ci) => {
+      const x = LABEL_W + ci * CELL;
+      const linked = (wifCard.linkedInsightIds || []).includes(wiCard.id);
+
+      const cellRect = document.createElementNS(svgNS, "rect");
+      cellRect.setAttribute("x", x + 2);
+      cellRect.setAttribute("y", y + 2);
+      cellRect.setAttribute("width", CELL - 4);
+      cellRect.setAttribute("height", CELL - 4);
+      cellRect.setAttribute("rx", 2);
+      cellRect.setAttribute("fill", linked ? "var(--color-riso-green)" : "transparent");
+      cellRect.setAttribute("stroke", "rgba(0,0,0,0.08)");
+      cellRect.setAttribute("stroke-width", "0.5");
+      cellRect.style.cursor = linked ? "pointer" : "default";
+      if (linked) {
+        const t = document.createElementNS(svgNS, "title");
+        t.textContent = `${wiCard.title} → ${wifCard.title}`;
+        cellRect.appendChild(t);
+        cellRect.addEventListener("click", () => {
+          window.location.href = `card.html?id=${wifCard.id}&project=${projectId}`;
+        });
+      }
+      svg.appendChild(cellRect);
+    });
+  });
+
+  el.appendChild(svg);
+
+  if (wi.length > MAX || wif.length > MAX) {
+    const note = document.createElement("p");
+    note.className = "outlier-empty";
+    note.style.marginTop = "8px";
+    note.textContent = `Showing first ${MAX} of each type. ${wi.length} What Is? × ${wif.length} What If? total.`;
+    el.appendChild(note);
+  }
+}
+
+// ── 7. Author swim-lane ───────────────────────────────────────────────────────
+function renderSwimLane() {
+  const el = document.getElementById("swimlane");
+  if (!all.length || allAuthors.length < 2) {
+    el.innerHTML = `<p class="outlier-empty">Need cards from at least two authors to draw swim-lanes.</p>`;
+    return;
+  }
+
+  const dates = all.map(c => c.date).filter(Boolean).sort();
+  if (dates.length < 2) {
+    el.innerHTML = `<p class="outlier-empty">Cards need dates to draw swim-lanes.</p>`;
+    return;
+  }
+
+  const minDate = new Date(dates[0]);
+  const maxDate = new Date(dates[dates.length - 1]);
+  const span = Math.max(1, maxDate - minDate);
+
+  const LANE_H = 28;
+  const DOT_R  = 5;
+  const PAD_L  = 120;
+  const PAD_R  = 16;
+  const W      = el.offsetWidth || 480;
+  const DRAW_W = W - PAD_L - PAD_R;
+  const H      = allAuthors.length * LANE_H + 24;
+
+  const svgNS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(svgNS, "svg");
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.setAttribute("width", "100%");
+  svg.style.fontFamily = "var(--font-mono)";
+  svg.style.fontSize = "9px";
+  svg.style.overflow = "visible";
+
+  const colors = [
+    "var(--color-riso-green)",
+    "var(--color-riso-pink)",
+    "var(--color-riso-yellow)",
+    "var(--color-riso-blue)",
+    "var(--color-riso-orange)",
+  ];
+
+  allAuthors.forEach((author, ai) => {
+    const y = 12 + ai * LANE_H;
+    const color = colors[ai % colors.length];
+
+    // Baseline
+    const line = document.createElementNS(svgNS, "line");
+    line.setAttribute("x1", PAD_L);
+    line.setAttribute("x2", PAD_L + DRAW_W);
+    line.setAttribute("y1", y + LANE_H / 2);
+    line.setAttribute("y2", y + LANE_H / 2);
+    line.setAttribute("stroke", "rgba(0,0,0,0.1)");
+    line.setAttribute("stroke-width", "1");
+    svg.appendChild(line);
+
+    // Author label
+    const label = document.createElementNS(svgNS, "text");
+    label.setAttribute("x", PAD_L - 6);
+    label.setAttribute("y", y + LANE_H / 2 + 3);
+    label.setAttribute("text-anchor", "end");
+    label.setAttribute("fill", "var(--color-muted)");
+    label.textContent = author.length > 14 ? author.slice(0, 12) + "…" : author;
+    svg.appendChild(label);
+
+    // Dots for each card
+    all.filter(c => c.author === author && c.date).forEach(card => {
+      const cx = PAD_L + ((new Date(card.date) - minDate) / span) * DRAW_W;
+      const cy = y + LANE_H / 2;
+
+      const circle = document.createElementNS(svgNS, "circle");
+      circle.setAttribute("cx", cx);
+      circle.setAttribute("cy", cy);
+      circle.setAttribute("r", DOT_R);
+      circle.setAttribute("fill", color);
+      circle.setAttribute("stroke", "var(--color-black)");
+      circle.setAttribute("stroke-width", "1");
+      circle.style.cursor = "pointer";
+      const t = document.createElementNS(svgNS, "title");
+      t.textContent = `${card.title} (${card.date})`;
+      circle.appendChild(t);
+      circle.addEventListener("click", () => {
+        window.location.href = `card.html?id=${card.id}&project=${projectId}`;
+      });
+      svg.appendChild(circle);
+    });
+  });
+
+  // Date axis labels
+  [0, 0.25, 0.5, 0.75, 1].forEach(pct => {
+    const d = new Date(minDate.getTime() + span * pct);
+    const x = PAD_L + pct * DRAW_W;
+    const tick = document.createElementNS(svgNS, "text");
+    tick.setAttribute("x", x);
+    tick.setAttribute("y", H - 2);
+    tick.setAttribute("text-anchor", "middle");
+    tick.setAttribute("fill", "var(--color-muted)");
+    tick.textContent = d.toLocaleDateString("en", { month: "short", year: "2-digit" });
+    svg.appendChild(tick);
+  });
+
+  el.appendChild(svg);
+}
+
+// ── 8. Tag co-occurrence ──────────────────────────────────────────────────────
+function renderTagCooccurrence() {
+  const el = document.getElementById("cooc-table");
+  if (allTags.length < 2) {
+    el.innerHTML = `<p class="outlier-empty">Need at least two tags to show co-occurrence.</p>`;
+    return;
+  }
+
+  const pairs = {};
+  all.forEach(card => {
+    const tags = card.tags || [];
+    for (let i = 0; i < tags.length; i++) {
+      for (let j = i + 1; j < tags.length; j++) {
+        const key = [tags[i], tags[j]].sort().join(" × ");
+        pairs[key] = (pairs[key] || 0) + 1;
+      }
+    }
+  });
+
+  const sorted = Object.entries(pairs).sort((a, b) => b[1] - a[1]).slice(0, 12);
+
+  if (!sorted.length) {
+    el.innerHTML = `<p class="outlier-empty">No cards have two or more tags yet.</p>`;
+    return;
+  }
+
+  const max = sorted[0][1];
+  el.innerHTML = sorted.map(([pair, count]) => {
+    const pct = Math.round((count / max) * 100);
+    return `<div class="cooc-row">
+      <span class="cooc-pair">${escHtml(pair)}</span>
+      <div class="cooc-bar-wrap">
+        <div class="cooc-bar" style="width:${pct}%"></div>
+      </div>
+      <span class="cooc-count">${count}</span>
+    </div>`;
+  }).join("");
+}
+
+// ── 9. Research health ────────────────────────────────────────────────────────
+function renderHealthGrid() {
+  const el = document.getElementById("health-grid");
+
+  const unlinkedWi   = wi.filter(c => !linkedWiIds.has(c.id));
+  const unlinkedWif  = wif.filter(c => (c.linkedInsightIds || []).length === 0);
+  const noTags       = all.filter(c => !c.tags || c.tags.length === 0);
   const singleAuthorTags = allTags.filter(tag => {
     const authors = new Set(all.filter(c => c.tags.includes(tag)).map(c => c.author));
     return authors.size === 1;
   });
 
-  function cardChips(cards) {
+  function status(count, good, warn) {
+    if (count <= good) return "health-check--ok";
+    if (count <= warn) return "health-check--warn";
+    return "health-check--bad";
+  }
+
+  function cardList(cards) {
     if (!cards.length) return `<p class="outlier-empty">None — good!</p>`;
-    return cards.map(c =>
+    return `<div class="outlier-list">` + cards.map(c =>
       `<a class="outlier-chip" href="card.html?id=${c.id}&project=${projectId}">
         <span class="outlier-chip__badge outlier-chip__badge--${c.type === "what-if" ? "wif" : "wi"}">
           ${c.type === "what-if" ? "WIF" : "WI"}
-        </span>
-        ${escHtml(c.title)}
-      </a>`
-    ).join("");
+        </span>${escHtml(c.title)}</a>`
+    ).join("") + `</div>`;
   }
 
-  document.getElementById("outlier-unlinked-wi").innerHTML  = cardChips(unlinkedWi);
-  document.getElementById("outlier-unlinked-wif").innerHTML = cardChips(unlinkedWif);
-  document.getElementById("outlier-no-tags").innerHTML      = cardChips(noTags);
-
-  const tagEl = document.getElementById("outlier-single-author");
-  tagEl.innerHTML = singleAuthorTags.length
-    ? singleAuthorTags.map(t => {
-        const tc = tagColor(t);
-        return `<span class="outlier-tag" style="--tag-bg:${tc.bg};--tag-color:${tc.text}">${escHtml(t)}</span>`;
-      }).join("")
-    : `<p class="outlier-empty">All themes have multiple contributors.</p>`;
+  el.innerHTML = `
+    <div class="health-check ${status(unlinkedWi.length, 0, 3)}">
+      <div class="health-check__head">
+        <span class="health-check__title">Unaddressed observations</span>
+        <span class="health-check__count">${unlinkedWi.length}</span>
+      </div>
+      <p class="health-check__desc">What Is? with no What If? idea linked.</p>
+      ${cardList(unlinkedWi)}
+    </div>
+    <div class="health-check ${status(unlinkedWif.length, 0, 3)}">
+      <div class="health-check__head">
+        <span class="health-check__title">Ungrounded ideas</span>
+        <span class="health-check__count">${unlinkedWif.length}</span>
+      </div>
+      <p class="health-check__desc">What If? cards with no observation linked.</p>
+      ${cardList(unlinkedWif)}
+    </div>
+    <div class="health-check ${status(noTags.length, 0, 2)}">
+      <div class="health-check__head">
+        <span class="health-check__title">Cards without tags</span>
+        <span class="health-check__count">${noTags.length}</span>
+      </div>
+      <p class="health-check__desc">May need categorisation.</p>
+      ${cardList(noTags)}
+    </div>
+    <div class="health-check ${status(singleAuthorTags.length, 0, 3)}">
+      <div class="health-check__head">
+        <span class="health-check__title">Single-author themes</span>
+        <span class="health-check__count">${singleAuthorTags.length}</span>
+      </div>
+      <p class="health-check__desc">Tags where only one person has contributed.</p>
+      <div class="outlier-tag-list">${singleAuthorTags.length
+        ? singleAuthorTags.map(t => {
+            const tc = tagColor(t);
+            return `<span class="outlier-tag" style="--tag-bg:${tc.bg};--tag-color:${tc.text}">${escHtml(t)}</span>`;
+          }).join("")
+        : `<p class="outlier-empty">All themes have multiple contributors.</p>`
+      }</div>
+    </div>
+  `;
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
@@ -339,11 +624,15 @@ renderTagChart();
 renderCoverageMap();
 renderTimeline();
 renderAffinityGroups();
-renderOutliers();
+renderConnectionMatrix();
+renderSwimLane();
+renderTagCooccurrence();
+renderHealthGrid();
 
 window.addEventListener("resize", () => {
   renderCoverageMap();
   renderTimeline();
+  renderSwimLane();
 });
 
 })(); // end async IIFE

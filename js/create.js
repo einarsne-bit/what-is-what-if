@@ -4,6 +4,7 @@
 const _params      = new URLSearchParams(window.location.search);
 const editId       = _params.get("edit");
 const _urlType     = _params.get("type");
+const _linkedParam = _params.get("linked");
 let cardType       = (_urlType === "what-if" ? "what-if" : "what-is");
 let cardTags       = [];
 let cardImageData  = "";
@@ -453,6 +454,13 @@ document.getElementById("btn-add-textbox").addEventListener("click", () => {
     }
   }
 
+  // Pre-link cards passed from Creative page (new cards only)
+  if (_linkedParam && !editId) {
+    linkedIds = _linkedParam.split(",").filter(Boolean);
+    renderLinkedChips();
+    updateLinkSectionVisibility();
+  }
+
   // ── Publish / Save ──────────────────────────────────────────────────────────
   const publishBtn = document.getElementById("btn-publish");
 
@@ -464,7 +472,7 @@ document.getElementById("btn-add-textbox").addEventListener("click", () => {
       publishBtn.style.background = "var(--color-riso-pink)";
       editTitle.focus();
       setTimeout(() => {
-        publishBtn.textContent = editingCard ? "Save changes" : "Publish";
+        publishBtn.textContent = editingCard ? "Save changes" : "Transmit";
         publishBtn.style.background = "";
       }, 2000);
       return;
@@ -500,7 +508,7 @@ document.getElementById("btn-add-textbox").addEventListener("click", () => {
       publishBtn.style.background = "var(--color-riso-pink)";
       publishBtn.disabled = false;
       setTimeout(() => {
-        publishBtn.textContent = editingCard ? "Save changes" : "Publish";
+        publishBtn.textContent = editingCard ? "Save changes" : "Transmit";
         publishBtn.style.background = "";
       }, 4000);
     }

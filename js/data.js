@@ -1382,11 +1382,16 @@ function initProjectHeader(projectId, activeMode, opts = {}) {
   const set = (id, url) => { const el = document.getElementById(id); if (el) el.href = url; };
   set("nav-what-is",  `gallery.html?project=${projectId}&type=what-is`);
   set("nav-what-if",  `gallery.html?project=${projectId}&type=what-if`);
+  set("nav-creative", `creative.html?project=${projectId}`);
   set("nav-analysis", `analysis.html?project=${projectId}`);
   set("nav-print",    `print.html?project=${projectId}`);
 
+  // Remove "coming soon" styling now that creative is live
+  const creativeLink = document.getElementById("nav-creative");
+  if (creativeLink) creativeLink.classList.remove("nav-link--soon");
+
   // Active state
-  const modeMap = { "what-is": "nav-what-is", "what-if": "nav-what-if", "analysis": "nav-analysis", "print": "nav-print" };
+  const modeMap = { "what-is": "nav-what-is", "what-if": "nav-what-if", "creative": "nav-creative", "analysis": "nav-analysis", "print": "nav-print" };
   const activeId = modeMap[activeMode];
   document.querySelectorAll(".site-nav .nav-link[id]").forEach(link => {
     link.classList.toggle("nav-link--active", link.id === activeId);

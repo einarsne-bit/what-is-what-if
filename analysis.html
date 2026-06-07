@@ -13,7 +13,7 @@
       <nav class="site-nav">
         <a class="nav-link" id="nav-what-is" href="#">What Is?</a>
         <a class="nav-link" id="nav-what-if" href="#">What If?</a>
-        <a class="nav-link nav-link--soon" id="nav-creative" title="Coming soon">Creative</a>
+        <a class="nav-link" id="nav-creative" href="#">Creative</a>
         <a class="nav-link" id="nav-analysis" href="#">Analysis</a>
         <a class="nav-link" id="nav-print" href="#">Print</a>
         <div class="nav-more">
@@ -125,37 +125,39 @@
           <div class="affinity-groups" id="affinity-groups"></div>
         </section>
 
-        <!-- Outlier panels -->
-        <section class="analysis-panel analysis-panel--quarter">
+        <!-- Connection matrix -->
+        <section class="analysis-panel analysis-panel--full">
           <header class="analysis-panel__header">
-            <h2 class="analysis-panel__title">Unaddressed observations</h2>
-            <p class="analysis-panel__desc">What Is? cards with no What If? ideas linked to them.</p>
+            <h2 class="analysis-panel__title">Connection matrix</h2>
+            <p class="analysis-panel__desc">Which What Is? observations have sparked which What If? ideas. Each dot marks a link. Hover for titles.</p>
           </header>
-          <div class="outlier-list" id="outlier-unlinked-wi"></div>
+          <div class="connection-matrix" id="connection-matrix"></div>
         </section>
 
-        <section class="analysis-panel analysis-panel--quarter">
+        <!-- Author swim-lane + Tag co-occurrence -->
+        <section class="analysis-panel analysis-panel--half">
           <header class="analysis-panel__header">
-            <h2 class="analysis-panel__title">Ungrounded ideas</h2>
-            <p class="analysis-panel__desc">What If? cards not linked to any observation.</p>
+            <h2 class="analysis-panel__title">Author contributions</h2>
+            <p class="analysis-panel__desc">Card creation over time, one lane per author.</p>
           </header>
-          <div class="outlier-list" id="outlier-unlinked-wif"></div>
+          <div class="swimlane-wrap" id="swimlane"></div>
         </section>
 
-        <section class="analysis-panel analysis-panel--quarter">
+        <section class="analysis-panel analysis-panel--half">
           <header class="analysis-panel__header">
-            <h2 class="analysis-panel__title">Cards without tags</h2>
-            <p class="analysis-panel__desc">May need categorisation or review.</p>
+            <h2 class="analysis-panel__title">Tag co-occurrence</h2>
+            <p class="analysis-panel__desc">Tag pairs that appear together most often — potential theme clusters.</p>
           </header>
-          <div class="outlier-list" id="outlier-no-tags"></div>
+          <div class="cooc-table" id="cooc-table"></div>
         </section>
 
-        <section class="analysis-panel analysis-panel--quarter">
+        <!-- Research health diagnostic -->
+        <section class="analysis-panel analysis-panel--full">
           <header class="analysis-panel__header">
-            <h2 class="analysis-panel__title">Single-author themes</h2>
-            <p class="analysis-panel__desc">Tags where only one person has contributed so far.</p>
+            <h2 class="analysis-panel__title">Research health</h2>
+            <p class="analysis-panel__desc">A diagnostic scan of the project: gaps, orphans, and areas for attention.</p>
           </header>
-          <div class="outlier-tag-list" id="outlier-single-author"></div>
+          <div class="health-grid" id="health-grid"></div>
         </section>
 
       </div>
