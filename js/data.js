@@ -15,30 +15,9 @@ let project = {
 
 const SAMPLE_PROJECT_ID = "kirkenes-study";
 
-function getProjects() {
-  const saved = JSON.parse(localStorage.getItem("whats-projects") || "[]");
-  const deletedProjects = JSON.parse(localStorage.getItem("whats-deleted-projects") || "[]");
-  const hasSample = saved.some(p => p.id === SAMPLE_PROJECT_ID);
-  const sampleDeleted = deletedProjects.includes(SAMPLE_PROJECT_ID);
-  if (!hasSample && !sampleDeleted) return [project, ...saved];
-  return saved;
-}
-
-function getProject(id) {
-  const saved = JSON.parse(localStorage.getItem("whats-projects") || "[]");
-  const found = saved.find(p => p.id === id);
-  if (found) return found;
-  if (id === SAMPLE_PROJECT_ID) return project;
-  return null;
-}
-
-function saveProject(data) {
-  const projects = JSON.parse(localStorage.getItem("whats-projects") || "[]");
-  const idx = projects.findIndex(p => p.id === data.id);
-  if (idx >= 0) projects[idx] = data;
-  else projects.push(data);
-  localStorage.setItem("whats-projects", JSON.stringify(projects));
-}
+// getProjects, getProject, saveProject, deleteProject,
+// getProjectCards, getAllCards, loadActiveProject
+// → all async, defined in db.js
 
 function getActiveProjectId() {
   return new URLSearchParams(window.location.search).get("project")
@@ -53,17 +32,6 @@ function getProjectAccess(projectId) {
 function setProjectAccess(projectId, level) {
   sessionStorage.setItem("whats-access-" + projectId, level);
   sessionStorage.setItem("whats-active-project", projectId);
-}
-
-function loadActiveProject() {
-  const id = getActiveProjectId();
-  const found = getProject(id);
-  if (found) project = found;
-  return project;
-}
-
-function getProjectCards(projectId) {
-  return getAllCards().filter(c => c.projectId === projectId);
 }
 
 // ── Sample cards — 160 cards for the Kirkenes / Design for fellesskap project ──
@@ -1310,17 +1278,6 @@ function tagStyle(tag) {
 function parseDate(dateStr) {
   const [d, m, y] = dateStr.split(".");
   return new Date(+y, +m - 1, +d).getTime();
-}
-
-// ── All cards: sample + user-created ─────────────────────────────────────────
-// localStorage cards override same-ID sample cards (edit-in-place for samples).
-// Sample card IDs in "whats-deleted-samples" are permanently hidden.
-function getAllCards() {
-  const saved       = JSON.parse(localStorage.getItem("whats-cards")         || "[]");
-  const deletedIds  = new Set(JSON.parse(localStorage.getItem("whats-deleted-samples") || "[]"));
-  const savedIds    = new Set(saved.map(c => c.id));
-  const samples     = SAMPLE_CARDS.filter(c => !savedIds.has(c.id) && !deletedIds.has(c.id));
-  return [...samples, ...saved];
 }
 
 // ── renderCard: returns a wrapper div with the full-size card inside ──────────

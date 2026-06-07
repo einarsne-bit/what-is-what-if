@@ -1,26 +1,15 @@
-// data.js is loaded first — project, TAG_COLORS, tagColor, getAllCards, parseDate
-
-// ── Project context ───────────────────────────────────────────────────────────
-const activeProject = loadActiveProject();
-const projectId = activeProject.id;
-const galleryUrl = `gallery.html?project=${projectId}`;
-
-// Wire back/cancel links
-document.getElementById("back-link").href    = galleryUrl;
-document.getElementById("sidebar-cancel").href = galleryUrl;
+// data.js + db.js are loaded first — project, TAG_COLORS, tagColor, escHtml, todayFormatted
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let cardType       = "what-is";
 let cardTags       = [];
 let cardImageData  = "";
-let linkedIds      = [];   // IDs of linked What Is? cards (optional, What If? only)
+let linkedIds      = [];
 
-// Image pan-zoom state
 let imgX = 0, imgY = 0, imgScale = 1;
 let isDragging = false;
 let dragLast   = { x: 0, y: 0 };
 
-// Edit mode state
 const editId = new URLSearchParams(window.location.search).get("edit");
 
 // ── DOM refs ──────────────────────────────────────────────────────────────────
@@ -38,11 +27,7 @@ const inputAuthor      = document.getElementById("input-author");
 const inputTag         = document.getElementById("input-tag");
 const inputReferences  = document.getElementById("input-references");
 
-// ── Initialise header fields ──────────────────────────────────────────────────
-document.getElementById("edit-project").textContent = project.name;
-document.getElementById("edit-date").textContent    = todayFormatted();
-
-// ── Card shadow colour matches type (muted Riso palette) ─────────────────────
+// ── Card shadow colour matches type ───────────────────────────────────────────
 const shadowColors = { "what-is": "#68BE8C", "what-if": "#E898BE" };
 
 function updateCardShadow() {
@@ -51,7 +36,7 @@ function updateCardShadow() {
 }
 updateCardShadow();
 
-// ── Scale the editable card to fill the main area ─────────────────────────────
+// ── Scale the editable card ───────────────────────────────────────────────────
 function scaleEditCard() {
   const wrapper = document.getElementById("edit-card-wrapper");
   const scale   = wrapper.offsetWidth / 900;
@@ -80,15 +65,9 @@ document.querySelectorAll(".sidebar__toggle .sidebar-btn").forEach(btn => {
   });
 });
 
-// ── Author: live mirror to card ───────────────────────────────────────────────
-inputAuthor.addEventListener("input", () => {
-  editAuthorEl.textContent = inputAuthor.value;
-});
-
-// ── References: live mirror to card edge strip ────────────────────────────────
-inputReferences.addEventListener("input", () => {
-  editReferencesEl.textContent = inputReferences.value;
-});
+// ── Author + References: live mirror ─────────────────────────────────────────
+inputAuthor.addEventListener("input", () => { editAuthorEl.textContent = inputAuthor.value; });
+inputReferences.addEventListener("input", () => { editReferencesEl.textContent = inputReferences.value; });
 
 // ── Tags ──────────────────────────────────────────────────────────────────────
 function renderTags() {
@@ -112,25 +91,18 @@ function renderTags() {
 
 function addTag(value) {
   const tag = value.trim();
-  if (tag && !cardTags.includes(tag)) {
-    cardTags.push(tag);
-    renderTags();
-  }
+  if (tag && !cardTags.includes(tag)) { cardTags.push(tag); renderTags(); }
   inputTag.value = "";
 }
 
 document.getElementById("btn-add-tag").addEventListener("click", () => addTag(inputTag.value));
 inputTag.addEventListener("keydown", e => {
-  if (e.key === "Enter") {
-    e.preventDefault();
-    addTag(inputTag.value);
-    tagSuggestionsEl.hidden = true;
-  }
+  if (e.key === "Enter") { e.preventDefault(); addTag(inputTag.value); tagSuggestionsEl.hidden = true; }
 });
 
 // ── Tag autocomplete ──────────────────────────────────────────────────────────
 const tagSuggestionsEl = document.getElementById("tag-suggestions");
-const tagPool = new Set(getAllCards().flatMap(c => c.tags || []));
+let tagPool = new Set();
 
 inputTag.addEventListener("input", () => {
   const q = inputTag.value.trim().toLowerCase();
@@ -149,27 +121,23 @@ inputTag.addEventListener("input", () => {
 
   tagSuggestionsEl.querySelectorAll(".tag-suggestion").forEach(el => {
     el.addEventListener("mousedown", e => {
-      e.preventDefault();
-      addTag(el.dataset.tag);
-      tagSuggestionsEl.hidden = true;
+      e.preventDefault(); addTag(el.dataset.tag); tagSuggestionsEl.hidden = true;
     });
   });
 
   tagSuggestionsEl.hidden = false;
 });
+inputTag.addEventListener("blur", () => { setTimeout(() => { tagSuggestionsEl.hidden = true; }, 150); });
 
-inputTag.addEventListener("blur", () => {
-  setTimeout(() => { tagSuggestionsEl.hidden = true; }, 150);
-});
-
-// ── Link picker (What If? → What Is? cards, optional) ────────────────────────
+// ── Link picker (What If? → What Is?) ────────────────────────────────────────
 const inputLinkSearch   = document.getElementById("input-link-search");
 const linkSuggestionsEl = document.getElementById("link-suggestions");
 const linkedChipsEl     = document.getElementById("linked-chips");
+let projectCards = [];  // populated after async load
 
 function renderLinkedChips() {
   linkedChipsEl.innerHTML = linkedIds.map(id => {
-    const c = getAllCards().find(c => c.id === id);
+    const c = projectCards.find(c => c.id === id);
     if (!c) return "";
     return `<span class="sidebar-linked-chip" data-id="${id}">
       ${escHtml(c.title)}
@@ -187,7 +155,7 @@ function renderLinkedChips() {
 }
 
 function updateLinkSuggestions(q) {
-  const whatIsCards = getAllCards().filter(
+  const whatIsCards = projectCards.filter(
     c => c.type === "what-is" && !linkedIds.includes(c.id)
   );
   const matches = q.trim()
@@ -218,40 +186,32 @@ function updateLinkSuggestions(q) {
 
 inputLinkSearch.addEventListener("focus", () => updateLinkSuggestions(inputLinkSearch.value));
 inputLinkSearch.addEventListener("input", () => updateLinkSuggestions(inputLinkSearch.value));
-inputLinkSearch.addEventListener("blur",  () => {
-  setTimeout(() => { linkSuggestionsEl.hidden = true; }, 150);
-});
+inputLinkSearch.addEventListener("blur",  () => { setTimeout(() => { linkSuggestionsEl.hidden = true; }, 150); });
 
 // ── Card CSS scale factor ─────────────────────────────────────────────────────
 function getCardScale() {
   return document.getElementById("edit-card-wrapper").offsetWidth / 900;
 }
 
-// Apply current pan-zoom state to the image element
 function applyImageTransform() {
   const img = editImageArea.querySelector("img");
   if (img) img.style.transform = `translate(${imgX}px, ${imgY}px) scale(${imgScale})`;
 }
 
-// Place image with cover-fit as starting point, centred
 function placeImage(src) {
   cardImageData = src;
-
   const probe = new Image();
   probe.onload = () => {
     const cs    = getCardScale();
     const rect  = editImageArea.getBoundingClientRect();
     const areaW = rect.width  / cs;
     const areaH = rect.height / cs;
-
     imgScale = Math.max(areaW / probe.naturalWidth, areaH / probe.naturalHeight);
     imgX     = (areaW - probe.naturalWidth  * imgScale) / 2;
     imgY     = (areaH - probe.naturalHeight * imgScale) / 2;
-
     editImageArea.innerHTML = "";
     const img = document.createElement("img");
-    img.src      = src;
-    img.draggable = false;
+    img.src = src; img.draggable = false;
     editImageArea.appendChild(img);
     applyImageTransform();
   };
@@ -259,15 +219,8 @@ function placeImage(src) {
 }
 
 // ── Image drop ────────────────────────────────────────────────────────────────
-dropZone.addEventListener("dragover", e => {
-  e.preventDefault();
-  dropZone.classList.add("drop-zone--over");
-});
-
-dropZone.addEventListener("dragleave", () => {
-  dropZone.classList.remove("drop-zone--over");
-});
-
+dropZone.addEventListener("dragover", e => { e.preventDefault(); dropZone.classList.add("drop-zone--over"); });
+dropZone.addEventListener("dragleave", () => { dropZone.classList.remove("drop-zone--over"); });
 dropZone.addEventListener("drop", e => {
   e.preventDefault();
   dropZone.classList.remove("drop-zone--over");
@@ -278,15 +231,12 @@ dropZone.addEventListener("drop", e => {
   reader.readAsDataURL(file);
 });
 
-// ── Pan: drag image to reposition ─────────────────────────────────────────────
+// ── Pan & zoom ────────────────────────────────────────────────────────────────
 editImageArea.addEventListener("mousedown", e => {
   if (!editImageArea.querySelector("img")) return;
-  isDragging = true;
-  dragLast   = { x: e.clientX, y: e.clientY };
-  editImageArea.style.cursor = "grabbing";
-  e.preventDefault();
+  isDragging = true; dragLast = { x: e.clientX, y: e.clientY };
+  editImageArea.style.cursor = "grabbing"; e.preventDefault();
 });
-
 document.addEventListener("mousemove", e => {
   if (!isDragging) return;
   const cs = getCardScale();
@@ -295,151 +245,147 @@ document.addEventListener("mousemove", e => {
   dragLast = { x: e.clientX, y: e.clientY };
   applyImageTransform();
 });
-
 document.addEventListener("mouseup", () => {
   if (!isDragging) return;
   isDragging = false;
   editImageArea.style.cursor = "";
 });
-
-// ── Zoom: scroll wheel over image, zooms towards cursor ───────────────────────
 editImageArea.addEventListener("wheel", e => {
   if (!editImageArea.querySelector("img")) return;
   e.preventDefault();
-
-  const cs     = getCardScale();
-  const rect   = editImageArea.getBoundingClientRect();
-  const px     = (e.clientX - rect.left) / cs;
-  const py     = (e.clientY - rect.top)  / cs;
+  const cs = getCardScale();
+  const rect = editImageArea.getBoundingClientRect();
+  const px = (e.clientX - rect.left) / cs;
+  const py = (e.clientY - rect.top)  / cs;
   const factor = e.deltaY < 0 ? 1.1 : 0.9;
-
   imgX     = px - (px - imgX) * factor;
   imgY     = py - (py - imgY) * factor;
   imgScale = Math.max(0.05, Math.min(20, imgScale * factor));
-
   applyImageTransform();
 }, { passive: false });
 
-// ── Edit mode: pre-populate fields if editing an existing card ────────────────
-let editingCard = null;
+// ── Async init ────────────────────────────────────────────────────────────────
+(async () => {
 
-if (editId) {
-  editingCard = getAllCards().find(c => c.id === editId) || null;
+  const activeProject = await loadActiveProject();
+  const projectId     = activeProject.id;
+  const galleryUrl    = `gallery.html?project=${projectId}`;
 
-  if (editingCard) {
-    // Update sidebar chrome
-    document.getElementById("sidebar-title").textContent    = "Edit card";
-    document.getElementById("btn-publish").textContent      = "Save changes";
-    document.getElementById("sidebar-cancel").href          = `card.html?id=${editId}&type=${editingCard.type}&project=${projectId}`;
-    document.getElementById("back-link").href               = `card.html?id=${editId}&type=${editingCard.type}&project=${projectId}`;
-    document.getElementById("btn-delete-card").hidden       = false;
+  document.getElementById("back-link").href      = galleryUrl;
+  document.getElementById("sidebar-cancel").href = galleryUrl;
+  document.getElementById("edit-project").textContent = project.name;
+  document.getElementById("edit-date").textContent    = todayFormatted();
 
-    // Populate state
-    cardType  = editingCard.type;
-    cardTags  = [...editingCard.tags];
-    linkedIds = [...(editingCard.linkedInsightIds || [])];
+  // Load project cards for tag pool + link suggestions
+  projectCards = await getProjectCards(projectId);
+  tagPool = new Set(projectCards.flatMap(c => c.tags || []));
 
-    // Populate card fields
-    editTitle.textContent          = editingCard.title;
-    editBody.textContent           = editingCard.body;
-    inputAuthor.value              = editingCard.author;
-    editAuthorEl.textContent       = editingCard.author;
-    inputReferences.value          = editingCard.references || "";
-    editReferencesEl.textContent   = editingCard.references || "";
-    document.getElementById("edit-date").textContent = editingCard.date;
+  // ── Edit mode ───────────────────────────────────────────────────────────────
+  let editingCard = null;
 
-    // Type toggle
-    document.querySelectorAll(".sidebar__toggle .sidebar-btn").forEach(btn => {
-      btn.classList.toggle("sidebar-btn--active", btn.dataset.type === cardType);
-    });
-    editCard.classList.toggle("card--what-if", cardType === "what-if");
-    editTypeLbl.textContent = cardType === "what-if" ? "WHAT IF?" : "WHAT IS?";
-    updateCardShadow();
-    updateLinkSectionVisibility();
+  if (editId) {
+    editingCard = await getCard(editId);
 
-    renderTags();
-    renderLinkedChips();
-
-    // Restore image with existing pan-zoom
-    if (editingCard.imageUrl) {
-      cardImageData = editingCard.imageUrl;
-      const t = editingCard.imageTransform || { x: 0, y: 0, scale: 1 };
-      imgX = t.x; imgY = t.y; imgScale = t.scale;
-      const img = document.createElement("img");
-      img.src       = editingCard.imageUrl;
-      img.draggable = false;
-      editImageArea.innerHTML = "";
-      editImageArea.appendChild(img);
-      applyImageTransform();
-    }
-  }
-}
-
-// ── Publish / Save changes ────────────────────────────────────────────────────
-const publishBtn = document.getElementById("btn-publish");
-
-publishBtn.addEventListener("click", () => {
-  const title = editTitle.textContent.trim();
-
-  if (!title) {
-    publishBtn.textContent = "Add a title first";
-    publishBtn.style.background = "var(--color-riso-pink)";
-    editTitle.focus();
-    setTimeout(() => {
-      publishBtn.textContent = editingCard ? "Save changes" : "Publish";
-      publishBtn.style.background = "";
-    }, 2000);
-    return;
-  }
-
-  const cardData = {
-    id: editingCard ? editingCard.id : crypto.randomUUID(),
-    projectId: project.id,
-    type: cardType,
-    title,
-    body: editBody.textContent.trim(),
-    tags: [...cardTags],
-    imageUrl: cardImageData,
-    imageTransform: { x: imgX, y: imgY, scale: imgScale },
-    references: inputReferences.value.trim(),
-    author: inputAuthor.value.trim(),
-    date: editingCard ? editingCard.date : todayFormatted(),
-    linkedInsightIds: [...linkedIds],
-    annotations: editingCard ? editingCard.annotations : []
-  };
-
-  const saved = JSON.parse(localStorage.getItem("whats-cards") || "[]");
-
-  try {
     if (editingCard) {
-      const idx = saved.findIndex(c => c.id === editingCard.id);
-      if (idx !== -1) saved[idx] = cardData;
-      else saved.push(cardData);
-      localStorage.setItem("whats-cards", JSON.stringify(saved));
-      window.location.href = `card.html?id=${cardData.id}&type=${cardData.type}&project=${projectId}`;
-    } else {
-      saved.push(cardData);
-      localStorage.setItem("whats-cards", JSON.stringify(saved));
-      window.location.href = `gallery.html?project=${projectId}&type=${cardType}`;
+      document.getElementById("sidebar-title").textContent    = "Edit card";
+      document.getElementById("btn-publish").textContent      = "Save changes";
+      document.getElementById("sidebar-cancel").href          = `card.html?id=${editId}&type=${editingCard.type}&project=${projectId}`;
+      document.getElementById("back-link").href               = `card.html?id=${editId}&type=${editingCard.type}&project=${projectId}`;
+      document.getElementById("btn-delete-card").hidden       = false;
+
+      cardType  = editingCard.type;
+      cardTags  = [...editingCard.tags];
+      linkedIds = [...(editingCard.linkedInsightIds || [])];
+
+      editTitle.textContent          = editingCard.title;
+      editBody.textContent           = editingCard.body;
+      inputAuthor.value              = editingCard.author;
+      editAuthorEl.textContent       = editingCard.author;
+      inputReferences.value          = editingCard.references || "";
+      editReferencesEl.textContent   = editingCard.references || "";
+      document.getElementById("edit-date").textContent = editingCard.date;
+
+      document.querySelectorAll(".sidebar__toggle .sidebar-btn").forEach(btn => {
+        btn.classList.toggle("sidebar-btn--active", btn.dataset.type === cardType);
+      });
+      editCard.classList.toggle("card--what-if", cardType === "what-if");
+      editTypeLbl.textContent = cardType === "what-if" ? "WHAT IF?" : "WHAT IS?";
+      updateCardShadow();
+      updateLinkSectionVisibility();
+      renderTags();
+      renderLinkedChips();
+
+      if (editingCard.imageUrl || editingCard.image) {
+        cardImageData = editingCard.imageUrl || editingCard.image;
+        const t = editingCard.imageTransform || { x: 0, y: 0, scale: 1 };
+        imgX = t.x; imgY = t.y; imgScale = t.scale;
+        const img = document.createElement("img");
+        img.src = cardImageData; img.draggable = false;
+        editImageArea.innerHTML = "";
+        editImageArea.appendChild(img);
+        applyImageTransform();
+      }
     }
-  } catch (err) {
-    publishBtn.textContent = "Storage full — try a smaller image";
-    publishBtn.style.background = "var(--color-riso-pink)";
-    setTimeout(() => {
-      publishBtn.textContent = editingCard ? "Save changes" : "Publish";
-      publishBtn.style.background = "";
-    }, 4000);
   }
-});
 
-// ── Delete card (edit mode only) ──────────────────────────────────────────────
-const btnDeleteCard = document.getElementById("btn-delete-card");
+  // ── Publish / Save ──────────────────────────────────────────────────────────
+  const publishBtn = document.getElementById("btn-publish");
 
-btnDeleteCard.addEventListener("click", () => {
-  if (!editingCard) return;
-  if (!confirm("Delete this card? This cannot be undone.")) return;
-  const saved = JSON.parse(localStorage.getItem("whats-cards") || "[]");
-  const updated = saved.filter(c => c.id !== editingCard.id);
-  localStorage.setItem("whats-cards", JSON.stringify(updated));
-  window.location.href = `gallery.html?project=${projectId}&type=${editingCard.type}`;
-});
+  publishBtn.addEventListener("click", async () => {
+    const title = editTitle.textContent.trim();
+
+    if (!title) {
+      publishBtn.textContent = "Add a title first";
+      publishBtn.style.background = "var(--color-riso-pink)";
+      editTitle.focus();
+      setTimeout(() => {
+        publishBtn.textContent = editingCard ? "Save changes" : "Publish";
+        publishBtn.style.background = "";
+      }, 2000);
+      return;
+    }
+
+    const cardData = {
+      id:               editingCard ? editingCard.id : crypto.randomUUID(),
+      projectId:        project.id,
+      type:             cardType,
+      title,
+      body:             editBody.textContent.trim(),
+      tags:             [...cardTags],
+      imageUrl:         cardImageData,
+      image:            cardImageData,
+      imageTransform:   { x: imgX, y: imgY, scale: imgScale },
+      references:       inputReferences.value.trim(),
+      author:           inputAuthor.value.trim(),
+      date:             editingCard ? editingCard.date : todayFormatted(),
+      linkedInsightIds: [...linkedIds],
+    };
+
+    publishBtn.textContent = "Saving…";
+    publishBtn.disabled    = true;
+
+    try {
+      await saveCard(cardData);
+      window.location.href = editingCard
+        ? `card.html?id=${cardData.id}&type=${cardData.type}&project=${projectId}`
+        : `gallery.html?project=${projectId}&type=${cardType}`;
+    } catch {
+      publishBtn.textContent = "Save failed — try again";
+      publishBtn.style.background = "var(--color-riso-pink)";
+      publishBtn.disabled = false;
+      setTimeout(() => {
+        publishBtn.textContent = editingCard ? "Save changes" : "Publish";
+        publishBtn.style.background = "";
+      }, 4000);
+    }
+  });
+
+  // ── Delete card ─────────────────────────────────────────────────────────────
+  document.getElementById("btn-delete-card").addEventListener("click", async () => {
+    if (!editingCard) return;
+    if (!confirm("Delete this card? This cannot be undone.")) return;
+    await deleteCard(editingCard.id);
+    window.location.href = `gallery.html?project=${projectId}&type=${editingCard.type}`;
+  });
+
+})();

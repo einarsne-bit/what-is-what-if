@@ -1,9 +1,12 @@
-// data.js loaded first
+// data.js + db.js loaded first
+
+// ── Async wrapper — all rendering functions close over these variables ─────────
+(async () => {
 
 // ── Project + cards ───────────────────────────────────────────────────────────
-const activeProject = loadActiveProject();
+const activeProject = await loadActiveProject();
 const projectId     = activeProject.id;
-const all           = getProjectCards(projectId);
+const all           = await getProjectCards(projectId);
 const wi            = all.filter(c => c.type === "what-is");
 const wif           = all.filter(c => c.type === "what-if");
 
@@ -19,16 +22,17 @@ const allAuthors = [...new Set(all.map(c => c.author).filter(Boolean))].sort();
 const linkedWiIds = new Set(wif.flatMap(c => c.linkedInsightIds || []));
 
 // ── Annotation data ───────────────────────────────────────────────────────────
-const projectCardIds = new Set(all.map(c => c.id));
-const rawAnnotations = JSON.parse(localStorage.getItem("whats-annotations") || "{}");
-
-// Filter annotations to cards that belong to this project
+const projectCardIds   = new Set(all.map(c => c.id));
+const rawAnnotList     = await getProjectAnnotations(projectId);
 const annotationsByCard = {};
-Object.entries(rawAnnotations).forEach(([cardId, list]) => {
-  if (projectCardIds.has(cardId) && list.length) annotationsByCard[cardId] = list;
+rawAnnotList.forEach(ann => {
+  if (projectCardIds.has(ann.card_id)) {
+    if (!annotationsByCard[ann.card_id]) annotationsByCard[ann.card_id] = [];
+    annotationsByCard[ann.card_id].push(ann);
+  }
 });
 
-const allAnnotList = Object.values(annotationsByCard).flat();
+const allAnnotList   = Object.values(annotationsByCard).flat();
 const totalReactions = allAnnotList.filter(a => a.type === "reaction").length;
 const totalComments  = allAnnotList.filter(a => a.type === "comment").length;
 const commenters     = new Set(allAnnotList.filter(a => a.type === "comment" && a.author).map(a => a.author));
@@ -343,3 +347,5 @@ window.addEventListener("resize", () => {
   renderCoverageMap();
   renderTimeline();
 });
+
+})(); // end async IIFE

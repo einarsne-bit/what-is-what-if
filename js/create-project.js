@@ -52,7 +52,7 @@ function generateId(name) {
 }
 
 // ── Create project ────────────────────────────────────────────────────────────
-document.getElementById("btn-create-project").addEventListener("click", () => {
+document.getElementById("btn-create-project").addEventListener("click", async () => {
   const name = inputName.value.trim();
   if (!name) {
     inputName.focus();
@@ -74,7 +74,7 @@ document.getElementById("btn-create-project").addEventListener("click", () => {
     createdAt: todayFormatted()
   };
 
-  saveProject(data);
+  await saveProject(data);
 
   // Grant creator editor access
   setProjectAccess(id, "editor");
