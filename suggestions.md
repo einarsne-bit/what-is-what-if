@@ -431,3 +431,140 @@ The dividing line between "later" and "experimental" is the difference between f
 ---
 
 *This document is a thinking tool, not a specification. Decisions made from it should be logged in ROADMAP.md.*
+
+---
+
+# Part IV — Design Pass Notes
+
+*Added 2026-06-07. Active phase: design-phase branch.*
+
+---
+
+## D1 — GT Mechanik Colour Extraction
+
+Source: `https://gt-mechanik.com/` (CSS custom properties from `index-vzwSAYox.css`)
+
+The GT Mechanik minisite uses a very deliberate five-colour palette on an off-white ground:
+
+| Name | Hex | Role on the site |
+|---|---|---|
+| Off-white | `#F8F8F6` | Page background — warm, not stark |
+| Olive/army green | `#90991A` | Primary accent, borders, section markers |
+| Dark forest green | `#0B6B00` | Button backgrounds, high-contrast fills |
+| Acid yellow | `#E8F80D` | Energy accent — alert panels, highlight fills |
+| Hot magenta | `#FF4CB2` | Secondary accent — calls to action, contrast moments |
+| Cornflower blue | `#6995EC` | Tertiary accent |
+| Muted mint | `#CEE4DB` | Grid colour, subtle backgrounds |
+| Powder pink | `#FFEBF9` | Very pale panel background |
+| Black | `#000000` | Text, borders |
+
+**Grid texture:** `--grid-color: #CEE4DB` — a square grid at a fine pitch (not halftone dots). Applied to backgrounds with `background-image: linear-gradient(...), linear-gradient(90deg, ...)`.
+
+**Button treatment:** Pill/rounded borders in either green or magenta. No box shadows. Fine `1px` borders. Color-coded by function — green for navigation, magenta for CTAs.
+
+**Layout character:** Generous whitespace, rounded corner motifs (`border-radius: 24px–48px`), strong diagonal contrast between the forest green fills and the acid yellow/magenta accents.
+
+---
+
+## D2 — Proposed Colour Scheme for WHATS
+
+The GT Mechanik palette translates well to the WHATS card tool. The olive/magenta pairing maps directly onto the What Is? / What If? distinction — and the acid yellow is a better CTA colour than the current soft sun yellow.
+
+### Proposal A — Full GT Mechanik palette adaptation
+Replace the Risograph token set:
+
+| Token | Current | Proposed | Notes |
+|---|---|---|---|
+| `--color-bg` | `#E8E8E8` | `#F8F8F6` | Warmer off-white, feels like paper |
+| `--color-riso-green` | `#68BE8C` | `#0B6B00` | Dark forest green — punchy, not pastel |
+| `--color-riso-pink` | `#E898BE` | `#FF4CB2` | Electric magenta — a real contrast moment |
+| `--color-riso-yellow` | `#EDD765` | `#E8F80D` | Acid yellow — high visibility, bold CTA |
+| `--color-riso-blue` | `#7CA8D5` | `#CEE4DB` | Muted mint for hover states, filter active |
+| `--color-riso-orange` | `#EAA070` | `#90991A` | Olive for secondary accents |
+| `--color-muted` | `#555555` | `#555555` | Keep |
+| Card shadow | `#3A3A3A` | `#0B6B00` | Green shadow on What Is? cards |
+| Card shadow | `#3A3A3A` | `#FF4CB2` | Magenta shadow on What If? cards |
+
+The card shadows are currently both dark grey. Switching to colour-coded shadows (green for What Is?, magenta for What If?) would be the single biggest visual improvement — immediate type identification in the gallery without reading the label.
+
+### Proposal B — Conservative adaptation
+Keep the current muted Risograph palette but shift:
+- Background to `#F8F8F6` (warm off-white)
+- What Is? shadow to the existing `#68BE8C` (already green, just make it the shadow colour)
+- What If? shadow to `#E898BE` (same reasoning)
+- CTA yellow to `#E8F80D` (acid, not pastel)
+
+Less dramatic. Safer. Still meaningfully different from the current state.
+
+**Recommendation: start with Proposal A.** The jump from muted Risograph to electric GT Mechanik reads as a deliberate design decision rather than a tweak. If it's too strong, back toward B is easy.
+
+---
+
+## D3 — UI Element Treatment Options
+
+Currently: sharp 90° corners, 2px black borders, no border-radius, flat offset box shadows on cards.
+
+GT Mechanik uses: rounded corners (24–48px radius), 1px fine borders, no shadows.
+
+Three options for WHATS:
+
+### Option 1 — Keep sharp, change colour (minimal intervention)
+Keep all corners square and 2px borders. Only change the colours. The hard-edged quality reads as "print artefact" and fits the card-as-printed-form aesthetic. This is the GT Mechanik palette applied to the Mac System 6 / Risograph grid shell.
+
+**Consequence:** The visual language stays typewriter/print. Closest to the Cedric Price teleprinter reference.
+
+### Option 2 — Soften slightly (2–4px radius)
+Add `border-radius: 2px` to buttons and `border-radius: 4px` to containers. Just enough to break the clinical sharpness without going round. The card itself stays at 0px — it's a physical card format, not a UI component.
+
+**Consequence:** Buttons feel slightly more modern, containers feel warmer. Cards stay rigorous.
+
+### Option 3 — Full GT Mechanik pill buttons
+Round the nav links and action buttons fully (`border-radius: 100px`). Keep the card and the project info box at 0px. This creates a hierarchy: cards are documents (sharp), controls are interface (round).
+
+**Consequence:** Strong typographic contrast between card-as-object and UI-as-control. More contemporary. Less typewriter.
+
+**Recommendation: Option 1 first, then assess.** The colour change alone will feel like a transformation. Round corners can come later if the sharp version feels too dated.
+
+---
+
+## D4 — Background Texture
+
+Current: halftone dot pattern (`radial-gradient`, `10px × 10px` grid, `rgba(0,0,0,0.18)` dots).
+
+GT Mechanik alternative: square grid (`linear-gradient` cross-hatch in `#CEE4DB` mint).
+
+For WHATS with the new palette, a mint-green grid on the off-white background:
+
+```css
+background-color: #F8F8F6;
+background-image:
+  linear-gradient(rgba(206,228,219,0.6) 1px, transparent 1px),
+  linear-gradient(90deg, rgba(206,228,219,0.6) 1px, transparent 1px);
+background-size: 24px 24px;
+```
+
+This 24px grid aligns with the 8pt spacing system (3 × 8pt = 24pt). Blueprint paper reference. More architectural than the halftone dots — fits "Swiss systems designer" rather than "Risograph print."
+
+Alternative: keep the halftone dots but shift the dot colour to the olive green (`rgba(144,153,26,0.12)`) for warmth.
+
+---
+
+## D5 — Responsive / Mobile
+
+Currently the site breaks below approximately 800px. Specific issues:
+
+1. **Gallery:** Card grid with `minmax(400px, 1fr)` collapses to a horizontal scrollbar at narrow widths. Fix: `minmax(min(400px, 100%), 1fr)` — cards fill the full width if viewport is smaller than 400px.
+2. **Site header:** Logo + nav links don't wrap or collapse at narrow widths. Fix: below ~640px, hide the text nav links and keep only the ··· menu.
+3. **Card view:** The `width: min(900px, calc(100vw - 208px))` formula leaves only ~120px for the card on a 328px phone. Fix: switch to `width: min(900px, 100%)` on mobile.
+4. **Create page:** Sidebar + card layout is fundamentally desktop-oriented. Create mode should show a warning (or redirect) below ~768px, or collapse the sidebar to a bottom sheet.
+5. **Filter bar:** The filter rows overflow horizontally. Fix: `flex-wrap: wrap` is already set; the `min-width: 64px` group label needs to become `100%` on mobile.
+6. **Print page:** Print / export is inherently a desktop action. A simple "Desktop only" notice below 768px is appropriate.
+
+**Recommended minimal mobile fix (< 1 day):**
+- Responsive card grid (point 1)
+- Collapsing nav header (point 2, the ··· menu already handles the links — just hide the individual links on mobile)
+- Card view width fix (point 3)
+
+Workshop participants annotating on tablets (768px) is the primary mobile use case. Full phone support is secondary.
+
+---
