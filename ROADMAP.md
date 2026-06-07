@@ -10,9 +10,9 @@
 
 | | |
 |---|---|
-| **Active phase** | Phase 6 — Deploy & Share |
-| **Last session** | Completed 10 gallery UX improvements: floating type-toggle + new-card bar, What Is?/What If? background modes, grouped-by-theme and grouped-by-creator horizontal scroll views, search, author/tag All buttons, compact project bar, sticky header with project-name back button. Two follow-up fixes: horizontal swim-lane layout for grouped sections, type buttons moved into sticky bar. |
-| **Immediate next** | Phase 6: data portability (JSON export/import) → Git setup → GitHub → Netlify deploy. |
+| **Active phase** | Phase 7 — Backend & Collaboration (Supabase) · or · Phase 8 — Polish & Visual Design |
+| **Last session** | Phase 6 complete: JSON export/import built, pushed to GitHub (einarsne-bit/what-is-what-if), deployed to Netlify. Live at https://what-is-what-if.netlify.app (dev password: whats2026). |
+| **Immediate next** | Decision: visual design pass (Phase 8) now, or Supabase backend (Phase 7) to enable real multi-user collaboration first. |
 | **localStorage keys** | `whats-cards`, `whats-projects`, `whats-annotations`, `whats-session-id`, `whats-deleted-samples`, `whats-deleted-projects` |
 | **sessionStorage keys** | `whats-active-project`, `whats-access-{projectId}` |
 | **Dev environment** | VS Code + Live Server + Claude extension |
@@ -136,7 +136,7 @@ WHATS/
 | D | Design & Gallery UX | ✅ Complete |
 | 5 | Single Card View & Annotations | ✅ Complete |
 | M | Multi-project Platform | ✅ Complete |
-| 6 | Deploy & Share | 🔄 Active |
+| 6 | Deploy & Share | ✅ Complete |
 | 7 | Backend & Collaboration (Supabase) | ⬜ Not started |
 | 8 | Polish, Visual Design & Advanced Features | ⬜ Not started |
 
@@ -217,7 +217,7 @@ The visual design pass (GT Mechanik typography, Cedric Price RE:CP direction, ca
 ---
 
 ## Phase 6 — Deploy & Share
-**Status:** 🔄 Active
+**Status:** ✅ Complete
 
 ### Why this comes before the visual design pass
 The tool works end-to-end. Real usage in a real project will give better context for design decisions than designing speculatively. Deploy first, then design for what actually needs improving.
@@ -313,4 +313,4 @@ A standalone view — separate nav link — for generative ideation. Not a galle
 
 ---
 
-*Last updated: 2026-06-06 — Phase D gallery UX complete (10 improvements + horizontal grouped view + floating type bar). Phase 6 Deploy is active: data portability first, then Netlify.*
+*Last updated: 2026-06-06 — Phase 6 complete. Live at https://what-is-what-if.netlify.app (dev password: whats2026). Next: Phase 8 visual design pass or Phase 7 Supabase backend.*
