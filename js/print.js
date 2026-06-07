@@ -21,7 +21,13 @@
   const cancelBtn  = document.getElementById("pdf-cancel");
 
   let cancelled = false;
-  cancelBtn.addEventListener("click", () => { cancelled = true; });
+
+  // Cancel immediately closes the overlay — html2canvas may finish in background
+  // but we check cancelled before adding each page to the PDF
+  cancelBtn.addEventListener("click", () => {
+    cancelled = true;
+    progressEl.hidden = true;
+  });
 
   document.querySelectorAll(".print-controls__filters .filter-btn").forEach(btn => {
     btn.classList.toggle("filter-btn--active", btn.dataset.filter === activeFilter);
@@ -62,9 +68,15 @@
     const filtered = getFiltered();
     if (!filtered.length) return;
 
-    // Check libraries loaded
-    if (typeof html2canvas === "undefined" || typeof window.jspdf === "undefined") {
-      alert("PDF libraries are still loading — please try again in a moment.");
+    if (typeof html2canvas === "undefined") {
+      alert("html2canvas is still loading — please try again in a moment.");
+      return;
+    }
+
+    // jsPDF can be at window.jspdf.jsPDF or window.jsPDF depending on build
+    const JsPDF = window?.jspdf?.jsPDF ?? window?.jsPDF;
+    if (!JsPDF) {
+      alert("jsPDF is still loading — please try again in a moment.");
       return;
     }
 
@@ -74,81 +86,72 @@
     barEl.style.width = "0%";
     barEl.style.background = "";
 
-    // Off-screen container: card renders here at natural 900px, no transforms
-    const offscreen = document.createElement("div");
-    offscreen.style.cssText = [
-      "position:fixed",
-      "left:-1200px",
-      "top:0",
-      "width:900px",
-      "overflow:hidden",
-      "visibility:hidden",
-    ].join(";");
-    document.body.appendChild(offscreen);
+    // Capture zone: off-screen but NOT visibility:hidden — html2canvas needs
+    // the element to have a normal visibility so it can measure and render it
+    const zone = document.createElement("div");
+    zone.style.cssText = "position:fixed;left:-2000px;top:0;width:900px;overflow:visible;";
+    document.body.appendChild(zone);
 
     try {
-      const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+      const pdf = new JsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
 
       for (let i = 0; i < filtered.length; i++) {
-        if (cancelled) {
-          labelEl.textContent = "Cancelled.";
-          setTimeout(() => { progressEl.hidden = true; }, 800);
-          return;
-        }
-        labelEl.textContent = `Rendering card ${i + 1} of ${filtered.length}…`;
+        if (cancelled) break;
+
+        labelEl.textContent = `Card ${i + 1} of ${filtered.length}…`;
         barEl.style.width = `${Math.round((i / filtered.length) * 100)}%`;
 
-        // Find the rendered card in the page and clone its inner .card
-        const wrapper = cardsEl.querySelector(`[data-id="${filtered[i].id}"]`);
-        const cardEl  = wrapper ? wrapper.querySelector(".card") : null;
+        // Render a fresh card into the zone (no transform, position:static)
+        const freshWrapper = renderCard(filtered[i]);
+        const cardNode = freshWrapper.querySelector(".card");
+        cardNode.style.cssText += ";position:static;transform:none;width:900px;";
+        zone.innerHTML = "";
+        zone.appendChild(cardNode);
 
-        let cardNode;
-        if (cardEl) {
-          cardNode = cardEl.cloneNode(true);
-        } else {
-          // Fallback: render fresh from data
-          const freshWrapper = renderCard(filtered[i]);
-          cardNode = freshWrapper.querySelector(".card");
-        }
+        // Yield two animation frames so the browser has painted the card
+        await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+        if (cancelled) break;
 
-        // Position relative so html2canvas measures it correctly
-        cardNode.style.cssText += ";position:relative;transform:none;width:900px;";
-        offscreen.innerHTML = "";
-        offscreen.appendChild(cardNode);
+        // Race html2canvas against a 15-second timeout so it can never hang forever
+        const canvas = await Promise.race([
+          html2canvas(zone, {
+            scale: 2,
+            width: 900,
+            height: Math.round(900 * (210 / 297)),
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: "#ffffff",
+            imageTimeout: 6000,
+            logging: false,
+          }),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("Timed out — card took too long to render")), 15000)
+          ),
+        ]);
 
-        // Small yield so the browser can paint the label update
-        await new Promise(r => setTimeout(r, 10));
-
-        const canvas = await html2canvas(offscreen, {
-          scale: 2,
-          width: 900,
-          height: Math.round(900 * (210 / 297)),
-          useCORS: true,
-          allowTaint: false,
-          backgroundColor: "#ffffff",
-          logging: false,
-        });
+        if (cancelled) break;
 
         if (i > 0) pdf.addPage("a4", "landscape");
         pdf.addImage(canvas.toDataURL("image/jpeg", 0.93), "JPEG", 0, 0, 297, 210);
       }
 
-      barEl.style.width = "100%";
-      labelEl.textContent = "Done!";
-
-      const filename = `${activeProject.name.replace(/[^a-z0-9]/gi, "-").toLowerCase()}-cards.pdf`;
-      pdf.save(filename);
-
-      setTimeout(() => { progressEl.hidden = true; }, 1200);
+      if (!cancelled) {
+        barEl.style.width = "100%";
+        labelEl.textContent = "Saving PDF…";
+        const filename = `${activeProject.name.replace(/[^a-z0-9]/gi, "-").toLowerCase()}-cards.pdf`;
+        pdf.save(filename);
+        labelEl.textContent = "Done!";
+        setTimeout(() => { progressEl.hidden = true; }, 1500);
+      }
 
     } catch (err) {
       console.error("PDF export failed:", err);
+      // Error stays visible until user clicks Cancel
       labelEl.textContent = `Error: ${err.message}`;
-      barEl.style.background = "red";
-      setTimeout(() => { progressEl.hidden = true; barEl.style.background = ""; }, 3000);
+      barEl.style.background = "#c00";
+      barEl.style.width = "100%";
     } finally {
-      document.body.removeChild(offscreen);
+      if (document.body.contains(zone)) document.body.removeChild(zone);
     }
   });
 
