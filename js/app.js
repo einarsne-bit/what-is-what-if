@@ -56,36 +56,21 @@
     const workshopNotice = document.getElementById("workshop-notice");
     if (workshopNotice) workshopNotice.hidden = isEditor;
 
-    // ── Nav / header wiring ───────────────────────────────────────────────────
-    const navAnalysis = document.getElementById("nav-analysis");
-    if (navAnalysis) navAnalysis.href = `analysis.html?project=${projectId}`;
-
-    // new-card-bar is always visible (holds type toggle); only the button is editor-only
-    const btnNewCard = document.getElementById("btn-new-card");
-    if (btnNewCard) {
-      btnNewCard.hidden = !isEditor;
-      btnNewCard.href = `create.html?project=${projectId}`;
-    }
-
-    // Project name in sticky header logo
-    document.getElementById("header-project-name").textContent = activeProject.name;
-
-    // ── Compact project bar ───────────────────────────────────────────────────
+    // ── Project info box ─────────────────────────────────────────────────────
     document.getElementById("project-name").textContent        = activeProject.name;
     document.getElementById("project-description").textContent = activeProject.description || "";
     document.getElementById("meta-project-by").textContent     = activeProject.projectBy    || "—";
     document.getElementById("meta-date").textContent           = activeProject.projectDate  || "—";
-    document.getElementById("meta-collaborators").textContent  = activeProject.collaborators || "";
+    const collabRow = document.getElementById("meta-collaborators-row");
+    const collabEl  = document.getElementById("meta-collaborators");
+    if (activeProject.collaborators) {
+      collabEl.textContent = activeProject.collaborators;
+    } else if (collabRow) {
+      collabRow.hidden = true;
+    }
 
-    document.getElementById("btn-project-details").addEventListener("click", () => {
-      const det = document.getElementById("project-details");
-      const btn = document.getElementById("btn-project-details");
-      det.hidden = !det.hidden;
-      btn.textContent = det.hidden ? "Info ↓" : "Info ↑";
-    });
-
-    // ── Logo click resets all filters ─────────────────────────────────────────
-    document.getElementById("header-logo").addEventListener("click", e => {
+    // ── Logo click resets filters (gallery only) ──────────────────────────────
+    document.getElementById("header-logo")?.addEventListener("click", e => {
       e.preventDefault();
       resetFilters();
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -103,6 +88,29 @@
 
     const urlType = new URLSearchParams(window.location.search).get("type");
     let activeType    = urlType === "what-if" ? "what-if" : "what-is";
+
+    // ── Mode heading ─────────────────────────────────────────────────────────
+    const modeHeading = document.getElementById("mode-heading");
+    if (modeHeading) {
+      modeHeading.textContent = activeType === "what-if" ? "What If?" : "What Is?";
+    }
+
+    // ── New card button (editor only) ────────────────────────────────────────
+    const btnNewCard = document.getElementById("btn-new-card");
+    if (btnNewCard && isEditor) {
+      btnNewCard.hidden = false;
+      btnNewCard.href = `create.html?project=${projectId}&type=${activeType}`;
+      btnNewCard.textContent = activeType === "what-if" ? "+ New What If?" : "+ New What Is?";
+      btnNewCard.className = `btn-new-card btn-new-card--${activeType}`;
+    }
+
+    // ── Unified project header ────────────────────────────────────────────────
+    initProjectHeader(projectId, activeType, {
+      projectName: activeProject.name,
+      isEditor,
+      showExport: true
+    });
+
     let activeSort    = "newest";
     let activeTags    = new Set();
     let activeAuthors = new Set();
@@ -116,13 +124,6 @@
     // ── Background mode ───────────────────────────────────────────────────────
     function updateBackground() {
       document.body.classList.toggle("mode-what-if", activeType === "what-if");
-    }
-
-    // ── Type button highlight ─────────────────────────────────────────────────
-    function updateTypeButtons() {
-      document.querySelectorAll(".type-btn").forEach(btn => {
-        btn.classList.toggle("type-btn--active", btn.dataset.type === activeType);
-      });
     }
 
     // ── Search match ──────────────────────────────────────────────────────────
@@ -270,25 +271,10 @@
         b.classList.toggle("filter-btn--active", i === 0));
       document.querySelectorAll("#view-filters .filter-btn").forEach((b, i) =>
         b.classList.toggle("filter-btn--active", i === 0));
-      updateTypeButtons();
       updateBackground();
       buildFilterButtons();
       renderCards();
     }
-
-    // ── Type toggle ───────────────────────────────────────────────────────────
-    document.querySelectorAll(".type-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        if (btn.dataset.type === activeType) return;
-        activeType = btn.dataset.type;
-        activeTags.clear();
-        activeAuthors.clear();
-        updateTypeButtons();
-        updateBackground();
-        buildFilterButtons();
-        renderCards();
-      });
-    });
 
     // ── Sort ──────────────────────────────────────────────────────────────────
     document.querySelectorAll("#sort-filters .filter-btn").forEach(btn => {
@@ -331,10 +317,7 @@
     // ── Resize ────────────────────────────────────────────────────────────────
     window.addEventListener("resize", scaleAll);
 
-    // ── Data portability (editor only) ───────────────────────────────────────
-    const dataActionsEl = document.getElementById("project-data-actions");
-    if (dataActionsEl && isEditor) dataActionsEl.hidden = false;
-
+    // ── Data portability (export/import from header dropdown) ────────────────
     document.getElementById("btn-export-json").addEventListener("click", () => {
       const exportData = {
         project: activeProject,
@@ -373,30 +356,18 @@
           });
           await Promise.all(toInsert.map(saveCard));
           statusEl.textContent = `${added} card${added !== 1 ? "s" : ""} imported.`;
-          statusEl.className = "project-bar__import-status project-bar__import-status--ok";
+          statusEl.className = "nav-more__status nav-more__status--ok";
           setTimeout(() => window.location.reload(), 800);
         } catch {
           statusEl.textContent = "Import failed — invalid file.";
-          statusEl.className = "project-bar__import-status project-bar__import-status--err";
+          statusEl.className = "nav-more__status nav-more__status--err";
         }
       };
       reader.readAsText(file);
       e.target.value = "";
     });
 
-    // ── Print ─────────────────────────────────────────────────────────────────
-    document.getElementById("btn-print").addEventListener("click", () => {
-      document.body.classList.add("is-print-mode");
-    });
-    document.getElementById("btn-cancel-print").addEventListener("click", () => {
-      document.body.classList.remove("is-print-mode");
-    });
-    document.getElementById("btn-save-pdf").addEventListener("click", () => {
-      window.print();
-    });
-
-    // ── Init ──────────────────────────────────────────────────────────────────
-    updateTypeButtons();
+// ── Init ──────────────────────────────────────────────────────────────────
     updateBackground();
     buildFilterButtons();
     renderCards();

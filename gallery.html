@@ -10,58 +10,59 @@
 
     <!-- Sticky site header -->
     <header class="site-header">
-      <a href="#" class="site-title" id="header-logo">
-        <span class="site-title__wordmark">WHAT IS? / WHAT IF?</span>
-        <span class="site-title__sep">—</span>
-        <span class="site-title__project" id="header-project-name"></span>
-      </a>
+      <a href="#" class="site-header__home" id="header-logo">WHAT IS? / WHAT IF? / <span id="header-project-name"></span></a>
       <nav class="site-nav">
-        <a href="#" class="nav-link" id="nav-analysis">Analysis</a>
-        <button class="nav-link" id="btn-print">Print</button>
-        <a href="about.html" class="nav-link">About</a>
-      </nav>
-    </header>
-
-    <!-- Print mode bar (fixed) -->
-    <div class="print-bar" id="print-bar">
-      <span class="print-bar__label">Print mode — each card will be one A4 page</span>
-      <div class="print-bar__actions">
-        <button class="print-bar__btn print-bar__btn--cancel" id="btn-cancel-print">Cancel</button>
-        <button class="print-bar__btn print-bar__btn--save" id="btn-save-pdf">Save as PDF</button>
-      </div>
-    </div>
-
-    <div class="page-wrapper">
-
-      <!-- Compact project bar -->
-      <div class="project-bar">
-        <div class="project-bar__main">
-          <span class="project-bar__name" id="project-name"></span>
-          <span class="project-bar__by">By <span id="meta-project-by"></span></span>
-          <span class="project-bar__date" id="meta-date"></span>
-          <button class="project-bar__toggle" id="btn-project-details">Info ↓</button>
-        </div>
-        <div class="project-bar__details" id="project-details" hidden>
-          <p class="project-bar__description" id="project-description"></p>
-          <span class="project-bar__collaborators" id="meta-collaborators"></span>
-          <div class="project-bar__data-actions" id="project-data-actions" hidden>
-            <button class="project-bar__data-btn" id="btn-export-json">↓ Export cards</button>
-            <label class="project-bar__data-btn project-bar__data-btn--import">
+        <a class="nav-link" id="nav-what-is" href="#">What Is?</a>
+        <a class="nav-link" id="nav-what-if" href="#">What If?</a>
+        <a class="nav-link nav-link--soon" id="nav-creative" title="Coming soon">Creative</a>
+        <a class="nav-link" id="nav-analysis" href="#">Analysis</a>
+        <a class="nav-link" id="nav-print" href="#">Print</a>
+        <div class="nav-more">
+          <button class="nav-link nav-more__trigger" id="nav-more-btn" aria-expanded="false">···</button>
+          <div class="nav-more__menu" id="nav-more-menu">
+            <button class="nav-more__item" id="btn-export-json">↓ Export cards</button>
+            <label class="nav-more__item" id="nav-import-label">
               ↑ Import cards
               <input type="file" id="input-import-json" accept=".json" hidden />
             </label>
-            <span class="project-bar__import-status" id="import-status"></span>
+            <div class="nav-more__status" id="import-status"></div>
+            <a class="nav-more__item" href="about.html">About</a>
+            <a class="nav-more__item" href="#">Settings</a>
+            <a class="nav-more__item" href="index.html">← All projects</a>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+
+<div class="page-wrapper">
+
+      <!-- Project info box -->
+      <div class="project-info-box">
+        <div class="project-info-box__col project-info-box__col--desc">
+          <h2 class="project-info-box__name" id="project-name"></h2>
+          <p class="project-info-box__description" id="project-description"></p>
+        </div>
+        <div class="project-info-box__col project-info-box__col--meta">
+          <div class="project-info-box__meta-row">
+            <span class="project-info-box__meta-label">By</span>
+            <span id="meta-project-by"></span>
+          </div>
+          <div class="project-info-box__meta-row">
+            <span class="project-info-box__meta-label">Date</span>
+            <span id="meta-date"></span>
+          </div>
+          <div class="project-info-box__meta-row" id="meta-collaborators-row">
+            <span class="project-info-box__meta-label">With</span>
+            <span id="meta-collaborators"></span>
           </div>
         </div>
       </div>
 
-      <!-- Sticky action bar: type toggle (always) + new card (editor only) -->
+      <!-- Sticky action bar: mode heading + new card button -->
       <div class="new-card-bar" id="new-card-bar">
-        <div class="filter-bar__type-toggle">
-          <button class="type-btn type-btn--what-is" data-type="what-is">What Is?</button>
-          <button class="type-btn type-btn--what-if" data-type="what-if">What If?</button>
-        </div>
-        <a href="create.html" class="btn-new-card" id="btn-new-card" hidden>+ New card</a>
+        <h2 class="mode-heading" id="mode-heading"></h2>
+        <a href="#" class="btn-new-card" id="btn-new-card" hidden>+ New card</a>
       </div>
       <div class="workshop-notice" id="workshop-notice" hidden>
         <span>Workshop mode — you can react and comment on cards, but not create or edit them.</span>

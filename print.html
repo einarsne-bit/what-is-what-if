@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Print — What Is? / What If?</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body class="print-page">
+
+    <!-- On-screen controls -->
+    <div class="print-controls" id="print-controls">
+      <a class="print-controls__back" id="print-back" href="#">← Back</a>
+      <span class="print-controls__project" id="print-project-name"></span>
+      <div class="print-controls__filters">
+        <button class="filter-btn filter-btn--active" data-filter="all">All cards</button>
+        <button class="filter-btn" data-filter="what-is">What Is? only</button>
+        <button class="filter-btn" data-filter="what-if">What If? only</button>
+      </div>
+      <span class="print-controls__count" id="print-count"></span>
+      <button class="btn-print-now" id="btn-export-pdf">Export PDF</button>
+    </div>
+
+    <!-- Progress overlay — shown during PDF generation -->
+    <div class="pdf-progress" id="pdf-progress" hidden>
+      <div class="pdf-progress__box">
+        <p class="pdf-progress__label" id="pdf-progress-label">Preparing…</p>
+        <div class="pdf-progress__track">
+          <div class="pdf-progress__bar" id="pdf-progress-bar"></div>
+        </div>
+        <button class="pdf-progress__cancel" id="pdf-cancel">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Cards rendered here -->
+    <div class="print-cards" id="print-cards"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/db.js"></script>
+    <script src="js/print.js"></script>
+  </body>
+</html>
