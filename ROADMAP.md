@@ -10,11 +10,12 @@
 
 | | |
 |---|---|
-| **Active phase** | Phase 7 — Backend & Collaboration (Supabase) · or · Phase 8 — Polish & Visual Design |
-| **Last session** | Phase 6 complete: JSON export/import built, pushed to GitHub (einarsne-bit/what-is-what-if), deployed to Netlify. Live at https://what-is-what-if.netlify.app (dev password: whats2026). |
-| **Immediate next** | Decision: visual design pass (Phase 8) now, or Supabase backend (Phase 7) to enable real multi-user collaboration first. |
-| **localStorage keys** | `whats-cards`, `whats-projects`, `whats-annotations`, `whats-session-id`, `whats-deleted-samples`, `whats-deleted-projects` |
-| **sessionStorage keys** | `whats-active-project`, `whats-access-{projectId}` |
+| **Active phase** | Phase 8 — Polish, Visual Design & Advanced Features |
+| **Last session** | Phase 7 complete: Supabase backend live. All data (projects, cards, annotations) stored in Postgres. 160 sample cards seeded. Create/edit/delete/annotate all write to Supabase. Deployed and verified on https://what-is-what-if.netlify.app. |
+| **Immediate next** | Phase 8 — visual design pass, Creative mode, analysis improvements |
+| **Supabase project** | `https://bnqmmdymxfcptfxgvxzm.supabase.co` — EU West (Frankfurt) |
+| **sessionStorage keys** | `whats-active-project`, `whats-access-{projectId}`, `whats-seeded` |
+| **localStorage keys** | `whats-session-id`, `whats-user-name` (annotation identity only — all card/project data now in Supabase) |
 | **Dev environment** | VS Code + Live Server + Claude extension |
 
 ---
@@ -53,7 +54,8 @@ WHATS/
 ├── css/
 │   └── styles.css          ← all styles (design tokens, cards, landing, analysis, modal, print)
 ├── js/
-│   ├── data.js             ← shared: project mgmt, SAMPLE_CARDS, tag helpers, renderCard, etc.
+│   ├── data.js             ← shared: SAMPLE_CARDS, tag helpers, renderCard, session helpers
+│   ├── db.js               ← Supabase async data layer (all CRUD, field mapping, seeding)
 │   ├── app.js              ← gallery logic (project-aware, access control, filtering)
 │   ├── card.js             ← single card view logic
 │   ├── create.js           ← card creation/edit logic
@@ -137,7 +139,7 @@ WHATS/
 | 5 | Single Card View & Annotations | ✅ Complete |
 | M | Multi-project Platform | ✅ Complete |
 | 6 | Deploy & Share | ✅ Complete |
-| 7 | Backend & Collaboration (Supabase) | ⬜ Not started |
+| 7 | Backend & Collaboration (Supabase) | ✅ Complete |
 | 8 | Polish, Visual Design & Advanced Features | ⬜ Not started |
 
 Status key: ⬜ Not started · 🔄 In progress · ✅ Complete · ⏸ Paused
@@ -248,21 +250,18 @@ Without this, collaborators on different devices have no way to share cards. JSO
 ---
 
 ## Phase 7 — Backend & Collaboration (Supabase)
-**Status:** ⬜ Not started
+**Status:** ✅ Complete
 
-> **⚠️ Security is a design task here.** Supabase exposes the DB via a public API + anon key. **Without RLS, every row is publicly readable/writable.** RLS is mandatory. Design the access model *before* writing table code.
-
-### Pre-phase: Access design (do first)
-- [ ] Map the two-password model to Supabase auth — Edge Function validates password, grants editor/workshop JWT claim; RLS enforces
-- [ ] Write RLS policies scoped by `projectId` and access level
-
-### Steps
-- [ ] Create Supabase project — **EU region (Frankfurt)**, accept DPA
-- [ ] Create `projects` and `cards` tables
-- [ ] Enable RLS on every table; test from client SDK (not SQL editor — bypasses RLS)
-- [ ] Replace `localStorage` with Supabase API calls
-- [ ] Migrate `whats-annotations` to Supabase
-- [ ] Real-time updates — Supabase Realtime subscription so workshop participants see new cards live
+### What was built
+- [x] Supabase project created — EU West (Frankfurt), RLS enabled on all tables
+- [x] Three tables: `projects`, `cards`, `annotations` — with RLS policies (anon role, password checks stay client-side)
+- [x] `js/db.js` — new async data layer: field mapping (camelCase JS ↔ snake_case DB), CRUD for all three tables, `ensureSampleData()` seeding
+- [x] `js/data.js` — removed all localStorage data functions; kept constants, SAMPLE_CARDS, session helpers, rendering utilities
+- [x] All page JS files converted to async — `(async () => {})()` pattern throughout
+- [x] 160 sample cards seeded to Supabase on first load, verified in Table Editor
+- [x] Create, edit, delete cards — all write to Supabase
+- [x] Annotations (reactions + comments) — stored in Supabase `annotations` table
+- [x] Deployed to Netlify, verified live
 
 ---
 
@@ -313,4 +312,4 @@ A standalone view — separate nav link — for generative ideation. Not a galle
 
 ---
 
-*Last updated: 2026-06-06 — Phase 6 complete. Live at https://what-is-what-if.netlify.app (dev password: whats2026). Next: Phase 8 visual design pass or Phase 7 Supabase backend.*
+*Last updated: 2026-06-07 — Phase 7 complete. Supabase backend live. All data in Postgres. Deployed and verified at https://what-is-what-if.netlify.app (dev password: whats2026). Next: Phase 8 — visual design pass + Creative mode.*
