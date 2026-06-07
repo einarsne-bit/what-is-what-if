@@ -568,3 +568,151 @@ Currently the site breaks below approximately 800px. Specific issues:
 Workshop participants annotating on tablets (768px) is the primary mobile use case. Full phone support is secondary.
 
 ---
+
+# Part V — Pages, Features & Design Direction
+
+*Added 2026-06-07*
+
+---
+
+## E1 — Analytics Page Redesign
+
+**Current state:** The page has real structure — stat tiles, annotation activity bars, tag frequency chart, coverage map (dot + line), timeline, affinity groups, four outlier panels. The data is good. The problem is that it reads as a dashboard of numbers rather than a research instrument that tells a story about the project.
+
+### What's missing
+
+**Narrative layer.** A researcher opening the analytics page wants to know: *where is this project at?* The current stat tiles give raw counts but no direction. Adding a "Project status" reading at the top — structured like a research brief — would immediately communicate state: "42 observations, 18 ideas, 7 themes. 24 observations have no idea yet. 3 themes are single-author."
+
+**Better relationship visualisation.** The coverage map (dots + SVG lines between What Is? and What If? cards) is a good concept but hard to parse at scale. Alternatives worth building:
+
+1. **Connection matrix** — a bi-axial grid: What Is? cards on one axis, What If? cards on the other. Cells where a link exists are filled. Clusters of cells show thematic constellations. Isolated rows/columns immediately reveal unlinked cards. This is pure SVG and requires no external libraries.
+
+2. **Tag co-occurrence table** — which tags appear together on the same card? A symmetric matrix of tag pairs. Shows conceptual proximity between themes. Useful for the researcher to spot which themes are being combined and which remain isolated.
+
+3. **Author contribution timeline** — a horizontal swim-lane diagram with one lane per author, cards plotted on a time axis. Shows the collaborative rhythm of the project: who contributed during which phase, where clusters of activity happen.
+
+**Diagnostic "health" panel.** A single panel combining the four current outlier lists into one diagnostic read-out, styled as a status report:
+- ⬤ 24 observations without ideas (red dot = action needed)
+- ⬤ 3 ideas ungrounded in observations (amber dot = review)
+- ⬤ 11 cards without tags (amber dot = categorise)
+- ⬤ 4 themes with single-author contributions (grey dot = note)
+
+This reads like a lab instrument status readout — consistent with the Cedric Price / teleprinter aesthetic.
+
+### Design direction for analytics
+
+The analytics page should feel like a **research instrument**, not a product dashboard. Design cues:
+- Monochrome base with minimal use of green/pink (only for What Is?/What If? colour-coding)
+- Panels styled like form sections — thin internal lines, label rows in uppercase monospaced
+- Data inline with prose descriptions, not separated from them
+- Use the 8pt grid strictly: every panel height is a multiple of 8
+
+---
+
+## E2 — Creative Page Concept
+
+**Current state:** The "Creative" nav link shows "Coming soon". Nothing is built.
+
+### What it should be
+
+The Creative page is the engine of the method: the moment where What Is? observations are used as raw material to generate What If? ideas. It is a facilitation tool, not just another view.
+
+**Core mechanic: The Spark**
+
+Show 2–3 randomly selected What Is? cards. The user reads them together and tries to answer: *What if these were connected?* When a What If? idea emerges, clicking "Generate idea" opens the create form pre-filled with those observations as linked cards.
+
+The key insight is that creative ideas rarely come from a single observation — they come from unexpected combinations. The Creative page curates those combinations.
+
+**Three modes to build:**
+
+1. **Random Spark** — 3 cards drawn from the full What Is? pool. A "Reshuffle" button picks new ones. The user reads until something connects, then generates a What If?. Entry-level, always available.
+
+2. **Theme Spark** — the user selects 1–2 themes (tags), and the page shows cards from those themes. Useful for focused ideation sessions on a specific topic.
+
+3. **Cross-Theme Spark** — force one card from Theme A and one from Theme B. Designed for cross-disciplinary ideation; productive tension from unlikely pairings.
+
+**Workshop facilitation mode (later):**
+A fullscreen mode showing one card at a time, with a timer. The facilitator navigates through cards, the group discusses. A "Flag for What If?" button bookmarks cards to come back to. At the end, the flagged set opens in the create flow.
+
+### Layout concept
+
+The Creative page is deliberately different from the gallery. Less grid, more stage:
+- One or three cards shown at display size (scaled to fill ~70% of viewport width)
+- Minimal chrome: just the cards, a Reshuffle button, and a "Generate idea →" CTA
+- The background shifts to a slightly warmer tone (or dims) to create focus
+- Mode selector (Random / Theme / Cross-theme) at top as a compact toggle
+
+### Design note from RE:CP
+
+Cedric Price's "73 Snacks" and "The Invisible Sandwich" both work as combinatorial prompts — short vignettes meant to collide with each other in the reader's mind. The Creative page is a digital version of this: observations as vignettes, the page as a combinatorial machine. Price believed architecture should enable possibility rather than foreclose it. The Creative page does the same thing with ideas.
+
+---
+
+## F. Design Suggestions from RE:CP (Cedric Price)
+
+*Reference: RE:CP book edited by Hans-Ulrich Obrist, Birkhäuser. Described in design_references.md.*
+
+These are concrete, implementable suggestions derived from close reading of Price's visual language. Each maps to a CSS or structural change.
+
+### F1 — Blueprint ground for cards (reversible)
+
+Price worked on diazotype (blueprint) paper: a warm, slightly blue-grey ground rather than pure white. A blueprint-ground option for cards would give them a specific materiality — they feel printed, not screened.
+
+**Implementation:** A CSS class `.card--blueprint` that changes `background` from `#FFFFFF` to `#E8F2F8` (very light blue-grey). Apply it as a toggle in the card view, or offer it as a project-level setting. For printing, the slight tint would show on laser printers but be essentially invisible on inkjet.
+
+**Token:** `--color-blueprint: #EAF1F8;`
+
+### F2 — Dashed borders as "possibility" notation
+
+In Price's drawings, **solid lines = structure, dashed lines = possibility**. This is a meaningful distinction for WHATS: a What If? card is a possibility, not a fixed observation. Giving What If? cards a dashed instead of solid outer border (or dashed internal dividers) would encode this distinction directly in the visual language.
+
+**Implementation:** `.card--what-if { border-style: dashed; }` — or more subtly, dashed top/bottom borders only on What If? cards, solid on What Is?.
+
+### F3 — Tag labels as bracket notation
+
+Price's typewritten annotation style uses square bracket labels: `[STRUCTURAL]`, `[SPECULATIVE]`, `[SEE: p.42]`. Currently WHATS tags are plain text in a bordered pill. Switching to bracket notation — `[ECONOMY]` — would be a simple, free typographic choice that radically shifts the register.
+
+**Implementation:** Prepend `[` and append `]` to tag text in the `.tag` element via CSS `::before`/`::after`, set in the same monospaced font. No HTML change needed.
+
+### F4 — Graduated line weights
+
+Price used thick lines for load-bearing structure and thin lines for movement/annotation. In WHATS:
+- **Card outer border:** `2px` (structural, stays) ✓
+- **Internal card dividers (if reintroduced):** `0.5px` — barely visible guide lines, not hard separators
+- **Header strip rule:** `1px` — lighter than the card border, softer than a structural element
+
+This creates a hierarchy of line weights that reflects information hierarchy. Currently everything is `2px` (`--border-width`). Varying it, even subtly, adds depth.
+
+### F5 — Typewritten label vocabulary
+
+Price's drawings are annotated in typewriter caps with working-document language: provisional, specific, unsentimental. Suggestions for renaming UI labels to match this register:
+
+| Current | Price-register alternative |
+|---|---|
+| Publish | Transmit |
+| Save changes | Update record |
+| Tags | Attributes |
+| Author | Filed by |
+| References | Source / origin |
+| New What Is? | New observation |
+| New What If? | New proposal |
+
+These don't all need to be implemented — one or two would shift the register significantly. "Transmit" for the publish button is the highest-impact single change.
+
+### F6 — Grid-lines visible on card
+
+Price's drawings always show the underlying grid. A very faint internal grid on the card body — matching the page's 24px crosshatch — would make the structure visible and reinforce the "cell in a larger system" feeling described in design_references.md.
+
+**Implementation:** The card body already sits on a white background. Adding a barely-visible `background-image` with 24px crosshatch (opacity 0.03–0.04) would show the grid without overwhelming the card content.
+
+### F7 — "Provisional" stamp on What If? cards
+
+Price often marked speculative or tentative proposals with explicit notation: "PROVISIONAL", "SUBJECT TO REVISION", "PROPOSED". A small typographic element on What If? cards — perhaps the word "PROPOSAL" in 9px uppercase tracking, placed in the references strip at the right edge — would visually mark speculative cards as distinct from documented observations.
+
+### F8 — Collage image treatment
+
+Price combined photographic cutouts with hand-drawn marks in the same frame. For WHATS, a subtle filter on card images would give them a more "printed" quality: slightly desaturated, with a hint of the paper ground showing at the edges.
+
+**Implementation:** `.card__image-area img { filter: saturate(0.85) contrast(1.05); }` — minimal, removes the pure-digital look without making images obviously filtered.
+
+---

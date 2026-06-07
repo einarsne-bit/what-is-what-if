@@ -1305,9 +1305,12 @@ function renderCard(card) {
 
   el.innerHTML = `
     <header class="card__header">
-      <span class="card__header-project">${escHtml(project.name)}</span>
+      <span class="card__header-left"></span>
       <span class="card__header-type">${typeLabel}</span>
-      <span class="card__header-date">${escHtml(card.date)}</span>
+      <div class="card__header-right">
+        <span class="card__header-project">${escHtml(project.name)}</span>
+        <span class="card__header-date">${escHtml(card.date)}</span>
+      </div>
     </header>
     <div class="card__body">
       <div class="card__content">
@@ -1324,6 +1327,16 @@ function renderCard(card) {
       </div>
     </div>
   `;
+
+  (card.textBoxes || []).forEach(tb => {
+    if (!tb.text) return;
+    const tbEl = document.createElement("div");
+    tbEl.className = "card__textbox";
+    tbEl.style.left = tb.x + "px";
+    tbEl.style.top  = tb.y + "px";
+    tbEl.textContent = tb.text;
+    el.appendChild(tbEl);
+  });
 
   wrapper.appendChild(el);
   return wrapper;

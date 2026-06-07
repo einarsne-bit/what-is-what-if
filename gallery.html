@@ -39,30 +39,38 @@
 
       <!-- Project info box -->
       <div class="project-info-box">
-        <div class="project-info-box__col project-info-box__col--desc">
+        <div class="project-info-box__head">
+          <span class="project-info-box__section-label">Project</span>
           <h2 class="project-info-box__name" id="project-name"></h2>
+        </div>
+        <div class="project-info-box__desc-row">
           <p class="project-info-box__description" id="project-description"></p>
         </div>
-        <div class="project-info-box__col project-info-box__col--meta">
-          <div class="project-info-box__meta-row">
+        <div class="project-info-box__meta-strip">
+          <div class="project-info-box__meta-col">
             <span class="project-info-box__meta-label">By</span>
-            <span id="meta-project-by"></span>
+            <span class="project-info-box__meta-value" id="meta-project-by"></span>
           </div>
-          <div class="project-info-box__meta-row">
+          <div class="project-info-box__meta-col">
             <span class="project-info-box__meta-label">Date</span>
-            <span id="meta-date"></span>
+            <span class="project-info-box__meta-value" id="meta-date"></span>
           </div>
-          <div class="project-info-box__meta-row" id="meta-collaborators-row">
+          <div class="project-info-box__meta-col" id="meta-collaborators-row">
             <span class="project-info-box__meta-label">With</span>
-            <span id="meta-collaborators"></span>
+            <span class="project-info-box__meta-value" id="meta-collaborators"></span>
           </div>
         </div>
       </div>
 
-      <!-- Sticky action bar: mode heading + new card button -->
+      <!-- Mode bar: viewing mode heading + new card button -->
       <div class="new-card-bar" id="new-card-bar">
-        <h2 class="mode-heading" id="mode-heading"></h2>
-        <a href="#" class="btn-new-card" id="btn-new-card" hidden>+ New card</a>
+        <div class="new-card-bar__head">
+          <div class="new-card-bar__info">
+            <span class="new-card-bar__label">Viewing</span>
+            <h2 class="mode-heading" id="mode-heading"></h2>
+          </div>
+          <a href="#" class="btn-new-card" id="btn-new-card" hidden>+ New card</a>
+        </div>
       </div>
       <div class="workshop-notice" id="workshop-notice" hidden>
         <span>Workshop mode — you can react and comment on cards, but not create or edit them.</span>

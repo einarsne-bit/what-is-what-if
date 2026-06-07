@@ -12,6 +12,7 @@ let linkedIds      = [];
 let imgX = 0, imgY = 0, imgScale = 1;
 let isDragging = false;
 let dragLast   = { x: 0, y: 0 };
+let textBoxes  = [];
 
 // ── DOM refs ──────────────────────────────────────────────────────────────────
 const editCard         = document.getElementById("edit-card");
@@ -223,8 +224,54 @@ function placeImage(src) {
     img.src = src; img.draggable = false;
     editImageArea.appendChild(img);
     applyImageTransform();
+    addImageHandles();
   };
   probe.src = src;
+}
+
+// ── Corner resize handles ─────────────────────────────────────────────────────
+function addImageHandles() {
+  editImageArea.querySelectorAll(".img-handle").forEach(h => h.remove());
+  if (!editImageArea.querySelector("img")) return;
+
+  ["nw", "ne", "sw", "se"].forEach(corner => {
+    const handle = document.createElement("div");
+    handle.className = `img-handle img-handle--${corner}`;
+    editImageArea.appendChild(handle);
+
+    handle.addEventListener("mousedown", e => {
+      e.stopPropagation();
+      e.preventDefault();
+      const startX     = e.clientX;
+      const startY     = e.clientY;
+      const startScale = imgScale;
+      const startImgX  = imgX;
+      const startImgY  = imgY;
+
+      function onMove(ev) {
+        const cs   = getCardScale();
+        const rect = editImageArea.getBoundingClientRect();
+        const dx   = ev.clientX - startX;
+        const dy   = ev.clientY - startY;
+        const mx   = (corner === "ne" || corner === "se") ?  1 : -1;
+        const my   = (corner === "sw" || corner === "se") ?  1 : -1;
+        const delta = (dx * mx + dy * my) / 2;
+        const factor = 1 + delta / (rect.width / cs);
+        imgScale = Math.max(0.05, Math.min(20, startScale * factor));
+        const areaW = rect.width  / cs;
+        const areaH = rect.height / cs;
+        imgX = areaW / 2 - (areaW / 2 - startImgX) * (imgScale / startScale);
+        imgY = areaH / 2 - (areaH / 2 - startImgY) * (imgScale / startScale);
+        applyImageTransform();
+      }
+      function onUp() {
+        document.removeEventListener("mousemove", onMove);
+        document.removeEventListener("mouseup",   onUp);
+      }
+      document.addEventListener("mousemove", onMove);
+      document.addEventListener("mouseup",   onUp);
+    });
+  });
 }
 
 // ── Image drop ────────────────────────────────────────────────────────────────
@@ -242,6 +289,7 @@ dropZone.addEventListener("drop", e => {
 
 // ── Pan & zoom ────────────────────────────────────────────────────────────────
 editImageArea.addEventListener("mousedown", e => {
+  if (e.target.classList.contains("img-handle")) return;
   if (!editImageArea.querySelector("img")) return;
   isDragging = true; dragLast = { x: e.clientX, y: e.clientY };
   editImageArea.style.cursor = "grabbing"; e.preventDefault();
@@ -272,6 +320,67 @@ editImageArea.addEventListener("wheel", e => {
   imgScale = Math.max(0.05, Math.min(20, imgScale * factor));
   applyImageTransform();
 }, { passive: false });
+
+// ── Text box overlays ─────────────────────────────────────────────────────────
+function mountTextBox(box) {
+  const el = document.createElement("div");
+  el.className = "card__textbox";
+  el.dataset.tbId = box.id;
+  el.style.left = box.x + "px";
+  el.style.top  = box.y + "px";
+
+  const handle = document.createElement("div");
+  handle.className = "card__textbox__handle";
+  handle.title = "Drag to move · Double-click to delete";
+
+  const content = document.createElement("div");
+  content.className = "card__textbox__content";
+  content.contentEditable = "true";
+  content.textContent = box.text;
+  content.spellcheck = true;
+  content.addEventListener("input", () => { box.text = content.textContent; });
+
+  el.appendChild(handle);
+  el.appendChild(content);
+  editCard.appendChild(el);
+
+  let dragging = false, ds = {x:0,y:0}, bs = {x:0,y:0};
+
+  handle.addEventListener("mousedown", e => {
+    e.preventDefault();
+    dragging = true;
+    ds = { x: e.clientX, y: e.clientY };
+    bs = { x: box.x, y: box.y };
+    el.classList.add("card__textbox--dragging");
+  });
+
+  document.addEventListener("mousemove", e => {
+    if (!dragging) return;
+    const cs = getCardScale();
+    box.x = bs.x + (e.clientX - ds.x) / cs;
+    box.y = bs.y + (e.clientY - ds.y) / cs;
+    el.style.left = box.x + "px";
+    el.style.top  = box.y + "px";
+  });
+
+  document.addEventListener("mouseup", () => {
+    if (dragging) { dragging = false; el.classList.remove("card__textbox--dragging"); }
+  });
+
+  handle.addEventListener("dblclick", () => {
+    textBoxes = textBoxes.filter(tb => tb.id !== box.id);
+    el.remove();
+    if (!textBoxes.length) document.getElementById("textbox-hint").hidden = true;
+  });
+}
+
+document.getElementById("btn-add-textbox").addEventListener("click", () => {
+  const id  = `tb_${Date.now()}`;
+  const box = { id, text: "", x: 220, y: 100 };
+  textBoxes.push(box);
+  mountTextBox(box);
+  document.getElementById("textbox-hint").hidden = false;
+});
 
 // ── Async init ────────────────────────────────────────────────────────────────
 (async () => {
@@ -333,6 +442,13 @@ editImageArea.addEventListener("wheel", e => {
         editImageArea.innerHTML = "";
         editImageArea.appendChild(img);
         applyImageTransform();
+        addImageHandles();
+      }
+
+      if (editingCard.textBoxes && editingCard.textBoxes.length) {
+        textBoxes = editingCard.textBoxes.map(tb => ({ ...tb }));
+        textBoxes.forEach(mountTextBox);
+        document.getElementById("textbox-hint").hidden = false;
       }
     }
   }
@@ -368,6 +484,7 @@ editImageArea.addEventListener("wheel", e => {
       author:           inputAuthor.value.trim(),
       date:             editingCard ? editingCard.date : todayFormatted(),
       linkedInsightIds: [...linkedIds],
+      textBoxes:        textBoxes.map(tb => ({ ...tb })),
     };
 
     publishBtn.textContent = "Saving…";

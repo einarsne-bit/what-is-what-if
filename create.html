@@ -48,6 +48,13 @@
           <textarea class="sidebar__input sidebar__textarea" id="input-references" placeholder="Source, link, or citation…" rows="3"></textarea>
         </div>
 
+        <!-- Overlay elements -->
+        <div class="sidebar__section">
+          <label class="sidebar__label">Overlays</label>
+          <button class="sidebar-btn" id="btn-add-textbox">+ Text box</button>
+          <p class="sidebar__hint" id="textbox-hint" hidden>Click a text box to edit. Drag to reposition.</p>
+        </div>
+
         <!-- Link to What Is? cards — optional, only visible for What If? type -->
         <div class="sidebar__section sidebar__section--link" id="section-link" hidden>
           <label class="sidebar__label">Linked to <span class="sidebar__label-optional">(optional)</span></label>
@@ -71,9 +78,12 @@
           <div class="card" id="edit-card">
 
             <header class="card__header">
-              <span class="card__header-project" id="edit-project"></span>
+              <span class="card__header-left"></span>
               <span class="card__header-type" id="edit-type-label">WHAT IS?</span>
-              <span class="card__header-date" id="edit-date"></span>
+              <div class="card__header-right">
+                <span class="card__header-project" id="edit-project"></span>
+                <span class="card__header-date" id="edit-date"></span>
+              </div>
             </header>
 
             <div class="card__body">
