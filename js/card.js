@@ -9,10 +9,8 @@ const projectId = params.get("project") || getActiveProjectId();
 const accessLevel = getProjectAccess(projectId) || "editor";
 const isEditor    = accessLevel === "editor";
 
-// ── Nav links ─────────────────────────────────────────────────────────────────
+// ── Card type (from URL, updated after card loads) ───────────────────────────
 const cardType = params.get("type") || "what-is";
-document.getElementById("nav-what-is").href = `gallery.html?project=${projectId}&type=what-is`;
-document.getElementById("nav-what-if").href = `gallery.html?project=${projectId}&type=what-if`;
 
 // ── Back link ─────────────────────────────────────────────────────────────────
 const btnBack = document.getElementById("btn-back");
@@ -21,7 +19,7 @@ btnBack.href = `gallery.html?project=${projectId}&type=${cardType}`;
 // ── Async init ────────────────────────────────────────────────────────────────
 (async () => {
 
-  await loadActiveProject();
+  const activeProject = await loadActiveProject();
 
   const allCards = await getProjectCards(projectId);
   const card = allCards.find(c => c.id === cardId);
@@ -33,9 +31,10 @@ btnBack.href = `gallery.html?project=${projectId}&type=${cardType}`;
     .sort((a, b) => parseDate(b.date) - parseDate(a.date));
   const currentIndex = typeCards.findIndex(c => c.id === cardId);
 
-  // Update nav active state
-  document.querySelectorAll(".site-nav [data-type]").forEach(link => {
-    link.classList.toggle("nav-link--active", link.dataset.type === resolvedType);
+  // ── Unified project header ────────────────────────────────────────────────
+  initProjectHeader(projectId, resolvedType, {
+    projectName: activeProject.name,
+    isEditor
   });
   btnBack.href = `gallery.html?project=${projectId}&type=${resolvedType}`;
 
@@ -74,34 +73,6 @@ btnBack.href = `gallery.html?project=${projectId}&type=${cardType}`;
     if (e.key === "Escape") window.location.href = btnBack.href;
   });
 
-  // ── Print ───────────────────────────────────────────────────────────────────
-  document.getElementById("btn-print").addEventListener("click", () => {
-    const cardWrapper = wrapper.outerHTML;
-    const styleHref   = document.querySelector('link[rel="stylesheet"]').href;
-    const win = window.open("", "_blank", "width=1200,height=900,toolbar=0,menubar=0,scrollbars=0");
-    if (!win) { alert("Allow popups for this page to print."); return; }
-    win.document.write(`<!DOCTYPE html>
-<html><head>
-  <meta charset="UTF-8">
-  <link rel="stylesheet" href="${styleHref}">
-  <style>
-    @page { size: A4 landscape; margin: 0; }
-    * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; background: white; }
-    .card-wrapper { width: 297mm; height: 210mm; overflow: hidden; box-shadow: none !important; }
-    .card { transform-origin: top left; }
-  </style>
-</head><body>
-  ${cardWrapper}
-  <script>
-    const w = document.querySelector(".card-wrapper");
-    const scale = w.offsetWidth / 900;
-    w.querySelector(".card").style.transform = "scale(" + scale + ")";
-    setTimeout(() => { window.print(); window.close(); }, 400);
-  <\/script>
-</body></html>`);
-    win.document.close();
-  });
 
   // ── Share ───────────────────────────────────────────────────────────────────
   const btnShare = document.getElementById("btn-share");

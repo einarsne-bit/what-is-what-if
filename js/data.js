@@ -1353,3 +1353,52 @@ function escHtml(str) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 }
+
+// ── Shared project header init ─────────────────────────────────────────────────
+// Call after projectId and activeMode are known. opts: { projectName, isEditor, showExport }
+function initProjectHeader(projectId, activeMode, opts = {}) {
+  const { projectName = "", isEditor = false, showExport = false } = opts;
+
+  // Left: home link text + href
+  const homeEl = document.getElementById("header-logo");
+  const nameEl = document.getElementById("header-project-name");
+  if (nameEl) nameEl.textContent = projectName;
+  if (homeEl) homeEl.href = `gallery.html?project=${projectId}`;
+
+  // Nav hrefs
+  const set = (id, url) => { const el = document.getElementById(id); if (el) el.href = url; };
+  set("nav-what-is",  `gallery.html?project=${projectId}&type=what-is`);
+  set("nav-what-if",  `gallery.html?project=${projectId}&type=what-if`);
+  set("nav-analysis", `analysis.html?project=${projectId}`);
+  set("nav-print",    `print.html?project=${projectId}`);
+
+  // Active state
+  const modeMap = { "what-is": "nav-what-is", "what-if": "nav-what-if", "analysis": "nav-analysis", "print": "nav-print" };
+  const activeId = modeMap[activeMode];
+  document.querySelectorAll(".site-nav .nav-link[id]").forEach(link => {
+    link.classList.toggle("nav-link--active", link.id === activeId);
+  });
+
+  // Dropdown toggle
+  const moreBtn  = document.getElementById("nav-more-btn");
+  const moreMenu = document.getElementById("nav-more-menu");
+  if (moreBtn && moreMenu) {
+    moreBtn.addEventListener("click", e => {
+      e.stopPropagation();
+      const isOpen = moreMenu.classList.toggle("is-open");
+      moreBtn.setAttribute("aria-expanded", String(isOpen));
+    });
+    document.addEventListener("click", () => {
+      moreMenu.classList.remove("is-open");
+      moreBtn.setAttribute("aria-expanded", "false");
+    });
+  }
+
+  // Export/import visibility (gallery only, editors only for import)
+  const exportBtn    = document.getElementById("btn-export-json");
+  const importLabel  = document.getElementById("nav-import-label");
+  const importStatus = document.getElementById("import-status");
+  if (exportBtn)    exportBtn.style.display    = showExport ? "" : "none";
+  if (importLabel)  importLabel.style.display  = (showExport && isEditor) ? "" : "none";
+  if (importStatus) importStatus.style.display = showExport ? "" : "none";
+}

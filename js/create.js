@@ -1,7 +1,10 @@
 // data.js + db.js are loaded first — project, TAG_COLORS, tagColor, escHtml, todayFormatted
 
 // ── State ─────────────────────────────────────────────────────────────────────
-let cardType       = "what-is";
+const _params      = new URLSearchParams(window.location.search);
+const editId       = _params.get("edit");
+const _urlType     = _params.get("type");
+let cardType       = (_urlType === "what-if" ? "what-if" : "what-is");
 let cardTags       = [];
 let cardImageData  = "";
 let linkedIds      = [];
@@ -9,8 +12,6 @@ let linkedIds      = [];
 let imgX = 0, imgY = 0, imgScale = 1;
 let isDragging = false;
 let dragLast   = { x: 0, y: 0 };
-
-const editId = new URLSearchParams(window.location.search).get("edit");
 
 // ── DOM refs ──────────────────────────────────────────────────────────────────
 const editCard         = document.getElementById("edit-card");
@@ -64,6 +65,14 @@ document.querySelectorAll(".sidebar__toggle .sidebar-btn").forEach(btn => {
     updateLinkSectionVisibility();
   });
 });
+
+// Apply initial type display (handles URL ?type= pre-selection for new cards)
+editCard.classList.toggle("card--what-if", cardType === "what-if");
+editTypeLbl.textContent = cardType === "what-if" ? "WHAT IF?" : "WHAT IS?";
+document.querySelectorAll(".sidebar__toggle .sidebar-btn").forEach(btn => {
+  btn.classList.toggle("sidebar-btn--active", btn.dataset.type === cardType);
+});
+updateLinkSectionVisibility();
 
 // ── Author + References: live mirror ─────────────────────────────────────────
 inputAuthor.addEventListener("input", () => { editAuthorEl.textContent = inputAuthor.value; });

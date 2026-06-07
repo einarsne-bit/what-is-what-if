@@ -10,10 +10,8 @@ const all           = await getProjectCards(projectId);
 const wi            = all.filter(c => c.type === "what-is");
 const wif           = all.filter(c => c.type === "what-if");
 
-document.getElementById("page-project-name").textContent = activeProject.name;
-document.getElementById("nav-what-is").href  = `gallery.html?project=${projectId}`;
-document.getElementById("nav-what-if").href  = `gallery.html?project=${projectId}&type=what-if`;
-document.getElementById("nav-analysis").href = `analysis.html?project=${projectId}`;
+// ── Unified project header ────────────────────────────────────────────────────
+initProjectHeader(projectId, "analysis", { projectName: activeProject.name });
 
 // ── Computed data ─────────────────────────────────────────────────────────────
 const allTags    = [...new Set(all.flatMap(c => c.tags))].sort();
