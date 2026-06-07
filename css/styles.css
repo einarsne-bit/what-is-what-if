@@ -426,6 +426,10 @@ body.print-page {
   z-index: 1000;
 }
 
+.pdf-progress[hidden] {
+  display: none;
+}
+
 .pdf-progress__box {
   background: var(--color-white);
   border: var(--border-width) solid var(--color-black);
