@@ -75,6 +75,7 @@
   --space-sm:   16px;
   --space-md:   24px;
   --space-lg:   32px;
+  --space-xl:   48px;
 
   /* Layout */
   --header-h:     56px;   /* explicit sticky header height */
@@ -3468,8 +3469,6 @@ body.mode-what-if .mode-heading {
   gap: var(--space-sm);
   background: var(--color-white);
   border: var(--border-width) solid var(--color-black);
-  border-top: none;
-  margin-top: calc(-1 * var(--space-md));
   margin-bottom: var(--space-md);
   padding: 12px 24px 14px;
 }

@@ -71,7 +71,8 @@ function buildSpark() {
 
 // ── Render spark cards ────────────────────────────────────────────────────────
 function renderSpark() {
-  stage.innerHTML = "";
+  // Remove only card wrappers — leave spark-empty in place
+  stage.querySelectorAll(".card-wrapper").forEach(w => w.remove());
 
   if (!spark.length) {
     emptyEl.hidden = false;
@@ -90,7 +91,10 @@ function renderSpark() {
     stage.appendChild(wrapper);
   });
 
-  stage.querySelectorAll(".card-wrapper").forEach(scaleCard);
+  // rAF ensures flex layout has resolved before we measure offsetWidth
+  requestAnimationFrame(() => {
+    stage.querySelectorAll(".card-wrapper").forEach(scaleCard);
+  });
 
   const linked = spark.map(c => c.id).join(",");
   generateBtn.href = `create.html?project=${projectId}&type=what-if&linked=${linked}`;
@@ -166,8 +170,9 @@ let resizeTimer;
 window.addEventListener("resize", () => {
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => {
-    stage.querySelectorAll(".card-wrapper").forEach(scaleCard);
-    reshuffle();
+    requestAnimationFrame(() => {
+      stage.querySelectorAll(".card-wrapper").forEach(scaleCard);
+    });
   }, 200);
 });
 
