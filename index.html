@@ -8,9 +8,9 @@
   </head>
   <body class="landing-page">
 
-    <!-- Site header -->
-    <header class="site-header">
-      <span class="site-title">What is? / What if?</span>
+    <!-- Header -->
+    <header class="site-header landing-header">
+      <span class="site-title">WHAT IS? / WHAT IF?</span>
       <nav class="site-nav">
         <a href="about.html" class="nav-link">About</a>
       </nav>
@@ -18,31 +18,51 @@
 
     <!-- Hero -->
     <section class="landing-hero">
-      <div class="landing-hero__inner">
-        <h1 class="landing-hero__title">What Is? / What If?</h1>
+      <div class="landing-hero__title-col">
+        <span class="landing-hero__eyebrow">Research card tool</span>
+        <h1 class="landing-hero__title">
+          <span class="landing-hero__wi">What<br>Is?</span>
+          <span class="landing-hero__slash">/</span>
+          <span class="landing-hero__wif">What<br>If?</span>
+        </h1>
+      </div>
+      <div class="landing-hero__desc-col">
         <p class="landing-hero__lead">A card-based tool for grounded research and creative speculation. Capture what you observe, then explore what could change.</p>
-        <div class="landing-hero__steps">
-          <div class="landing-step">
-            <span class="landing-step__num">1</span>
-            <p class="landing-step__text"><strong>What Is?</strong> Document observations, conditions, and insights from fieldwork or desk research.</p>
-          </div>
-          <div class="landing-step">
-            <span class="landing-step__num">2</span>
-            <p class="landing-step__text"><strong>What If?</strong> Propose ideas and scenarios grounded in your research findings.</p>
-          </div>
-          <div class="landing-step">
-            <span class="landing-step__num">3</span>
-            <p class="landing-step__text"><strong>React and link</strong> cards across the team — in workshops or remotely.</p>
-          </div>
-        </div>
-        <a href="create-project.html" class="btn-cta">Create new project</a>
+        <a href="create-project.html" class="btn-cta">New project →</a>
       </div>
     </section>
+
+    <!-- Method panels -->
+    <div class="landing-methods">
+      <div class="landing-method landing-method--wi">
+        <span class="landing-method__num">01</span>
+        <div class="landing-method__body">
+          <h2 class="landing-method__title">What Is?</h2>
+          <p class="landing-method__desc">Document observations, conditions, and insights from fieldwork or desk research.</p>
+        </div>
+      </div>
+      <div class="landing-method landing-method--wif">
+        <span class="landing-method__num">02</span>
+        <div class="landing-method__body">
+          <h2 class="landing-method__title">What If?</h2>
+          <p class="landing-method__desc">Propose ideas and scenarios grounded in your research findings. Link back to observations.</p>
+        </div>
+      </div>
+      <div class="landing-method landing-method--creative">
+        <span class="landing-method__num">03</span>
+        <div class="landing-method__body">
+          <h2 class="landing-method__title">Creative</h2>
+          <p class="landing-method__desc">Draw connections between observations and generate new speculative combinations in workshop mode.</p>
+        </div>
+      </div>
+    </div>
 
     <!-- Project list -->
     <section class="landing-projects">
       <div class="landing-projects__bar">
-        <h2 class="landing-projects__heading">Projects</h2>
+        <div class="landing-projects__bar-left">
+          <span class="landing-projects__label">Projects</span>
+        </div>
         <input class="landing-search" id="project-search" type="search"
                placeholder="Search projects…" autocomplete="off" />
       </div>
