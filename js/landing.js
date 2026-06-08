@@ -102,7 +102,7 @@ searchInput.addEventListener("input", () => renderProjects(searchInput.value));
 
 // ── Async init ────────────────────────────────────────────────────────────────
 (async () => {
-  await ensureSampleData();
+  try { await ensureSampleData(); } catch (e) { console.warn("ensureSampleData skipped:", e); }
   [allProjectsList, allCardsList] = await Promise.all([getProjects(), getAllCards()]);
   renderProjects();
 

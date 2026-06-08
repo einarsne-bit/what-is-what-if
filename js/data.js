@@ -1305,12 +1305,9 @@ function renderCard(card) {
 
   el.innerHTML = `
     <header class="card__header">
-      <span class="card__header-left"></span>
+      <span class="card__header-left">${escHtml(project.name)}</span>
       <span class="card__header-type">${typeLabel}</span>
-      <div class="card__header-right">
-        <span class="card__header-project">${escHtml(project.name)}</span>
-        <span class="card__header-date">${escHtml(card.date)}</span>
-      </div>
+      <span class="card__header-right">${escHtml(card.date)}</span>
     </header>
     <div class="card__body">
       <div class="card__content">
