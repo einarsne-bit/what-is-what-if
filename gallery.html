@@ -12,8 +12,7 @@
     <header class="site-header">
       <a href="#" class="site-header__home" id="header-logo">WHAT IS? / WHAT IF? / <span id="header-project-name"></span></a>
       <nav class="site-nav">
-        <a class="nav-link" id="nav-what-is" href="#">What Is?</a>
-        <a class="nav-link" id="nav-what-if" href="#">What If?</a>
+        <a class="nav-link" id="nav-gallery" href="#">Gallery</a>
         <a class="nav-link" id="nav-creative" href="#">Creative</a>
         <a class="nav-link" id="nav-analysis" href="#">Analysis</a>
         <a class="nav-link" id="nav-print" href="#">Print</a>
@@ -62,14 +61,17 @@
         </div>
       </div>
 
-      <!-- Mode bar: viewing mode heading + new card button -->
+      <!-- Mode bar: both card types, each with its own create button -->
       <div class="new-card-bar" id="new-card-bar">
         <div class="new-card-bar__head">
-          <div class="new-card-bar__info">
-            <span class="new-card-bar__label">Viewing</span>
-            <h2 class="mode-heading" id="mode-heading"></h2>
+          <div class="new-card-bar__mode">
+            <h2 class="mode-heading mode-heading--wi">What is?</h2>
+            <a href="#" class="btn-new-card btn-new-card--what-is" id="btn-new-what-is" hidden>+ New what is</a>
           </div>
-          <a href="#" class="btn-new-card" id="btn-new-card" hidden>+ New card</a>
+          <div class="new-card-bar__mode">
+            <h2 class="mode-heading mode-heading--wif">What if?</h2>
+            <a href="#" class="btn-new-card btn-new-card--what-if" id="btn-new-what-if" hidden>+ New what if</a>
+          </div>
         </div>
       </div>
       <div class="workshop-notice" id="workshop-notice" hidden>
@@ -85,12 +87,23 @@
                  placeholder="Search cards…" autocomplete="off" />
         </div>
 
+        <!-- Row 1b: Type (All / What is? / What if?) -->
+        <div class="filter-bar__row">
+          <span class="filter-bar__group-label">Type</span>
+          <div id="type-filters">
+            <button class="filter-btn filter-btn--active" data-type="all">ALL</button>
+            <button class="filter-btn" data-type="what-is">WHAT IS?</button>
+            <button class="filter-btn" data-type="what-if">WHAT IF?</button>
+          </div>
+        </div>
+
         <!-- Row 2: Sort + Organise -->
         <div class="filter-bar__row">
           <span class="filter-bar__group-label">Sort</span>
           <div id="sort-filters">
             <button class="filter-btn filter-btn--active" data-sort="newest">Newest</button>
             <button class="filter-btn" data-sort="oldest">Oldest</button>
+            <button class="filter-btn" data-sort="mixed">Mixed</button>
           </div>
           <span class="filter-bar__group-label filter-bar__group-label--gap">Organise</span>
           <div id="view-filters">

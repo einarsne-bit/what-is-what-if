@@ -31,7 +31,7 @@ const inputTag         = document.getElementById("input-tag");
 const inputReferences  = document.getElementById("input-references");
 
 // ── Card shadow colour matches type ───────────────────────────────────────────
-const shadowColors = { "what-is": "#68BE8C", "what-if": "#E898BE" };
+const shadowColors = { "what-is": "#0B6B00", "what-if": "#C2416E" };
 
 function updateCardShadow() {
   document.getElementById("edit-card-wrapper").style.boxShadow =
@@ -84,12 +84,12 @@ inputReferences.addEventListener("input", () => { editReferencesEl.textContent =
 function renderTags() {
   editTagsEl.innerHTML = cardTags.map(t => {
     const c = tagColor(t);
-    return `<span class="tag" style="--tag-bg:${c.bg};--tag-color:${c.text}">${t}</span>`;
+    return `<span class="tag" style="--tag-bg:${c.bg};--tag-color:${c.text}">${escHtml(t)}</span>`;
   }).join("");
 
   sidebarTagEl.innerHTML = cardTags.map(t => {
     const c = tagColor(t);
-    return `<span class="sidebar-tag" style="--tag-bg:${c.bg};--tag-color:${c.text}">${t}<button class="sidebar-tag__remove" data-tag="${t}">×</button></span>`;
+    return `<span class="sidebar-tag" style="--tag-bg:${c.bg};--tag-color:${c.text}">${escHtml(t)}<button class="sidebar-tag__remove" data-tag="${escHtml(t)}">×</button></span>`;
   }).join("");
 
   sidebarTagEl.querySelectorAll(".sidebar-tag__remove").forEach(btn => {
@@ -127,7 +127,7 @@ inputTag.addEventListener("input", () => {
 
   tagSuggestionsEl.innerHTML = matches.map(t => {
     const c = tagColor(t);
-    return `<div class="tag-suggestion" data-tag="${t}" style="--tag-bg:${c.bg};--tag-color:${c.text}">${t}</div>`;
+    return `<div class="tag-suggestion" data-tag="${escHtml(t)}" style="--tag-bg:${c.bg};--tag-color:${c.text}">${escHtml(t)}</div>`;
   }).join("");
 
   tagSuggestionsEl.querySelectorAll(".tag-suggestion").forEach(el => {

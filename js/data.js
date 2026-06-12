@@ -1276,8 +1276,10 @@ function tagStyle(tag) {
 
 // ── Date helpers ──────────────────────────────────────────────────────────────
 function parseDate(dateStr) {
+  if (!dateStr) return 0;
   const [d, m, y] = dateStr.split(".");
-  return new Date(+y, +m - 1, +d).getTime();
+  const t = new Date(+y, +m - 1, +d).getTime();
+  return isNaN(t) ? 0 : t;
 }
 
 // ── renderCard: returns a wrapper div with the full-size card inside ──────────
@@ -1292,13 +1294,14 @@ function renderCard(card) {
   const typeLabel = card.type === "what-if" ? "WHAT IF?" : "WHAT IS?";
 
   const tagsHTML = card.tags
-    .map(tag => `<span class="tag" ${tagStyle(tag)}>${tag}</span>`)
+    .map(tag => `<span class="tag" ${tagStyle(tag)}>${escHtml(tag)}</span>`)
     .join("");
 
   let imageHTML;
-  if (card.imageUrl) {
+  if (card.imageUrl && /^(https?:|data:image\/)/i.test(card.imageUrl)) {
     const t = card.imageTransform || { x: 0, y: 0, scale: 1 };
-    imageHTML = `<img src="${card.imageUrl}" alt="" style="transform:translate(${t.x}px,${t.y}px) scale(${t.scale})">`;
+    const tx = Number(t.x) || 0, ty = Number(t.y) || 0, ts = Number(t.scale) || 1;
+    imageHTML = `<img src="${escHtml(card.imageUrl)}" alt="${escHtml(card.title)}" style="transform:translate(${tx}px,${ty}px) scale(${ts})">`;
   } else {
     imageHTML = `<span class="card__image-placeholder">Place image here</span>`;
   }
@@ -1361,8 +1364,51 @@ function escHtml(str) {
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
+
+// ── Shared loading + error UI (B1/B2) — each page's async init calls these ─────
+const appStatus = {
+  // Thin top progress bar while data loads.
+  start() {
+    if (document.getElementById("app-loading")) return;
+    const bar = document.createElement("div");
+    bar.id = "app-loading";
+    (document.body || document.documentElement).appendChild(bar);
+  },
+  done() {
+    const bar = document.getElementById("app-loading");
+    if (!bar) return;
+    bar.classList.add("is-done");
+    setTimeout(() => bar.remove(), 250);
+  },
+  // Dismissible banner with optional retry, for failed loads.
+  error(msg, onRetry) {
+    this.done();
+    const existing = document.getElementById("app-error");
+    if (existing) existing.remove();
+    const el = document.createElement("div");
+    el.id = "app-error";
+    el.setAttribute("role", "alert");
+    el.innerHTML = `<span>${escHtml(msg || "Couldn't reach the server.")}</span>`;
+    const spacer = document.createElement("span");
+    spacer.id = "app-error__spacer";
+    el.appendChild(spacer);
+    if (onRetry) {
+      const retry = document.createElement("button");
+      retry.textContent = "Retry";
+      retry.addEventListener("click", () => { el.remove(); onRetry(); });
+      el.appendChild(retry);
+    }
+    const dismiss = document.createElement("button");
+    dismiss.textContent = "×";
+    dismiss.setAttribute("aria-label", "Dismiss");
+    dismiss.addEventListener("click", () => el.remove());
+    el.appendChild(dismiss);
+    document.body.appendChild(el);
+  }
+};
 
 // ── Shared project header init ─────────────────────────────────────────────────
 // Call after projectId and activeMode are known. opts: { projectName, isEditor, showExport }
@@ -1377,8 +1423,7 @@ function initProjectHeader(projectId, activeMode, opts = {}) {
 
   // Nav hrefs
   const set = (id, url) => { const el = document.getElementById(id); if (el) el.href = url; };
-  set("nav-what-is",  `gallery.html?project=${projectId}&type=what-is`);
-  set("nav-what-if",  `gallery.html?project=${projectId}&type=what-if`);
+  set("nav-gallery",  `gallery.html?project=${projectId}`);
   set("nav-creative", `creative.html?project=${projectId}`);
   set("nav-analysis", `analysis.html?project=${projectId}`);
   set("nav-print",    `print.html?project=${projectId}`);
@@ -1388,7 +1433,7 @@ function initProjectHeader(projectId, activeMode, opts = {}) {
   if (creativeLink) creativeLink.classList.remove("nav-link--soon");
 
   // Active state
-  const modeMap = { "what-is": "nav-what-is", "what-if": "nav-what-if", "creative": "nav-creative", "analysis": "nav-analysis", "print": "nav-print" };
+  const modeMap = { "gallery": "nav-gallery", "creative": "nav-creative", "analysis": "nav-analysis", "print": "nav-print" };
   const activeId = modeMap[activeMode];
   document.querySelectorAll(".site-nav .nav-link[id]").forEach(link => {
     link.classList.toggle("nav-link--active", link.id === activeId);

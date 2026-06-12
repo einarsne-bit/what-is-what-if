@@ -23,6 +23,7 @@ function _cardToDb(card) {
     image_transform:    card.imageTransform      || { x: 0, y: 0, scale: 1 },
     card_references:    card.references          || "",
     linked_insight_ids: card.linkedInsightIds    || [],
+    text_boxes:         card.textBoxes           || [],
   };
 }
 
@@ -41,6 +42,7 @@ function _dbToCard(row) {
     imageTransform:   row.image_transform     || { x: 0, y: 0, scale: 1 },
     references:       row.card_references     || "",
     linkedInsightIds: Array.isArray(row.linked_insight_ids) ? row.linked_insight_ids : [],
+    textBoxes:        Array.isArray(row.text_boxes) ? row.text_boxes : [],
     annotations:      [],
   };
 }
@@ -72,17 +74,26 @@ function _dbToProject(row) {
   };
 }
 
+// ── Connectivity signal (B2) — read helpers flag this on a real DB error,
+//    so pages can show a "couldn't reach the server" banner instead of an
+//    empty state that looks like "no data". Reset at the start of a load. ──
+let _dbReachable = true;
+function _dbFail(where, error) { console.error(where + ":", error); _dbReachable = false; }
+function dbReachable() { return _dbReachable; }
+function dbResetReachable() { _dbReachable = true; }
+
 // ── Projects ──────────────────────────────────────────────────────────────────
 
 async function getProjects() {
   const { data, error } = await _db.from("projects").select("*").order("created_at");
-  if (error) { console.error("getProjects:", error); return []; }
+  if (error) { _dbFail("getProjects", error); return []; }
   return data.map(_dbToProject);
 }
 
 async function getProject(id) {
   const { data, error } = await _db.from("projects").select("*").eq("id", id).maybeSingle();
-  if (error || !data) return null;
+  if (error) { _dbFail("getProject", error); return null; }
+  if (!data) return null;
   return _dbToProject(data);
 }
 
@@ -100,19 +111,20 @@ async function deleteProject(id) {
 
 async function getAllCards() {
   const { data, error } = await _db.from("cards").select("*");
-  if (error) { console.error("getAllCards:", error); return []; }
+  if (error) { _dbFail("getAllCards", error); return []; }
   return data.map(_dbToCard);
 }
 
 async function getProjectCards(projectId) {
   const { data, error } = await _db.from("cards").select("*").eq("project_id", projectId);
-  if (error) { console.error("getProjectCards:", error); return []; }
+  if (error) { _dbFail("getProjectCards", error); return []; }
   return data.map(_dbToCard);
 }
 
 async function getCard(id) {
   const { data, error } = await _db.from("cards").select("*").eq("id", id).maybeSingle();
-  if (error || !data) return null;
+  if (error) { _dbFail("getCard", error); return null; }
+  if (!data) return null;
   return _dbToCard(data);
 }
 
@@ -131,14 +143,14 @@ async function deleteCard(id) {
 async function getCardAnnotations(cardId) {
   const { data, error } = await _db.from("annotations").select("*")
     .eq("card_id", cardId).order("created_at");
-  if (error) { console.error("getCardAnnotations:", error); return []; }
+  if (error) { _dbFail("getCardAnnotations", error); return []; }
   return data;
 }
 
 async function getProjectAnnotations(projectId) {
   const { data, error } = await _db.from("annotations").select("*")
     .eq("project_id", projectId);
-  if (error) { console.error("getProjectAnnotations:", error); return []; }
+  if (error) { _dbFail("getProjectAnnotations", error); return []; }
   return data;
 }
 

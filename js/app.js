@@ -2,7 +2,8 @@
 
 (async () => {
 
-  await ensureSampleData();
+  appStatus.start();
+  try { await ensureSampleData(); } catch (e) { console.warn("ensureSampleData skipped:", e); }
 
   // ── Project context & access ────────────────────────────────────────────────
   const activeProject = await loadActiveProject();
@@ -42,6 +43,7 @@
       }
       pwSubmit.addEventListener("click", tryPassword);
       pwInput.addEventListener("keydown", e => { if (e.key === "Enter") tryPassword(); });
+      appStatus.done();
       return;
     }
   }
@@ -87,25 +89,18 @@
     const cards = await getProjectCards(projectId);
 
     const urlType = new URLSearchParams(window.location.search).get("type");
-    let activeType    = urlType === "what-if" ? "what-if" : "what-is";
+    let typeFilter = (urlType === "what-is" || urlType === "what-if") ? urlType : "all";
 
-    // ── Mode heading ─────────────────────────────────────────────────────────
-    const modeHeading = document.getElementById("mode-heading");
-    if (modeHeading) {
-      modeHeading.textContent = activeType === "what-if" ? "What If?" : "What Is?";
-    }
-
-    // ── New card button (editor only) ────────────────────────────────────────
-    const btnNewCard = document.getElementById("btn-new-card");
-    if (btnNewCard && isEditor) {
-      btnNewCard.className = `btn-new-card btn-new-card--${activeType}`;
-      btnNewCard.href = `create.html?project=${projectId}&type=${activeType}`;
-      btnNewCard.textContent = activeType === "what-if" ? "+ New What If?" : "+ New What Is?";
-      btnNewCard.hidden = false;
+    // ── New card buttons (editor only) — both types always available ─────────
+    if (isEditor) {
+      const bWi  = document.getElementById("btn-new-what-is");
+      const bWif = document.getElementById("btn-new-what-if");
+      if (bWi)  { bWi.href  = `create.html?project=${projectId}&type=what-is`; bWi.hidden = false; }
+      if (bWif) { bWif.href = `create.html?project=${projectId}&type=what-if`; bWif.hidden = false; }
     }
 
     // ── Unified project header ────────────────────────────────────────────────
-    initProjectHeader(projectId, activeType, {
+    initProjectHeader(projectId, "gallery", {
       projectName: activeProject.name,
       isEditor,
       showExport: true
@@ -120,11 +115,6 @@
     const cardsGrid       = document.getElementById("cards-grid");
     const authorFiltersEl = document.getElementById("author-filters");
     const tagFiltersEl    = document.getElementById("tag-filters");
-
-    // ── Background mode ───────────────────────────────────────────────────────
-    function updateBackground() {
-      document.body.classList.toggle("mode-what-if", activeType === "what-if");
-    }
 
     // ── Search match ──────────────────────────────────────────────────────────
     function matchesSearch(card) {
@@ -162,14 +152,26 @@
     // ── Main render ───────────────────────────────────────────────────────────
     function renderCards() {
       let filtered = cards
-        .filter(c => c.type === activeType)
+        .filter(c => typeFilter === "all" || c.type === typeFilter)
         .filter(c => !activeTags.size    || c.tags.some(t => activeTags.has(t)))
         .filter(c => !activeAuthors.size || activeAuthors.has(c.author))
         .filter(matchesSearch);
 
-      filtered.sort((a, b) => activeSort === "newest"
-        ? parseDate(b.date) - parseDate(a.date)
-        : parseDate(a.date) - parseDate(b.date));
+      if (activeSort === "mixed") {
+        // Alternate What is? / What if?, each newest-first
+        const byDate = (a, b) => parseDate(b.date) - parseDate(a.date);
+        const wi  = filtered.filter(c => c.type === "what-is").sort(byDate);
+        const wif = filtered.filter(c => c.type === "what-if").sort(byDate);
+        filtered = [];
+        for (let i = 0; i < Math.max(wi.length, wif.length); i++) {
+          if (wi[i])  filtered.push(wi[i]);
+          if (wif[i]) filtered.push(wif[i]);
+        }
+      } else {
+        filtered.sort((a, b) => activeSort === "oldest"
+          ? parseDate(a.date) - parseDate(b.date)
+          : parseDate(b.date) - parseDate(a.date));
+      }
 
       cardsGrid.innerHTML = "";
       cardsGrid.classList.toggle("cards-grid--grouped", viewMode !== "flat");
@@ -203,12 +205,18 @@
         if (anon.length) renderSection("—", anon, "");
       }
 
+      // Make cards keyboard-operable (B5)
+      cardsGrid.querySelectorAll(".card-wrapper").forEach(w => {
+        w.setAttribute("role", "button");
+        w.setAttribute("tabindex", "0");
+      });
+
       scaleAll();
     }
 
     // ── Filter button builder ─────────────────────────────────────────────────
     function buildFilterButtons() {
-      const typeCards = cards.filter(c => c.type === activeType);
+      const typeCards = cards.filter(c => typeFilter === "all" || c.type === typeFilter);
 
       // AUTHORS
       authorFiltersEl.innerHTML = "";
@@ -260,21 +268,37 @@
 
     // ── Reset all filters ─────────────────────────────────────────────────────
     function resetFilters() {
-      activeType = "what-is";
+      typeFilter = "all";
       activeSort = "newest";
       activeTags.clear();
       activeAuthors.clear();
       viewMode    = "flat";
       searchQuery = "";
       document.getElementById("filter-search").value = "";
+      document.querySelectorAll("#type-filters .filter-btn").forEach(b =>
+        b.classList.toggle("filter-btn--active", b.dataset.type === "all"));
       document.querySelectorAll("#sort-filters .filter-btn").forEach((b, i) =>
         b.classList.toggle("filter-btn--active", i === 0));
       document.querySelectorAll("#view-filters .filter-btn").forEach((b, i) =>
         b.classList.toggle("filter-btn--active", i === 0));
-      updateBackground();
       buildFilterButtons();
       renderCards();
     }
+
+    // ── Type filter (All / What is? / What if?) ───────────────────────────────
+    document.querySelectorAll("#type-filters .filter-btn").forEach(btn => {
+      btn.classList.toggle("filter-btn--active", btn.dataset.type === typeFilter);
+      btn.addEventListener("click", () => {
+        if (btn.dataset.type === typeFilter) return;
+        typeFilter = btn.dataset.type;
+        document.querySelectorAll("#type-filters .filter-btn")
+          .forEach(b => b.classList.toggle("filter-btn--active", b === btn));
+        activeTags.clear();
+        activeAuthors.clear();
+        buildFilterButtons();
+        renderCards();
+      });
+    });
 
     // ── Sort ──────────────────────────────────────────────────────────────────
     document.querySelectorAll("#sort-filters .filter-btn").forEach(btn => {
@@ -304,14 +328,23 @@
       renderCards();
     });
 
-    // ── Card click ────────────────────────────────────────────────────────────
-    cardsGrid.addEventListener("click", e => {
-      const wrapper = e.target.closest(".card-wrapper");
-      if (!wrapper) return;
+    // ── Card click / keyboard ─────────────────────────────────────────────────
+    function openCard(wrapper) {
       const id = wrapper.dataset.id;
       const card = cards.find(c => c.id === id);
       if (!card) return;
       window.location.href = `card.html?id=${id}&type=${card.type}&project=${projectId}`;
+    }
+    cardsGrid.addEventListener("click", e => {
+      const wrapper = e.target.closest(".card-wrapper");
+      if (wrapper) openCard(wrapper);
+    });
+    cardsGrid.addEventListener("keydown", e => {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      const wrapper = e.target.closest(".card-wrapper");
+      if (!wrapper) return;
+      e.preventDefault();
+      openCard(wrapper);
     });
 
     // ── Resize ────────────────────────────────────────────────────────────────
@@ -368,9 +401,10 @@
     });
 
 // ── Init ──────────────────────────────────────────────────────────────────
-    updateBackground();
     buildFilterButtons();
     renderCards();
+    appStatus.done();
+    if (!dbReachable()) appStatus.error("Couldn't load cards — check your connection and retry.", () => location.reload());
   }
 
 })();

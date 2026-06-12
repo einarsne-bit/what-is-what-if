@@ -312,4 +312,30 @@ A standalone view — separate nav link — for generative ideation. Not a galle
 
 ---
 
-*Last updated: 2026-06-07 — v000.3 tagged. Navigation, gallery UX, and PDF export complete. Branch `design-phase` open. Phase 8 active: typography first, then cards, then chrome.*
+## Security & Robustness Backlog
+*Surfaced by the full-site code review on 2026-06-09. The front-end batch below the line was applied that day (tag/imageUrl escaping, `escHtml` quote fix, `:focus-visible` ring, `parseDate` guard, palette-token alignment). The items here remain outstanding.*
+
+### Supabase-dependent (cannot be fixed in front-end alone)
+- [ ] **[Critical] Verify RLS is actually enabled** on `projects`, `cards`, `annotations`, and that policies don't expose `editor_password` / `workshop_password` to anon reads. Phase 7 records RLS as enabled — confirm in the dashboard, since with the publishable key in `db.js` an RLS gap means public read/write/delete of all data including passwords.
+- [ ] **[Critical] Text boxes don't persist** — `create.js` writes `textBoxes` and `renderCard` renders them, but `_cardToDb` / `_dbToCard` have no `text_boxes` mapping. Add a `text_boxes jsonb` column and map it both ways (`js/db.js:12-46`).
+- [ ] **[High] Move password verification server-side** — passwords are stored plaintext and compared in the browser (`app.js:30`, `landing.js:41`), so they ship to every visitor and the gate is bypassable. Verify via a Supabase RPC / Edge Function that returns only a boolean; stop selecting password columns to anon.
+- [ ] **[Medium] Validate JSON import** before upsert — currently any object with `id`+`type` is written (`app.js:336-368`); whitelist fields/types, cap count, and report skipped/rejected records instead of silently dropping them.
+
+### Front-end (behavioural — deferred from the review batch)
+- [ ] **[High] Card editor unsaved-changes guard** — no `beforeunload`/autosave; Back or tab-close loses all edits (`create.js:387-525`).
+- [ ] **[High] Keyboard-operable cards & tiles** — project tiles (`landing.js:77`), gallery cards (`app.js:308`), and print cards (`print.js:73`) are click-only `<div>`s; make them real buttons/links or add `tabindex`+`role`+Enter/Space.
+- [ ] **[High] Password modal a11y** — add focus trap, Escape-to-close, focus return, and mark background inert (`landing.js:30`, `app.js:14`).
+- [ ] **[High] aria-labels on icon-only controls** — `···` menu trigger, card prev/next `←`/`→` arrows (`gallery.html:21`, `card.html:56,62`).
+- [ ] **[High] Fix remaining contrast failures** — yellow warn-count `#E8C01A` on white (1.75:1, `styles.css:2728`) and `.about-link` blue (1.84:1, `styles.css:1308`); black-on-pink active state is borderline at 4.28:1.
+- [ ] **[Medium] Surface failed writes** — failed deletes redirect as if successful (`card.js:124`), and reactions/comments render optimistically before the write resolves; show error + revert on failure.
+- [ ] **[Medium] Double-submit guards** on project create and reaction/comment posting (`create-project.js:55`, `card.js:167,198`).
+
+### Code quality (lower priority, from review)
+- [ ] Read helpers swallow DB errors as `[]`/`null` — can't distinguish "empty" from "failed" (`db.js:79,103,116`).
+- [ ] `renderCard` reads the shared global `project` for the header name — pass `projectName` in instead (`db.js:157`, `data.js:1308`).
+- [ ] Extract shared helpers: `tagStyle()` (re-implemented ~7×), `checkProjectPassword()` (duplicated landing/app), `cardUrl()` (built ~9× with inconsistent params).
+- [ ] Per-text-box `document` mouse listeners never removed (`create.js:358`); dead CSS rulesets/tokens; redundant `image`/`imageUrl` dual fields.
+
+---
+
+*Last updated: 2026-06-09 — Full-site code review (design, UX, a11y, security, data safety, code quality). Front-end security/a11y batch applied; Security & Robustness Backlog added above. Major working version merged to `main` and deployed.*

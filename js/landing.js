@@ -12,6 +12,7 @@ const modalSubmit   = document.getElementById("modal-submit");
 const modalCancel   = document.getElementById("modal-cancel");
 
 let pendingProject  = null;
+let lastFocused     = null;
 let allProjectsList = [];
 let allCardsList    = [];
 
@@ -31,6 +32,7 @@ function openProject(p) {
   modalDesc.textContent  = "Enter your editor or workshop password to access this project.";
   modalPassword.value    = "";
   modalError.hidden      = true;
+  lastFocused            = document.activeElement;
   modalOverlay.hidden    = false;
   setTimeout(() => modalPassword.focus(), 50);
 }
@@ -53,9 +55,29 @@ function submitPassword() {
   }
 }
 
+function closeModal() {
+  modalOverlay.hidden = true;
+  pendingProject = null;
+  if (lastFocused && lastFocused.focus) lastFocused.focus();
+}
+
 modalSubmit.addEventListener("click", submitPassword);
 modalPassword.addEventListener("keydown", e => { if (e.key === "Enter") submitPassword(); });
-modalCancel.addEventListener("click", () => { modalOverlay.hidden = true; pendingProject = null; });
+modalCancel.addEventListener("click", closeModal);
+
+// Escape closes the modal; Tab is trapped inside it (a11y).
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && !modalOverlay.hidden) closeModal();
+});
+modalOverlay.addEventListener("keydown", e => {
+  if (e.key !== "Tab") return;
+  const focusables = modalOverlay.querySelectorAll("input, button");
+  if (!focusables.length) return;
+  const first = focusables[0];
+  const last  = focusables[focusables.length - 1];
+  if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+});
 
 // ── Render project tiles ──────────────────────────────────────────────────────
 function renderProjects(query) {
@@ -80,7 +102,7 @@ function renderProjects(query) {
     tile.innerHTML = `
       <div class="project-tile__header">
         <span class="project-tile__type-label">WHAT IS? / WHAT IF?</span>
-        ${isLocked ? `<span class="project-tile__lock" title="Password protected">🔒</span>` : ""}
+        ${isLocked ? `<span class="project-tile__lock">Locked</span>` : ""}
       </div>
       <div class="project-tile__body">
         <h3 class="project-tile__name">${escHtml(p.name)}</h3>
@@ -92,7 +114,12 @@ function renderProjects(query) {
         ${p.createdAt ? `<span class="project-tile__meta">${escHtml(p.createdAt)}</span>` : ""}
       </div>
     `;
+    tile.setAttribute("role", "button");
+    tile.setAttribute("tabindex", "0");
     tile.addEventListener("click", () => openProject(p));
+    tile.addEventListener("keydown", e => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openProject(p); }
+    });
     projectGrid.appendChild(tile);
   });
 }
@@ -102,8 +129,11 @@ searchInput.addEventListener("input", () => renderProjects(searchInput.value));
 
 // ── Async init ────────────────────────────────────────────────────────────────
 (async () => {
+  appStatus.start();
   try { await ensureSampleData(); } catch (e) { console.warn("ensureSampleData skipped:", e); }
   [allProjectsList, allCardsList] = await Promise.all([getProjects(), getAllCards()]);
+  appStatus.done();
+  if (!dbReachable()) appStatus.error("Couldn't load projects — check your connection and retry.", () => location.reload());
   renderProjects();
 
   const openParam = new URLSearchParams(window.location.search).get("open");

@@ -124,8 +124,8 @@ function renderTagChart() {
 
   container.innerHTML = `
     <div class="tag-chart-legend">
-      <span class="tag-chart-legend__item tag-chart-legend__item--wi">What Is?</span>
-      <span class="tag-chart-legend__item tag-chart-legend__item--wif">What If?</span>
+      <span class="tag-chart-legend__item tag-chart-legend__item--wi">What is?</span>
+      <span class="tag-chart-legend__item tag-chart-legend__item--wif">What if?</span>
     </div>
     ${top.map(d => {
       const wiPct  = (d.wi  / maxVal * 100).toFixed(1);
@@ -171,7 +171,7 @@ function renderCoverageMap() {
       const wiI = wi.findIndex(c => c.id === wiId);
       if (wiI === -1) return;
       paths += `<path d="M${lx + DOT/2},${wiY(wiI)} C${mx},${wiY(wiI)} ${mx},${wifY(wifI)} ${rx - DOT/2},${wifY(wifI)}"
-        fill="none" stroke="rgba(104,190,140,0.35)" stroke-width="1.5"/>`;
+        fill="none" stroke="rgba(11,107,0,0.35)" stroke-width="1.5"/>`;
     });
   });
 
@@ -302,7 +302,7 @@ function renderAffinityGroups() {
 function renderConnectionMatrix() {
   const el = document.getElementById("connection-matrix");
   if (!wif.length || !wi.length) {
-    el.innerHTML = `<p class="outlier-empty">Need both What Is? and What If? cards to draw the matrix.</p>`;
+    el.innerHTML = `<p class="outlier-empty">Need both What is? and What if? cards to draw the matrix.</p>`;
     return;
   }
 
@@ -324,7 +324,7 @@ function renderConnectionMatrix() {
   svg.style.fontFamily = "var(--font-mono)";
   svg.style.fontSize = "9px";
 
-  // Column headers (What If? titles — rotated)
+  // Column headers (What if? titles — rotated)
   cols.forEach((card, ci) => {
     const g = document.createElementNS(svgNS, "g");
     g.setAttribute("transform", `translate(${LABEL_W + ci * CELL + CELL / 2}, ${LABEL_H - 4})`);
@@ -400,7 +400,7 @@ function renderConnectionMatrix() {
     const note = document.createElement("p");
     note.className = "outlier-empty";
     note.style.marginTop = "8px";
-    note.textContent = `Showing first ${MAX} of each type. ${wi.length} What Is? × ${wif.length} What If? total.`;
+    note.textContent = `Showing first ${MAX} of each type. ${wi.length} What is? × ${wif.length} What if? total.`;
     el.appendChild(note);
   }
 }
@@ -582,7 +582,7 @@ function renderHealthGrid() {
         <span class="health-check__title">Unaddressed observations</span>
         <span class="health-check__count">${unlinkedWi.length}</span>
       </div>
-      <p class="health-check__desc">What Is? with no What If? idea linked.</p>
+      <p class="health-check__desc">What is? with no What if? idea linked.</p>
       ${cardList(unlinkedWi)}
     </div>
     <div class="health-check ${status(unlinkedWif.length, 0, 3)}">
@@ -590,7 +590,7 @@ function renderHealthGrid() {
         <span class="health-check__title">Ungrounded ideas</span>
         <span class="health-check__count">${unlinkedWif.length}</span>
       </div>
-      <p class="health-check__desc">What If? cards with no observation linked.</p>
+      <p class="health-check__desc">What if? cards with no observation linked.</p>
       ${cardList(unlinkedWif)}
     </div>
     <div class="health-check ${status(noTags.length, 0, 2)}">

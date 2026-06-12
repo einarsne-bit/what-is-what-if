@@ -21,7 +21,7 @@ const themeTagsB  = document.getElementById("theme-tags-b");
 const themeLabelA = document.getElementById("theme-label-a");
 const themeLabelB = document.getElementById("theme-label-b");
 
-// All tags in What Is? cards
+// All tags in What is? cards
 const allTags = [...new Set(wi.flatMap(c => c.tags))].sort();
 
 let mode        = "random";
@@ -148,7 +148,7 @@ function renderTagButtons(container, slot) {
     const active = isAny ? !selectedTag : selectedTag === tag;
     const tc = isAny ? { bg: "transparent", text: "inherit" } : tagColor(tag);
     return `<button class="filter-btn${active ? " filter-btn--active" : ""}"
-      data-tag="${isAny ? "" : tag}" data-slot="${slot}"
+      data-tag="${isAny ? "" : escHtml(tag)}" data-slot="${slot}"
       ${!isAny ? `style="--tag-bg:${tc.bg};--tag-color:${tc.text}"` : ""}>
       ${escHtml(tag)}
     </button>`;
@@ -182,7 +182,7 @@ reshuffleBtn.addEventListener("click", reshuffle);
 // ── No cards guard ────────────────────────────────────────────────────────────
 if (!wi.length) {
   emptyEl.hidden = false;
-  emptyEl.textContent = "No What Is? observations in this project yet. Create some first.";
+  emptyEl.textContent = "No What is? observations in this project yet. Create some first.";
   reshuffleBtn.disabled = true;
   generateBtn.hidden = true;
 } else {

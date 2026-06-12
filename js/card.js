@@ -32,7 +32,7 @@ btnBack.href = `gallery.html?project=${projectId}&type=${cardType}`;
   const currentIndex = typeCards.findIndex(c => c.id === cardId);
 
   // ── Unified project header ────────────────────────────────────────────────
-  initProjectHeader(projectId, resolvedType, {
+  initProjectHeader(projectId, "gallery", {
     projectName: activeProject.name,
     isEditor
   });
