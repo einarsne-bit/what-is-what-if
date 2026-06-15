@@ -10,9 +10,9 @@
 
 | | |
 |---|---|
-| **Active phase** | Phase 8 — Visual Design Pass |
-| **Last session** | v000.3 complete. Navigation overhaul (unified 6-item header, URL-driven type switching). Dedicated print page with selectable card grid and working PDF export (html2canvas + jsPDF). Branch: `design-phase` created for visual work. |
-| **Immediate next** | Typography first — establish font stack and scale. Then card design, then page chrome. |
+| **Active phase** | Phase 8 — UX/UI & Visual Design Pass (page-by-page, tracked in [UX-DESIGN-PASS.md](UX-DESIGN-PASS.md)) |
+| **Last session** | **v000.4 committed + tagged (not yet pushed).** Full-site code review + security/a11y batch. Self-hosted IBM Plex typography. Landing redesign. **Unified gallery** — What is?/What if? merged into one view with ALL/WHAT IS?/WHAT IF? type filter, single "Gallery" nav, lowercase-i house style; Mixed sort; theme sections wrap (no horizontal scroll). Loading bar + error banner; keyboard a11y; modal focus-trap. |
+| **Immediate next** | **Run Supabase `text_boxes jsonb` column SQL, then push v000.4** (Netlify auto-deploys; card saving breaks without the column). Then continue the UX pass at **card.html (§C.3)**. |
 | **Supabase project** | `https://bnqmmdymxfcptfxgvxzm.supabase.co` — EU West (Frankfurt) |
 | **sessionStorage keys** | `whats-active-project`, `whats-access-{projectId}`, `whats-seeded` |
 | **localStorage keys** | `whats-session-id`, `whats-user-name` (annotation identity only — all card/project data now in Supabase) |
@@ -123,6 +123,10 @@ WHATS/
 | 21 | Multi-project | **Multiple projects in localStorage** — `whats-projects` array; sample project always available | Phase M |
 | 22 | Access control | **sessionStorage per project** — `whats-access-{id}` = "editor" \| "workshop". Password checked client-side (Supabase RLS in Phase 7). | Phase M |
 | 23 | URL design | `gallery.html?project=id`, `card.html?id=&project=id`, `analysis.html?project=id` | Phase M |
+| 24 | Unified gallery | **What is? + What if? in one gallery** (no separate type-pages). In-page `ALL / WHAT IS? / WHAT IF?` type filter; viewing box offers both create actions; nav has a single **Gallery** link. Supersedes #6's two-page split for browsing. | Phase 8 |
+| 25 | House style casing | **Lowercase-i "What is?" / "What if?"** site-wide in UI text (ALL-CAPS logos/labels exempt). | Phase 8 |
+| 26 | Card + background | **Card surface stays plain white, no pattern/colour** (type shown only via shadow + header label). **Page background = light-grey halftone dots.** Revisits #17/#18; the What is?/What if? card differentiation is parked for the next design iteration. | Phase 8 |
+| 27 | Tag palette | **12 muted riso tones**, hashed per tag (expanded from 5). | Phase 8 |
 
 ---
 
@@ -269,14 +273,15 @@ Without this, collaborators on different devices have no way to share cards. JSO
 
 Candidate features (prioritise in Phase 8 based on real usage feedback):
 
-### Visual design pass (deferred from Phase D)
-- [ ] Full typography pass — GT Mechanik + Cedric Price RE:CP direction (see [design_references.md](design_references_ref.md))
-- [ ] Landing page design — currently functional but plain
-- [ ] Analysis page design — currently functional but plain
-- [ ] Expand Risograph tag colour palette beyond current 5 colours
+### Visual design pass (deferred from Phase D) — in progress via UX-DESIGN-PASS.md
+- [x] Full typography pass — self-hosted IBM Plex Mono + Sans, six-level scale
+- [x] Landing page design — redesigned (hero, method panels, project tiles)
+- [ ] Analysis page design — currently functional but plain (page §C.6 of the UX pass)
+- [x] Expand Risograph tag colour palette — now 12 muted tones
 - [ ] Card image effects: halftone, riso-look, b&w, contrast treatments
 - [ ] References strip legibility pass
-- [ ] Card background: warm off-white instead of pure white (blueprint paper feel)
+- [x] Card surface + page background settled — white cards, light-grey halftone background (Decision #26)
+- [ ] **What is? / What if? card differentiation** — parked for the next design iteration (Follow ups)
 
 ### Analysis v2
 - [ ] Tag co-occurrence matrix (n×n grid, pure HTML table)
@@ -338,4 +343,4 @@ A standalone view — separate nav link — for generative ideation. Not a galle
 
 ---
 
-*Last updated: 2026-06-09 — Full-site code review (design, UX, a11y, security, data safety, code quality). Front-end security/a11y batch applied; Security & Robustness Backlog added above. Major working version merged to `main` and deployed.*
+*Last updated: 2026-06-15 — v000.4 committed + tagged on `main` (not yet pushed — pending Supabase `text_boxes` column). UX/UI design pass underway (UX-DESIGN-PASS.md): landing + gallery done, gallery unified into one view. Decisions #24–27 added. Next: push v000.4 after the SQL, then card.html (§C.3).*
