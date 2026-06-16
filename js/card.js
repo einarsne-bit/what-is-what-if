@@ -121,6 +121,16 @@ btnBack.href = `gallery.html?project=${projectId}&type=${cardType}`;
 
   btnEdit.href = `create.html?edit=${cardId}&project=${projectId}`;
 
+  // ── Create new card (editor only) ────────────────────────────────────────────
+  const btnNewWi  = document.getElementById("btn-new-what-is");
+  const btnNewWif = document.getElementById("btn-new-what-if");
+  if (isEditor) {
+    btnNewWi.href   = `create.html?project=${projectId}&type=what-is`;
+    btnNewWif.href  = `create.html?project=${projectId}&type=what-if`;
+    btnNewWi.hidden  = false;
+    btnNewWif.hidden = false;
+  }
+
   btnDelete.addEventListener("click", async () => {
     if (!confirm("Delete this card? This cannot be undone.")) return;
     await deleteCard(cardId);

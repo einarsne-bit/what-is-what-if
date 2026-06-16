@@ -62,7 +62,8 @@
 - [x] B5 — gallery cards now keyboard-operable (role/tabindex/Enter-Space)
 - [x] B1/B2 — loading bar + error banner wired into the gallery load
 - [x] "By theme" / "By creator" sections now wrap (max 4 across, stack below) — no more horizontal scroll
-- [x] Sort: added **Mixed** option — interleaves What is? / What if? (alternating, each newest-first)
+- [x] Sort: added **Mixed** option (default) — interleaves What is? / What if? (alternating, each newest-first)
+- [x] Sort: added **Drafts** view — shows only cards marked as draft (newest-first)
 
 **Check/fix (still to eyeball)**
 - [ ] Project info box layout (description text now larger from §A G5)
@@ -182,6 +183,7 @@
 - **Linked-card adjacency sorting** (gallery). In the unified gallery, chronological is the main sort, but linked cards — a What if? and the What is? it's grounded in — should sit next to each other. Needs a custom ordering pass layered on the date sort (keep chronological as the backbone, then pull linked pairs together).
 - **Gallery filter bar is tall** (gallery). Now 5 rows; consider a collapsible "Filters" section.
 - **Grid density / zoom control** (gallery, §C.2 D4). Compact↔comfortable toggle for 500-card scale (R&D §3.1).
+- **DRAFT marker placement on the card template** (create/card). A working black "DRAFT" tag (top-right) ships now; revisit where/how the marker sits on the card during the What is?/What if? differentiation pass.
 
 ---
 

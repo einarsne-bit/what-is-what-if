@@ -399,6 +399,11 @@ document.getElementById("btn-add-textbox").addEventListener("click", () => {
   projectCards = await getProjectCards(projectId);
   tagPool = new Set(projectCards.flatMap(c => c.tags || []));
 
+  // Populate the author dropdown with existing names in this project
+  const authorNames = [...new Set(projectCards.map(c => c.author).filter(Boolean))].sort();
+  const authorList = document.getElementById("author-list");
+  if (authorList) authorList.innerHTML = authorNames.map(a => `<option value="${escHtml(a)}"></option>`).join("");
+
   // ── Edit mode ───────────────────────────────────────────────────────────────
   let editingCard = null;
 
@@ -411,6 +416,7 @@ document.getElementById("btn-add-textbox").addEventListener("click", () => {
       document.getElementById("sidebar-cancel").href          = `card.html?id=${editId}&type=${editingCard.type}&project=${projectId}`;
       document.getElementById("back-link").href               = `card.html?id=${editId}&type=${editingCard.type}&project=${projectId}`;
       document.getElementById("btn-delete-card").hidden       = false;
+      if (editingCard.draft) document.getElementById("edit-draft-badge").hidden = false;
 
       cardType  = editingCard.type;
       cardTags  = [...editingCard.tags];
@@ -461,19 +467,21 @@ document.getElementById("btn-add-textbox").addEventListener("click", () => {
     updateLinkSectionVisibility();
   }
 
-  // ── Publish / Save ──────────────────────────────────────────────────────────
+  // ── Save (Publish / Mark as draft) ────────────────────────────────────────────
   const publishBtn = document.getElementById("btn-publish");
+  const draftBtn   = document.getElementById("btn-draft");
 
-  publishBtn.addEventListener("click", async () => {
+  async function saveCardAs(isDraft, btn) {
     const title = editTitle.textContent.trim();
 
     if (!title) {
-      publishBtn.textContent = "Add a title first";
-      publishBtn.style.background = "var(--color-riso-pink)";
+      const prev = btn.textContent;
+      btn.textContent = "Add a title first";
+      btn.style.background = "var(--color-riso-pink)";
       editTitle.focus();
       setTimeout(() => {
-        publishBtn.textContent = editingCard ? "Save changes" : "Transmit";
-        publishBtn.style.background = "";
+        btn.textContent = prev;
+        btn.style.background = "";
       }, 2000);
       return;
     }
@@ -493,26 +501,33 @@ document.getElementById("btn-add-textbox").addEventListener("click", () => {
       date:             editingCard ? editingCard.date : todayFormatted(),
       linkedInsightIds: [...linkedIds],
       textBoxes:        textBoxes.map(tb => ({ ...tb })),
+      draft:            isDraft,
     };
 
-    publishBtn.textContent = "Saving…";
-    publishBtn.disabled    = true;
+    const prevLabel = btn.textContent;
+    btn.textContent     = "Saving…";
+    publishBtn.disabled = true;
+    draftBtn.disabled   = true;
 
     try {
       await saveCard(cardData);
       window.location.href = editingCard
         ? `card.html?id=${cardData.id}&type=${cardData.type}&project=${projectId}`
-        : `gallery.html?project=${projectId}&type=${cardType}`;
+        : `gallery.html?project=${projectId}`;
     } catch {
-      publishBtn.textContent = "Save failed — try again";
-      publishBtn.style.background = "var(--color-riso-pink)";
+      btn.textContent = "Save failed — try again";
+      btn.style.background = "var(--color-riso-pink)";
       publishBtn.disabled = false;
+      draftBtn.disabled   = false;
       setTimeout(() => {
-        publishBtn.textContent = editingCard ? "Save changes" : "Transmit";
-        publishBtn.style.background = "";
+        btn.textContent = prevLabel;
+        btn.style.background = "";
       }, 4000);
     }
-  });
+  }
+
+  publishBtn.addEventListener("click", () => saveCardAs(false, publishBtn));
+  draftBtn.addEventListener("click",   () => saveCardAs(true,  draftBtn));
 
   // ── Delete card ─────────────────────────────────────────────────────────────
   document.getElementById("btn-delete-card").addEventListener("click", async () => {

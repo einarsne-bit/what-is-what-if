@@ -282,6 +282,7 @@ Candidate features (prioritise in Phase 8 based on real usage feedback):
 - [ ] References strip legibility pass
 - [x] Card surface + page background settled — white cards, light-grey halftone background (Decision #26)
 - [ ] **What is? / What if? card differentiation** — parked for the next design iteration (Follow ups)
+- [ ] **DRAFT marker placement on the card template** — a working black "DRAFT" tag (top-right) ships in v000.4; revisit where/how it sits on the card in the differentiation pass
 
 ### Analysis v2
 - [ ] Tag co-occurrence matrix (n×n grid, pure HTML table)

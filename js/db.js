@@ -24,6 +24,7 @@ function _cardToDb(card) {
     card_references:    card.references          || "",
     linked_insight_ids: card.linkedInsightIds    || [],
     text_boxes:         card.textBoxes           || [],
+    draft:              !!card.draft,
   };
 }
 
@@ -43,6 +44,7 @@ function _dbToCard(row) {
     references:       row.card_references     || "",
     linkedInsightIds: Array.isArray(row.linked_insight_ids) ? row.linked_insight_ids : [],
     textBoxes:        Array.isArray(row.text_boxes) ? row.text_boxes : [],
+    draft:            !!row.draft,
     annotations:      [],
   };
 }

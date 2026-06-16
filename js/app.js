@@ -106,7 +106,7 @@
       showExport: true
     });
 
-    let activeSort    = "newest";
+    let activeSort    = "mixed";
     let activeTags    = new Set();
     let activeAuthors = new Set();
     let viewMode      = "flat";   // "flat" | "theme" | "creator"
@@ -157,7 +157,12 @@
         .filter(c => !activeAuthors.size || activeAuthors.has(c.author))
         .filter(matchesSearch);
 
-      if (activeSort === "mixed") {
+      if (activeSort === "drafts") {
+        // Show only draft cards, newest first
+        filtered = filtered
+          .filter(c => c.draft)
+          .sort((a, b) => parseDate(b.date) - parseDate(a.date));
+      } else if (activeSort === "mixed") {
         // Alternate What is? / What if?, each newest-first
         const byDate = (a, b) => parseDate(b.date) - parseDate(a.date);
         const wi  = filtered.filter(c => c.type === "what-is").sort(byDate);
@@ -269,7 +274,7 @@
     // ── Reset all filters ─────────────────────────────────────────────────────
     function resetFilters() {
       typeFilter = "all";
-      activeSort = "newest";
+      activeSort = "mixed";
       activeTags.clear();
       activeAuthors.clear();
       viewMode    = "flat";
@@ -277,8 +282,8 @@
       document.getElementById("filter-search").value = "";
       document.querySelectorAll("#type-filters .filter-btn").forEach(b =>
         b.classList.toggle("filter-btn--active", b.dataset.type === "all"));
-      document.querySelectorAll("#sort-filters .filter-btn").forEach((b, i) =>
-        b.classList.toggle("filter-btn--active", i === 0));
+      document.querySelectorAll("#sort-filters .filter-btn").forEach(b =>
+        b.classList.toggle("filter-btn--active", b.dataset.sort === "mixed"));
       document.querySelectorAll("#view-filters .filter-btn").forEach((b, i) =>
         b.classList.toggle("filter-btn--active", i === 0));
       buildFilterButtons();
@@ -336,6 +341,7 @@
       window.location.href = `card.html?id=${id}&type=${card.type}&project=${projectId}`;
     }
     cardsGrid.addEventListener("click", e => {
+      if (e.target.closest("a")) return;   // let in-card links work without opening the card
       const wrapper = e.target.closest(".card-wrapper");
       if (wrapper) openCard(wrapper);
     });

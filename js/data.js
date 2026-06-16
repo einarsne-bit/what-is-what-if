@@ -1314,8 +1314,9 @@ function renderCard(card) {
     </header>
     <div class="card__body">
       <div class="card__content">
+        ${card.draft ? `<span class="card__draft-badge">Draft</span>` : ""}
         <h1 class="card__title">${escHtml(card.title)}</h1>
-        <p class="card__description">${escHtml(card.body)}</p>
+        <p class="card__description">${linkify(escHtml(card.body))}</p>
         <div class="card__tags">${tagsHTML}</div>
       </div>
       <div class="card__image-col">
@@ -1323,7 +1324,7 @@ function renderCard(card) {
         <span class="card__author">${escHtml(card.author)}</span>
       </div>
       <div class="card__references">
-        <span class="card__references-text">${escHtml(card.references || "")}</span>
+        <span class="card__references-text">${linkify(escHtml(card.references || ""))}</span>
       </div>
     </div>
   `;
@@ -1366,6 +1367,14 @@ function escHtml(str) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
+}
+
+// Wrap bare http(s) URLs in already-escaped text with clickable anchors.
+function linkify(escapedText) {
+  return String(escapedText).replace(
+    /(https?:\/\/[^\s<]+)/g,
+    url => `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`
+  );
 }
 
 // ── Shared loading + error UI (B1/B2) — each page's async init calls these ─────

@@ -28,7 +28,8 @@
 
         <div class="sidebar__section">
           <label class="sidebar__label">Author</label>
-          <input class="sidebar__input" id="input-author" type="text" placeholder="Your name" />
+          <input class="sidebar__input" id="input-author" type="text" placeholder="Your name" list="author-list" autocomplete="off" />
+          <datalist id="author-list"></datalist>
         </div>
 
         <div class="sidebar__section">
@@ -65,7 +66,8 @@
         </div>
 
         <div class="sidebar__footer">
-          <button class="btn-publish" id="btn-publish">Transmit</button>
+          <button class="btn-publish" id="btn-publish">Publish</button>
+          <button class="btn-draft" id="btn-draft">Mark as draft</button>
           <a href="#" class="sidebar__cancel" id="sidebar-cancel">Cancel</a>
           <button class="btn-delete-card" id="btn-delete-card" hidden>Delete card</button>
         </div>
@@ -85,6 +87,7 @@
 
             <div class="card__body">
               <div class="card__content">
+                <span class="card__draft-badge" id="edit-draft-badge" hidden>Draft</span>
                 <h1 class="card__title"
                     contenteditable="true"
                     id="edit-title"
