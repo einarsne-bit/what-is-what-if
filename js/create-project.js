@@ -52,7 +52,8 @@ function generateId(name) {
 }
 
 // ── Create project ────────────────────────────────────────────────────────────
-document.getElementById("btn-create-project").addEventListener("click", async () => {
+const btnCreate = document.getElementById("btn-create-project");
+btnCreate.addEventListener("click", async () => {
   const name = inputName.value.trim();
   if (!name) {
     inputName.focus();
@@ -74,12 +75,21 @@ document.getElementById("btn-create-project").addEventListener("click", async ()
     createdAt: todayFormatted()
   };
 
-  await saveProject(data);
+  // Double-submit guard
+  const prevLabel = btnCreate.textContent;
+  btnCreate.disabled    = true;
+  btnCreate.textContent = "Creating…";
 
-  // Grant creator editor access
-  setProjectAccess(id, "editor");
-
-  window.location.href = `gallery.html?project=${id}`;
+  try {
+    await saveProject(data);
+    setProjectAccess(id, "editor");   // grant creator editor access
+    window.location.href = `gallery.html?project=${id}`;
+  } catch {
+    btnCreate.disabled    = false;
+    btnCreate.textContent = prevLabel;
+    btnCreate.style.background = "var(--color-riso-pink)";
+    setTimeout(() => { btnCreate.style.background = ""; }, 3000);
+  }
 });
 
 updatePreview();

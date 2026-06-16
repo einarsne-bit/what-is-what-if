@@ -114,17 +114,17 @@
 
 **Already done earlier:** card-type colour-coding · author dropdown + enlarged author · Transmit→Publish · Mark-as-draft + DRAFT marker · text-box redesign · clickable links · title 40→36
 
-### 5. create-project.html — New project
+### 5. create-project.html — New project — ✅ pass done
 **Check/fix**
-- [ ] Form + live tile preview alignment
-- [ ] Two password fields (editor vs workshop) clarity
-- [ ] Validation / empty states
-- [ ] Double-submit guard
+- [x] Form + live tile preview — already wired (updates live on input); verified
+- [x] Password clarity — per-field placeholders + "leave blank = open" hint + live Access-summary panel (already in place)
+- [x] Validation — name required (focus + error flash); rest optional
+- [x] Double-submit guard — added (button disables + "Creating…" during save; error re-enables + flashes)
 
 **Decide**
-- [ ] How to explain editor vs workshop passwords to non-technical users
-- [ ] Which fields are required vs optional
-- [ ] What the preview should display
+- [x] Explain passwords → already covered: Editor = create/edit, Workshop = react/comment, blank = open
+- [x] Required vs optional → name required, all else optional
+- [x] Preview → mirrors the project tile + access summary (kept)
 
 ### 6. analysis.html — Dashboard
 **Check/fix**
