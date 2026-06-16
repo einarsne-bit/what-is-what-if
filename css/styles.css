@@ -158,6 +158,28 @@
   color: var(--color-riso-pink);
 }
 
+/* ── Toast (transient confirmation, e.g. "Link copied") ─────── */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  background: var(--color-black);
+  color: var(--color-white);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  letter-spacing: 0.04em;
+  padding: 10px 18px;
+  z-index: 10001;
+  opacity: 0;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.toast--show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
 /* ── Page: halftone dot background ─────────────── */
 body {
   font-family: var(--font-mono);
@@ -1219,7 +1241,7 @@ body.print-page {
 }
 
 /* Images use pan-zoom transform — no intrinsic sizing */
-/* F8: subtle print-like treatment — slight desaturation + contrast boost */
+/* Card image — full-bleed, pan/zoom transform applied inline */
 .card__image-area img {
   position: absolute;
   top: 0;
@@ -1230,7 +1252,6 @@ body.print-page {
   user-select: none;
   -webkit-user-drag: none;
   display: block;
-  filter: saturate(0.88) contrast(1.04);
 }
 
 /* ── Image resize handles (create page only) ────── */
@@ -1283,20 +1304,14 @@ body.print-page {
 }
 
 .card__textbox__handle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
   height: 14px;
   cursor: grab;
   user-select: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 4px;
-}
-
-.card__textbox__handle::before {
-  content: "•••";
-  font-size: 9px;
-  letter-spacing: 3px;
-  color: rgba(0,0,0,0.25);
+  z-index: 1;
 }
 
 .card__textbox__content {
@@ -1738,7 +1753,7 @@ body.print-page {
 /* ── Contenteditable placeholder text ───────────── */
 [contenteditable][data-placeholder]:empty::before {
   content: attr(data-placeholder);
-  color: #aaaaaa;
+  color: #767676;
   pointer-events: none;
   display: block;
   font-weight: inherit;
@@ -1811,6 +1826,7 @@ body.print-page {
   font-family: var(--font-mono);
   font-size: 18px;
   font-weight: 900;
+  line-height: 1;
   width: 48px;
   height: 48px;
   flex-shrink: 0;
@@ -2002,14 +2018,19 @@ body.print-page {
 }
 
 .reaction-btn__count {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 900;
-  background: var(--color-shadow);
+  background: var(--color-black);
   color: var(--color-white);
-  padding: 1px 5px;
-  min-width: 16px;
+  padding: 2px 7px;
+  min-width: 22px;
   text-align: center;
-  line-height: 1.5;
+  line-height: 1.4;
+}
+
+/* Hide the count chip entirely when empty, so a "0" never lingers */
+.reaction-btn__count:empty {
+  display: none;
 }
 
 .reaction-btn--active .reaction-btn__count {
@@ -2161,11 +2182,11 @@ body.print-page {
 /* ── Share button ─────────────────────────────────────────────────────────── */
 .btn-card-share {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--text-sm);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  padding: 7px 18px;
+  padding: 8px 18px;
   background: var(--color-white);
   color: var(--color-black);
   border: var(--border-width) solid var(--color-black);

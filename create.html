@@ -19,7 +19,7 @@
         </div>
 
         <div class="sidebar__section">
-          <label class="sidebar__label">Card type</label>
+          <span class="sidebar__label">Card type</span>
           <div class="sidebar__toggle">
             <button class="sidebar-btn sidebar-btn--active" data-type="what-is">What is?</button>
             <button class="sidebar-btn" data-type="what-if">What if?</button>
@@ -27,13 +27,13 @@
         </div>
 
         <div class="sidebar__section">
-          <label class="sidebar__label">Author</label>
+          <label class="sidebar__label" for="input-author">Author</label>
           <input class="sidebar__input" id="input-author" type="text" placeholder="Your name" list="author-list" autocomplete="off" />
           <datalist id="author-list"></datalist>
         </div>
 
         <div class="sidebar__section">
-          <label class="sidebar__label">Tags</label>
+          <label class="sidebar__label" for="input-tag">Tags</label>
           <div class="sidebar__tag-list" id="sidebar-tag-list"></div>
           <div class="sidebar__tag-field">
             <div class="sidebar__tag-add">
@@ -45,20 +45,20 @@
         </div>
 
         <div class="sidebar__section">
-          <label class="sidebar__label">References / source</label>
+          <label class="sidebar__label" for="input-references">References / source</label>
           <textarea class="sidebar__input sidebar__textarea" id="input-references" placeholder="Source, link, or citation…" rows="3"></textarea>
         </div>
 
         <!-- Overlay elements -->
         <div class="sidebar__section">
-          <label class="sidebar__label">Overlays</label>
+          <span class="sidebar__label">Overlays</span>
           <button class="sidebar-btn" id="btn-add-textbox">+ Text box</button>
           <p class="sidebar__hint" id="textbox-hint" hidden>Click a text box to edit. Drag to reposition.</p>
         </div>
 
         <!-- Link to What is? cards — optional, only visible for What if? type -->
         <div class="sidebar__section sidebar__section--link" id="section-link" hidden>
-          <label class="sidebar__label">Linked to <span class="sidebar__label-optional">(optional)</span></label>
+          <label class="sidebar__label" for="input-link-search">Linked to <span class="sidebar__label-optional">(optional)</span></label>
           <div class="sidebar__linked-chips" id="linked-chips"></div>
           <input class="sidebar__input" id="input-link-search"
                  type="text" placeholder="Search What is? cards…" autocomplete="off" />

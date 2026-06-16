@@ -78,6 +78,21 @@ updateLinkSectionVisibility();
 
 // ── Author + References: live mirror ─────────────────────────────────────────
 inputAuthor.addEventListener("input", () => { editAuthorEl.textContent = inputAuthor.value; });
+
+// ── Unsaved-changes guard ─────────────────────────────────────────────────────
+let dirty = false;
+function markDirty() { dirty = true; }
+[editTitle, editBody, inputAuthor, inputReferences, document.getElementById("input-tag")]
+  .forEach(el => el && el.addEventListener("input", markDirty));
+["btn-add-tag", "btn-add-textbox"].forEach(id =>
+  document.getElementById(id)?.addEventListener("click", markDirty));
+editImageArea.addEventListener("drop", markDirty);
+// Intentional navigation shouldn't trigger the warning
+["sidebar-cancel", "back-link"].forEach(id =>
+  document.getElementById(id)?.addEventListener("click", () => { dirty = false; }));
+window.addEventListener("beforeunload", e => {
+  if (dirty) { e.preventDefault(); e.returnValue = ""; }
+});
 inputReferences.addEventListener("input", () => { editReferencesEl.textContent = inputReferences.value; });
 
 // ── Tags ──────────────────────────────────────────────────────────────────────
@@ -511,6 +526,7 @@ document.getElementById("btn-add-textbox").addEventListener("click", () => {
 
     try {
       await saveCard(cardData);
+      dirty = false;
       window.location.href = editingCard
         ? `card.html?id=${cardData.id}&type=${cardData.type}&project=${projectId}`
         : `gallery.html?project=${projectId}`;
@@ -534,6 +550,7 @@ document.getElementById("btn-add-textbox").addEventListener("click", () => {
     if (!editingCard) return;
     if (!confirm("Delete this card? This cannot be undone.")) return;
     await deleteCard(editingCard.id);
+    dirty = false;
     window.location.href = `gallery.html?project=${projectId}&type=${editingCard.type}`;
   });
 

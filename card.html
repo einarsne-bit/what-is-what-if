@@ -46,6 +46,7 @@
             <a href="#" class="btn-new-card btn-new-card--what-if" id="btn-new-what-if" hidden>+ New what if</a>
           </div>
           <div class="card-view__actions-right">
+            <a href="#" class="btn-card-print" id="btn-print">Print</a>
             <button class="btn-card-share" id="btn-share">Share</button>
             <a href="#" class="btn-card-edit" id="btn-edit">Edit</a>
             <button class="btn-card-delete" id="btn-delete">Delete</button>
@@ -54,13 +55,13 @@
 
         <!-- Card with side navigation arrows -->
         <div class="card-view">
-          <button class="card-view__arrow" id="btn-prev">←</button>
+          <button class="card-view__arrow" id="btn-prev" aria-label="Previous card"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></button>
           <div class="card-view__stage">
             <div id="card-stage">
               <!-- Card rendered here by card.js -->
             </div>
           </div>
-          <button class="card-view__arrow" id="btn-next">→</button>
+          <button class="card-view__arrow" id="btn-next" aria-label="Next card"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button>
         </div>
 
         <!-- ── Card links: shown only when links exist, rendered by card.js ── -->

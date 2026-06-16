@@ -16,12 +16,30 @@ const cardType = params.get("type") || "what-is";
 const btnBack = document.getElementById("btn-back");
 btnBack.href = `gallery.html?project=${projectId}&type=${cardType}`;
 
+// ── Toast ─────────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.createElement("div");
+  t.className = "toast";
+  t.textContent = msg;
+  document.body.appendChild(t);
+  requestAnimationFrame(() => t.classList.add("toast--show"));
+  setTimeout(() => {
+    t.classList.remove("toast--show");
+    setTimeout(() => t.remove(), 300);
+  }, 1800);
+}
+
 // ── Async init ────────────────────────────────────────────────────────────────
 (async () => {
 
+  appStatus.start();
   const activeProject = await loadActiveProject();
 
   const allCards = await getProjectCards(projectId);
+  if (!dbReachable()) {
+    appStatus.error("Couldn't load this card — check your connection and retry.", () => location.reload());
+    return;
+  }
   const card = allCards.find(c => c.id === cardId);
   if (!card) { window.location.href = "gallery.html?project=" + projectId; return; }
 
@@ -46,6 +64,7 @@ btnBack.href = `gallery.html?project=${projectId}&type=${cardType}`;
   function scaleViewCard() { scaleCard(wrapper); }
   scaleViewCard();
   window.addEventListener("resize", scaleViewCard);
+  appStatus.done();
 
   // ── Position indicator ──────────────────────────────────────────────────────
   document.getElementById("card-position").textContent =
@@ -74,15 +93,15 @@ btnBack.href = `gallery.html?project=${projectId}&type=${cardType}`;
   });
 
 
+  // ── Print ─────────────────────────────────────────────────────────────────────
+  const btnPrint = document.getElementById("btn-print");
+  if (btnPrint) btnPrint.href = `print.html?project=${projectId}`;
+
   // ── Share ───────────────────────────────────────────────────────────────────
   const btnShare = document.getElementById("btn-share");
   btnShare.addEventListener("click", () => {
-    const url = `${location.origin}${location.pathname}?id=${cardId}`;
-    navigator.clipboard.writeText(url).then(() => {
-      btnShare.textContent = "Copied!";
-      btnShare.classList.add("btn-card-share--copied");
-      setTimeout(() => { btnShare.textContent = "Share"; btnShare.classList.remove("btn-card-share--copied"); }, 2000);
-    });
+    const url = `${location.origin}${location.pathname}?id=${cardId}&type=${resolvedType}&project=${projectId}`;
+    navigator.clipboard.writeText(url).then(() => showToast("Link copied"));
   });
 
   // ── Card links ───────────────────────────────────────────────────────────────

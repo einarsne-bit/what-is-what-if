@@ -80,36 +80,39 @@
 - [ ] Grid density / compact↔comfortable zoom control → Follow ups (R&D, for 500-card scale)
 - [ ] How tag/author filters behave when there are many (wrap / scroll / "show more")
 
-### 3. card.html — Single card view
+### 3. card.html — Single card view — ✅ pass done
 **Check/fix**
-- [ ] Action bar (Back / position / Print / Share / Edit / Delete) labelling
-- [ ] Prev/next `←`/`→` arrows need aria-labels
-- [ ] Linked chips ("Grounded in" / "Related ideas")
-- [ ] Annotation panel layout; do aggregates (counts) read clearly?
-- [ ] Card scaling in the stage
+- [x] Prev/next `←`/`→` arrows: added aria-labels + `line-height:1` so the glyphs sit centered in the boxes
+- [x] Linked chips ("Grounded in" / "Related ideas") — verified; navigate fine in the unified gallery
+- [x] Annotation aggregate counts made clearer — larger, higher-contrast count chip; hidden when zero
+- [x] Card scaling in the stage — OK, no change
+- [x] B1/B2 loading bar + error banner wired into card.js
+- [x] Earlier: + New what is / + New what if buttons added (editors), single Gallery nav
 
 **Decide**
-- [ ] Finalise the **annotation marker set + icons** (star / low-hanging-fruit / follow-thread — core workshop feature, still placeholder styling)
-- [ ] Do annotations show counts? (stay anonymous)
-- [ ] Share feedback (toast on copy?)
-- [ ] Delete-confirmation copy
+- [x] **Print** → added a Print button to the action bar (links to the print page)
+- [x] **Annotation marker set** → keep current (interesting / follow-thread / low-hanging-fruit); refine icons later → Follow ups
+- [x] **Show counts** → yes (clearer count chip)
+- [x] **Share feedback** → "Link copied" toast (+ shareable URL now includes project & type)
+- [x] **Delete copy** → kept as-is
 
-### 4. create.html — Card editor
+### 4. create.html — Card editor — ✅ pass done
 **Check/fix**
-- [ ] Contenteditable placeholder contrast (#aaa fails)
-- [ ] Sidebar `<label>`s not associated with controls
-- [ ] Image drag/pan/zoom + handle visibility
-- [ ] Text-box add/move/delete UX (now that it persists)
-- [ ] Tag autocomplete
-- [ ] What If? → What Is? link picker
-- [ ] Unsaved-changes data-loss (no `beforeunload`)
+- [x] Contenteditable placeholder contrast — `#aaa` → `#767676` (passes AA)
+- [x] Sidebar `<label>`s — group labels (Card type / Overlays) → `<span>`; single-input labels given `for` (author / tag / references / link)
+- [x] Image drag/pan/zoom + handle visibility — verified OK
+- [x] Text-box add/move/delete UX — redesigned earlier; verified
+- [x] Tag autocomplete + What if? → What is? link picker — verified OK
+- [x] Unsaved-changes data-loss — added `beforeunload` guard (dirty flag set on edits, cleared on save/delete/cancel/back)
 
 **Decide**
-- [ ] Publish button label ("Publish" / "Transmit" / "Save")
-- [ ] Can you publish an empty/untitled card? (validation)
-- [ ] Default text-box size/style
-- [ ] Keep the print-desaturate image filter?
-- [ ] Image format/size limits
+- [x] Publish button label → **Publish** (done earlier)
+- [x] Empty/untitled validation → keep title-required guard
+- [x] Default text-box size/style → done (text-box redesign)
+- [x] Print-desaturate image filter → **removed**; user-controlled filter feature → Follow ups
+- [x] Image format/size limits → **Follow up** (downscale on drop, keep print-quality)
+
+**Already done earlier:** card-type colour-coding · author dropdown + enlarged author · Transmit→Publish · Mark-as-draft + DRAFT marker · text-box redesign · clickable links · title 40→36
 
 ### 5. create-project.html — New project
 **Check/fix**
@@ -184,6 +187,9 @@
 - **Gallery filter bar is tall** (gallery). Now 5 rows; consider a collapsible "Filters" section.
 - **Grid density / zoom control** (gallery, §C.2 D4). Compact↔comfortable toggle for 500-card scale (R&D §3.1).
 - **DRAFT marker placement on the card template** (create/card). A working black "DRAFT" tag (top-right) ships now; revisit where/how the marker sits on the card during the What is?/What if? differentiation pass.
+- **Annotation marker set + icons** (card, §C.3 D2). Current set (interesting / follow-thread / low-hanging-fruit + comment) is functional but visually placeholder; finalise the marker vocabulary and icons in a dedicated workshop-mode pass (BRIEF mentions star / low-hanging-fruit / follow-this-thread).
+- **User-controlled image filter** (create, §C.4 D3). The fixed print-style filter (desaturate + contrast) was removed; add a per-card image-filter control in the create settings (halftone / riso / b&w / contrast) — pairs with the Phase 8 "card image effects" item.
+- **Print-quality image handling** (create, §C.4 D4). Images are base64 data URLs; add downscale/compress on drop, but keep resolution high enough for crisp A4 print output (the catalogue is the end goal). Balance DB size vs print sharpness.
 
 ---
 
