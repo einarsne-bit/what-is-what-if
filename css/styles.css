@@ -2623,6 +2623,44 @@ button.affinity-group__header {
 .annot-bar-row { cursor: pointer; }
 .annot-bar-label { text-decoration: none; color: inherit; }
 
+/* Annotation consensus vs. spread */
+.annot-summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 0 0 14px;
+  font-size: 11px;
+  color: var(--color-muted);
+}
+.annot-summary strong { color: var(--color-ink); font-weight: 900; }
+.annot-summary__sep { opacity: 0.5; margin: 0 4px; }
+.annot-summary__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.annot-summary__dot--agree { background: var(--color-riso-green); }
+.annot-summary__dot--mixed {
+  background: repeating-linear-gradient(45deg, var(--color-riso-pink) 0 2px, transparent 2px 4px);
+  border: 1px solid var(--color-riso-pink);
+}
+.annot-consensus {
+  flex-shrink: 0;
+  font-size: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 1px 5px;
+  white-space: nowrap;
+}
+.annot-consensus--agree { background: rgba(11,107,0,0.14); color: var(--color-riso-green); }
+.annot-consensus--mixed {
+  border: 1px dashed var(--color-riso-pink);
+  color: var(--color-riso-pink);
+}
+
 /* Themes treemap (overview) */
 .theme-treemap {
   position: relative;

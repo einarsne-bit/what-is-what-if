@@ -256,6 +256,29 @@ function renderAnnotationActivity(ctx) {
     r["low-hanging-fruit"] += d.lowHangingFruit; r.comments += d.comments;
   });
 
+  // Consensus vs. spread: how concentrated a card's responses are across the
+  // four marker kinds. One kind dominates → agreement; split → mixed signals.
+  const consensus = d => {
+    const parts = [d.interesting, d.followThread, d.lowHangingFruit, d.comments].filter(v => v > 0);
+    if (d.total < 2 || parts.length <= 1) return null;           // too few / single kind
+    const topShare = Math.max(...parts) / d.total;
+    return topShare >= 0.6 ? "agree" : "mixed";
+  };
+
+  const classified = ctx.cardActivity.map(consensus);
+  const nAgree = classified.filter(c => c === "agree").length;
+  const nMixed = classified.filter(c => c === "mixed").length;
+
+  const summary = (nAgree || nMixed)
+    ? `<p class="annot-summary">
+        <span class="annot-summary__dot annot-summary__dot--agree"></span>
+        <strong>${nAgree}</strong> card${nAgree !== 1 ? "s" : ""} drew clear agreement
+        <span class="annot-summary__sep">·</span>
+        <span class="annot-summary__dot annot-summary__dot--mixed"></span>
+        <strong>${nMixed}</strong> drew mixed signals
+      </p>`
+    : "";
+
   const legend = `
     <div class="annot-legend">
       <span class="annot-legend__item annot-legend__item--interesting">Interesting (${r.interesting})</span>
@@ -264,19 +287,26 @@ function renderAnnotationActivity(ctx) {
       <span class="annot-legend__item annot-legend__item--comment">Comments (${r.comments})</span>
     </div>`;
 
-  el.innerHTML = legend + `<div class="annot-bars"></div>`;
+  el.innerHTML = legend + summary + `<div class="annot-bars"></div>`;
   const barsEl = el.querySelector(".annot-bars");
 
   top.forEach(d => {
     const pct = v => ((v / maxTotal) * 100).toFixed(1);
     const typeLabel = d.card.type === "what-if" ? "WIF" : "WI";
     const typeClass = d.card.type === "what-if" ? "wif" : "wi";
+    const cons = consensus(d);
+    const consChip = cons
+      ? `<span class="annot-consensus annot-consensus--${cons}" title="${cons === "agree"
+          ? "Responses concentrated on one marker — agreement"
+          : "Responses split across markers — mixed signals"}">${cons === "agree" ? "agreement" : "mixed"}</span>`
+      : "";
     const row = document.createElement("div");
     row.className = "annot-bar-row";
     row.innerHTML = `
       <span class="annot-bar-label">
         <span class="annot-bar-badge annot-bar-badge--${typeClass}">${typeLabel}</span>
         <span class="annot-bar-title">${escHtml(d.card.title)}</span>
+        ${consChip}
       </span>
       <div class="annot-bar-track">
         ${d.interesting     ? `<div class="annot-bar-seg annot-bar-seg--interesting" style="width:${pct(d.interesting)}%"></div>` : ""}
