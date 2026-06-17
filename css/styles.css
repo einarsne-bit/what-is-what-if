@@ -3015,15 +3015,16 @@ button.affinity-group__header {
   .breadth__cols, .breadth__gaps { grid-template-columns: 1fr; }
 }
 
-/* Affinity clusters (shared-tag overlap) */
+/* Affinity / theme groups — horizontal boxes (header column + wrapping cards) */
 .affinity-cluster__header {
+  flex: 0 0 170px;
   display: flex;
+  flex-direction: column;
   align-items: flex-start;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 7px 9px;
+  gap: 6px;
+  padding: 10px;
   background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
+  border-right: 1px solid var(--color-border);
 }
 .affinity-cluster__tags { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
 .affinity-cluster__x { font-size: 10px; font-weight: 700; color: var(--color-muted); }
@@ -3267,54 +3268,44 @@ button.affinity-group__header {
 
 /* Affinity groups */
 .affinity-groups {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
+/* Each group is a full-width horizontal box: header column + wrapping cards */
 .affinity-group {
   border: 1px solid var(--color-border);
   display: flex;
-  flex-direction: column;
-}
-
-.affinity-group__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 10px;
-  background: var(--tag-bg, #eee);
-  color: var(--tag-color, #333);
-}
-
-.affinity-group__name {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  align-items: stretch;
 }
 
 .affinity-group__count {
   font-size: 10px;
-  opacity: 0.7;
+  color: var(--color-muted);
 }
 
 .affinity-group__cards {
+  flex: 1 1 auto;
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 6px;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 5px;
+  padding: 10px;
+  min-width: 0;
 }
 
 .affinity-chip {
   font-size: 10px;
   line-height: 1.4;
-  padding: 3px 7px;
+  padding: 3px 8px;
   text-decoration: none;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  display: block;
+  max-width: 230px;
+  display: inline-block;
 }
 
 .affinity-chip--wi  { background: rgba(11,107,0,0.12); color: var(--color-ink); }
