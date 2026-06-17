@@ -252,6 +252,57 @@ function updateFilterUI() {
   document.getElementById("af-reset").hidden = !active;
 }
 
+// ── Saved views (pin a filter state; per-browser via localStorage) ───────────────
+const viewsKey = `whats-analysis-views-${projectId}`;
+function loadViews() { try { return JSON.parse(localStorage.getItem(viewsKey)) || []; } catch { return []; } }
+function saveViews(v) { try { localStorage.setItem(viewsKey, JSON.stringify(v)); } catch { /* private mode */ } }
+
+function viewLabel(f) {
+  const parts = [];
+  if (f.type !== "all") parts.push(f.type === "what-is" ? "What is?" : "What if?");
+  if (f.tags.length)    parts.push(f.tags.join(", "));
+  if (f.authors.length) parts.push("by " + f.authors.join(", "));
+  if (f.annotated)      parts.push("annotated");
+  if (f.drafts)         parts.push("drafts");
+  return parts.join(" · ") || "All cards";
+}
+
+function renderSavedViews() {
+  const bar = document.getElementById("saved-views");
+  const views = loadViews();
+  const chips = views.map((v, i) => `
+    <span class="saved-view-chip">
+      <button class="saved-view-chip__recall" data-recall="${i}">${escHtml(v.name)}</button>
+      <button class="saved-view-chip__del" data-del="${i}" aria-label="Remove saved view">×</button>
+    </span>`).join("");
+
+  bar.innerHTML = `
+    <span class="saved-views__label">Saved views</span>
+    <button class="filter-btn saved-views__pin" id="pin-view"${filterActive() ? "" : " disabled"}>+ Pin current view</button>
+    <div class="saved-views__list">${chips || `<span class="filter-empty">none yet — pin a filter to revisit it</span>`}</div>`;
+
+  document.getElementById("pin-view").addEventListener("click", () => {
+    const snap = { type: filter.type, tags: [...filter.tags], authors: [...filter.authors], annotated: filter.annotated, drafts: filter.drafts };
+    const name = viewLabel(snap);
+    const vs = loadViews();
+    if (!vs.some(v => v.name === name)) { vs.push({ name, filter: snap }); saveViews(vs); }
+    renderSavedViews();
+  });
+  bar.querySelectorAll("[data-recall]").forEach(b => b.addEventListener("click", () => {
+    const v = loadViews()[+b.dataset.recall];
+    if (!v) return;
+    filter.type = v.filter.type;
+    filter.tags = new Set(v.filter.tags);
+    filter.authors = new Set(v.filter.authors);
+    filter.annotated = v.filter.annotated;
+    filter.drafts = v.filter.drafts;
+    renderAll();
+  }));
+  bar.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", () => {
+    const vs = loadViews(); vs.splice(+b.dataset.del, 1); saveViews(vs); renderSavedViews();
+  }));
+}
+
 // ── Masthead ────────────────────────────────────────────────────────────────────
 function renderMasthead(ctx) {
   const annotated = ctx.cards.filter(c => annotCount(c.id) > 0).length;
@@ -1103,6 +1154,7 @@ function renderAll() {
   hidePreview();
   renderMasthead(ctx);
   updateFilterUI();
+  renderSavedViews();
 
   const grid = document.getElementById("analysis-grid");
   const noResults = document.getElementById("analysis-noresults");

@@ -161,7 +161,7 @@ Building on branch `analysis-redesign`.
 **Tier 1 — front-end, no new deps, high fit (buildable like Phases 1–3)**
 - **Comparison mode** ✅ *(built 2026-06-17)* — "Compare" panel: two sides chosen by type / theme / author / status, shown side by side (cards + WI/WIF split, distinct themes, annotations, connections, authors, top themes), each metric with A/B bars. Operates across the whole project, independent of the shared filter.
 - **Cross-tab heatmap** ✅ *(built 2026-06-17)* — "Theme cross-tab" panel: themes × author or themes × type, shaded by count; row/column headers click to filter. Mixed-methods coverage/contribution (not card-to-card links).
-- **Saved views / pinned insights** — pin a filtered state or a finding ("8 cards bridge X × Y") as a named insight. Seeds the catalogue (Journey 6) and the "knowledge view" of the sensemaking framework.
+- **Saved views / pinned insights** ✅ *(built 2026-06-17)* — "Saved views" bar: pin the current filter state (auto-named from the active filter) and recall or delete it later. Stored per-browser in localStorage. Seeds the catalogue (Journey 6) and the "knowledge view" of the sensemaking framework.
 - **Tag canonicalisation (non-AI first)** — edit-distance/case-fold to flag near-duplicate tags ("Politics/politics/Political") and suggest merges. Cheap, big hygiene payoff (already noted in ANALYTICS-RESEARCH.md Tier-2 #5).
 
 **Tier 2 — ON HOLD (needs the Anthropic API) — parked per the AI-hold decision**
