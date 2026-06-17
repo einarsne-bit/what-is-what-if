@@ -2623,6 +2623,51 @@ button.affinity-group__header {
 .annot-bar-row { cursor: pointer; }
 .annot-bar-label { text-decoration: none; color: inherit; }
 
+/* Axis workbench */
+.axis-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin-bottom: 16px;
+}
+.axis-control {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--color-muted);
+}
+.axis-select {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--color-black);
+  background: var(--color-white);
+  border: 1px solid var(--color-black);
+  padding: 4px 8px;
+  cursor: pointer;
+}
+.axis-legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-muted);
+}
+.axis-legend__dot { width: 9px; height: 9px; border-radius: 50%; }
+.axis-legend__dot--wi  { background: var(--color-riso-green); }
+.axis-legend__dot--wif { background: var(--color-riso-pink); margin-left: 8px; }
+.axis-plot { width: 100%; }
+
 /* Annotation consensus vs. spread */
 .annot-summary {
   display: flex;

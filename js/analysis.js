@@ -25,6 +25,17 @@ rawAnnotList.forEach(ann => {
 });
 const annotCount = id => (annotationsByCard[id] || []).length;
 
+// Connection count per card (computed once over the whole project — links don't
+// change with the filter). What if? cards count their outgoing links; What is?
+// cards count how many What if? ideas reference them.
+const linkCountById = {};
+all.forEach(c => { linkCountById[c.id] = 0; });
+all.filter(c => c.type === "what-if").forEach(wifCard => {
+  const outs = wifCard.linkedInsightIds || [];
+  linkCountById[wifCard.id] += outs.length;
+  outs.forEach(wiId => { if (wiId in linkCountById) linkCountById[wiId]++; });
+});
+
 // ── Full-project facets (filter controls are built from these) ─────────────────
 const allTags    = [...new Set(all.flatMap(c => c.tags || []))].sort();
 const allAuthors = [...new Set(all.map(c => c.author).filter(Boolean))].sort();
@@ -39,6 +50,19 @@ const filter = {
 };
 
 const cardUrl = card => `card.html?id=${card.id}&project=${projectId}`;
+
+// ── Axis workbench dimensions (data-derived; no storage) ───────────────────────
+const numFmt  = v => Math.round(v);
+const dateFmt = v => v > 0 ? new Date(v).toLocaleDateString("en", { month: "short", year: "2-digit" }) : "—";
+const AXES = {
+  annotations: { label: "Annotations",      value: c => annotCount(c.id),          fmt: numFmt },
+  links:       { label: "Connections",       value: c => linkCountById[c.id] || 0,  fmt: numFmt },
+  recency:     { label: "Recency (date)",     value: c => parseDate(c.date),         fmt: dateFmt },
+  bodyLength:  { label: "Body length (chars)",value: c => (c.body || "").length,     fmt: numFmt },
+  tags:        { label: "Number of themes",   value: c => (c.tags || []).length,     fmt: numFmt },
+};
+let axisX = "recency";
+let axisY = "annotations";
 
 function filterActive() {
   return filter.type !== "all" || filter.tags.size || filter.authors.size
@@ -515,6 +539,85 @@ function renderBreadth(ctx) {
   });
 }
 
+// ── Axis workbench (scatter on two chosen dimensions) ────────────────────────────
+function buildAxisControls() {
+  const optsHtml = sel => Object.entries(AXES)
+    .map(([k, a]) => `<option value="${k}"${k === sel ? " selected" : ""}>${a.label}</option>`).join("");
+  const xSel = document.getElementById("ax-x");
+  const ySel = document.getElementById("ax-y");
+  xSel.innerHTML = optsHtml(axisX);
+  ySel.innerHTML = optsHtml(axisY);
+  xSel.addEventListener("change", () => { axisX = xSel.value; renderAxisScatter(compute(getVisible())); });
+  ySel.addEventListener("change", () => { axisY = ySel.value; renderAxisScatter(compute(getVisible())); });
+}
+
+function renderAxisScatter(ctx) {
+  const el = document.getElementById("axis-plot");
+  el.innerHTML = "";
+  const cards = ctx.cards;
+  if (cards.length < 2) {
+    el.innerHTML = `<p class="outlier-empty">Need at least two cards in view to plot.</p>`;
+    return;
+  }
+
+  const ax = AXES[axisX], ay = AXES[axisY];
+  const xs = cards.map(c => ax.value(c));
+  const ys = cards.map(c => ay.value(c));
+  let xMin = Math.min(...xs), xMax = Math.max(...xs);
+  let yMin = Math.min(...ys), yMax = Math.max(...ys);
+  if (xMin === xMax) { xMin -= 1; xMax += 1; }
+  if (yMin === yMax) { yMin -= 1; yMax += 1; }
+
+  const W = el.clientWidth || 600, H = 360;
+  const m = { top: 16, right: 18, bottom: 40, left: 56 };
+  const plotW = W - m.left - m.right, plotH = H - m.top - m.bottom;
+  const xScale = v => m.left + ((v - xMin) / (xMax - xMin)) * plotW;
+  const yScale = v => m.top + plotH - ((v - yMin) / (yMax - yMin)) * plotH;
+
+  const svgNS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(svgNS, "svg");
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.setAttribute("width", "100%");
+  svg.setAttribute("height", H);
+  svg.style.overflow = "visible";
+
+  // Gridlines + ticks (3 per axis: min, mid, max)
+  const ticks = (min, max) => [min, (min + max) / 2, max];
+  let frame = "";
+  ticks(xMin, xMax).forEach(v => {
+    const x = xScale(v);
+    frame += `<line x1="${x}" y1="${m.top}" x2="${x}" y2="${m.top + plotH}" stroke="rgba(0,0,0,0.06)" stroke-width="1"/>`;
+    frame += `<text x="${x}" y="${m.top + plotH + 16}" text-anchor="middle" font-size="9" fill="#999" font-family="monospace">${escHtml(String(ax.fmt(v)))}</text>`;
+  });
+  ticks(yMin, yMax).forEach(v => {
+    const y = yScale(v);
+    frame += `<line x1="${m.left}" y1="${y}" x2="${m.left + plotW}" y2="${y}" stroke="rgba(0,0,0,0.06)" stroke-width="1"/>`;
+    frame += `<text x="${m.left - 8}" y="${y + 3}" text-anchor="end" font-size="9" fill="#999" font-family="monospace">${escHtml(String(ay.fmt(v)))}</text>`;
+  });
+  // Axis titles
+  frame += `<text x="${m.left + plotW / 2}" y="${H - 4}" text-anchor="middle" font-size="10" font-weight="700" fill="var(--color-ink)" font-family="monospace" letter-spacing="0.04em">${escHtml(ax.label.toUpperCase())}</text>`;
+  frame += `<text transform="translate(13,${m.top + plotH / 2}) rotate(-90)" text-anchor="middle" font-size="10" font-weight="700" fill="var(--color-ink)" font-family="monospace" letter-spacing="0.04em">${escHtml(ay.label.toUpperCase())}</text>`;
+  svg.innerHTML = frame;
+
+  // Dots — drawn WI then WIF so pink reads on top
+  const draw = card => {
+    const c = document.createElementNS(svgNS, "circle");
+    c.setAttribute("cx", xScale(ax.value(card)).toFixed(1));
+    c.setAttribute("cy", yScale(ay.value(card)).toFixed(1));
+    c.setAttribute("r", 5);
+    c.setAttribute("fill", card.type === "what-if" ? "var(--color-riso-pink)" : "var(--color-riso-green)");
+    c.setAttribute("fill-opacity", "0.75");
+    c.setAttribute("stroke", "var(--color-black)");
+    c.setAttribute("stroke-width", "0.5");
+    bindMark(c, card);
+    svg.appendChild(c);
+  };
+  cards.filter(c => c.type === "what-is").forEach(draw);
+  cards.filter(c => c.type === "what-if").forEach(draw);
+
+  el.appendChild(svg);
+}
+
 // ── Connections (coverage map) ───────────────────────────────────────────────────
 function renderCoverageMap(ctx) {
   const el = document.getElementById("coverage-map");
@@ -695,6 +798,7 @@ function renderAll() {
   renderThemesTreemap(ctx);
   renderTagChart(ctx);
   renderBreadth(ctx);
+  renderAxisScatter(ctx);
   renderCoverageMap(ctx);
   renderAffinityGroups(ctx);
   renderAuthors(ctx);
@@ -704,6 +808,7 @@ function renderAll() {
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 buildFilterControls();
+buildAxisControls();
 renderAll();
 
 let resizeTimer;
@@ -714,6 +819,7 @@ window.addEventListener("resize", () => {
     if (!visible.length) return;
     const ctx = compute(visible);
     renderThemesTreemap(ctx);
+    renderAxisScatter(ctx);
     renderCoverageMap(ctx);
   }, 150);
 });

@@ -136,6 +136,27 @@
           <div class="breadth" id="breadth"></div>
         </section>
 
+        <!-- Axis workbench — place cards along two chosen dimensions -->
+        <section class="analysis-panel analysis-panel--full">
+          <header class="analysis-panel__header">
+            <h2 class="analysis-panel__title">Axis workbench</h2>
+            <p class="analysis-panel__desc">Place cards along two dimensions you choose. Each dot is a card — hover for details, click to open. Green = What is?, pink = What if?.</p>
+          </header>
+          <div class="axis-controls">
+            <label class="axis-control">Y axis
+              <select id="ax-y" class="axis-select"></select>
+            </label>
+            <label class="axis-control">X axis
+              <select id="ax-x" class="axis-select"></select>
+            </label>
+            <span class="axis-legend">
+              <span class="axis-legend__dot axis-legend__dot--wi"></span>What is?
+              <span class="axis-legend__dot axis-legend__dot--wif"></span>What if?
+            </span>
+          </div>
+          <div class="axis-plot" id="axis-plot"></div>
+        </section>
+
         <!-- Affinity groups -->
         <section class="analysis-panel analysis-panel--full">
           <header class="analysis-panel__header">
