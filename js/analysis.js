@@ -635,13 +635,27 @@ function renderAxisScatter(ctx) {
   // Quadrant dividers when an axis is a theme (membership midline at 0.5)
   if (ax.isTheme) frame += `<line x1="${xScale(0.5)}" y1="${m.top}" x2="${xScale(0.5)}" y2="${m.top + plotH}" stroke="rgba(0,0,0,0.18)" stroke-width="1" stroke-dasharray="3 3"/>`;
   if (ay.isTheme) frame += `<line x1="${m.left}" y1="${yScale(0.5)}" x2="${m.left + plotW}" y2="${yScale(0.5)}" stroke="rgba(0,0,0,0.18)" stroke-width="1" stroke-dasharray="3 3"/>`;
+
+  // Quadrant labels + counts — only in the true 2×2 (both axes themes)
+  const bothThemes = ax.isTheme && ay.isTheme;
+  if (bothThemes) {
+    const cnt = (xv, yv) => cards.filter(c => ax.value(c) === xv && ay.value(c) === yv).length;
+    const yTop = m.top + 13, yBot = m.top + plotH - 6;
+    const xL = m.left + 8, xR = m.left + plotW - 8;
+    const quad = (label, x, anchor, y, strong) =>
+      `<text x="${x}" y="${y}" text-anchor="${anchor}" font-size="9" font-weight="700"
+        fill="${strong ? "var(--color-riso-pink)" : "#b3b3b3"}" font-family="monospace" letter-spacing="0.05em">${escHtml(label)}</text>`;
+    frame += quad(`BOTH · ${cnt(1, 1)}`,                          xR, "end",   yTop, true);
+    frame += quad(`ONLY ${ay.label.toUpperCase()} · ${cnt(0, 1)}`, xL, "start", yTop, false);
+    frame += quad(`ONLY ${ax.label.toUpperCase()} · ${cnt(1, 0)}`, xR, "end",   yBot, false);
+    frame += quad(`NEITHER · ${cnt(0, 0)}`,                        xL, "start", yBot, false);
+  }
   // Axis titles
   frame += `<text x="${m.left + plotW / 2}" y="${H - 4}" text-anchor="middle" font-size="10" font-weight="700" fill="var(--color-ink)" font-family="monospace" letter-spacing="0.04em">${escHtml(ax.label.toUpperCase())}</text>`;
   frame += `<text transform="translate(13,${m.top + plotH / 2}) rotate(-90)" text-anchor="middle" font-size="10" font-weight="700" fill="var(--color-ink)" font-family="monospace" letter-spacing="0.04em">${escHtml(ay.label.toUpperCase())}</text>`;
   svg.innerHTML = frame;
 
   // Bridges = cards carrying BOTH themes (only meaningful when both axes are themes)
-  const bothThemes = ax.isTheme && ay.isTheme;
   const isBridge = card => bothThemes && ax.value(card) === 1 && ay.value(card) === 1;
 
   const draw = card => {
