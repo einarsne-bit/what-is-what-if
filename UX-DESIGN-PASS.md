@@ -167,11 +167,11 @@
 - [x] `.about-link` contrast — fixed in §A (riso-green + underline)
 - [x] Placeholder credit links removed — credit is now plain text (no `href="#"`)
 - [x] Credit copy updated — AHO research group "Design for Society and Technology" + contact Einar Sneve Martinussen
-- [ ] Content accuracy — "How to use it" still says "Switch between What is?/What if? using the navigation" (stale since the unified gallery); revisit copy → Follow ups
+- [x] Content accuracy — "How to use it" list refreshed for the unified gallery (type filter, Creative/Analysis views, PDF export)
 
 **Decide**
 - [x] Align header with the site pattern → **aligned** (full shared header, matches gallery)
-- [ ] Final About copy → Follow ups (refresh the "How to use it" list for the unified gallery)
+- [x] Final About copy → refreshed (intro, card-type blurbs, how-to-use, credit)
 - [ ] Real credit links / partner logos → Follow ups
 
 ---
@@ -191,7 +191,7 @@
 - **PDF export raster quality** (print, §C.8). html2canvas produces a raster (pixel) PDF — text is not selectable or searchable. JPEG compression at 0.93 may lose sharpness at full A4. If vector/selectable text becomes a requirement, the only path is browser print (which was rejected). Acceptable trade-off for now.
 - **Vertical references text in PDF — verify** (print, §C.8). Replaced `writing-mode: vertical-rl` with `transform: rotate(-90deg)` so html2canvas can capture it. Visually identical on screen. Do a test export to confirm it renders correctly in the output PDF.
 - **PDF export performance on large sets** (print, §C.8). Each card is a sequential html2canvas capture — slow for large selections. For 20+ cards this can take 30–60 s. Consider a progress indicator improvement or batching in a future pass.
-- **About copy refresh** (about, §C.9). The "How to use it" list still says "Switch between What is?/What if? using the navigation at the top" — stale since the unified gallery. Refresh the copy (gallery is now one view with a type filter; printing is PDF export). Also: finalise About copy and add real credit links / partner logos (AHO / Design for Society and Technology).
+- **About credit links / partner logos** (about, §C.9). About copy is refreshed; still to add real credit links / partner logos (AHO / Design for Society and Technology) when available.
 
 ---
 
