@@ -161,17 +161,18 @@
 
 *Note: the download is raster (html2canvas) by nature — vector/selectable text would require browser-print, which was rejected. Acceptable trade-off for a reliable one-click download.*
 
-### 9. about.html — About
+### 9. about.html — About — ✅ pass done
 **Check/fix**
-- [ ] Header is structured differently from every other page (inside `.page-wrapper`, uses `nav-link--active`)
-- [ ] `.about-link` blue contrast fails
-- [ ] Placeholder `href="#"` credit links
-- [ ] Content accuracy (advertises printing + the method)
+- [x] Header now uses the full shared project header (logo + project name, Gallery/Creative/Analysis/Print, ··· dropdown) — js/about.js wires it via `initProjectHeader` to the active project; export/import work here too
+- [x] `.about-link` contrast — fixed in §A (riso-green + underline)
+- [x] Placeholder credit links removed — credit is now plain text (no `href="#"`)
+- [x] Credit copy updated — AHO research group "Design for Society and Technology" + contact Einar Sneve Martinussen
+- [ ] Content accuracy — "How to use it" still says "Switch between What is?/What if? using the navigation" (stale since the unified gallery); revisit copy → Follow ups
 
 **Decide**
-- [ ] Final About copy
-- [ ] Real credit links / partner logos
-- [ ] Align the header with the site pattern or keep it bespoke
+- [x] Align header with the site pattern → **aligned** (full shared header, matches gallery)
+- [ ] Final About copy → Follow ups (refresh the "How to use it" list for the unified gallery)
+- [ ] Real credit links / partner logos → Follow ups
 
 ---
 
@@ -190,8 +191,9 @@
 - **PDF export raster quality** (print, §C.8). html2canvas produces a raster (pixel) PDF — text is not selectable or searchable. JPEG compression at 0.93 may lose sharpness at full A4. If vector/selectable text becomes a requirement, the only path is browser print (which was rejected). Acceptable trade-off for now.
 - **Vertical references text in PDF — verify** (print, §C.8). Replaced `writing-mode: vertical-rl` with `transform: rotate(-90deg)` so html2canvas can capture it. Visually identical on screen. Do a test export to confirm it renders correctly in the output PDF.
 - **PDF export performance on large sets** (print, §C.8). Each card is a sequential html2canvas capture — slow for large selections. For 20+ cards this can take 30–60 s. Consider a progress indicator improvement or batching in a future pass.
+- **About copy refresh** (about, §C.9). The "How to use it" list still says "Switch between What is?/What if? using the navigation at the top" — stale since the unified gallery. Refresh the copy (gallery is now one view with a type filter; printing is PDF export). Also: finalise About copy and add real credit links / partner logos (AHO / Design for Society and Technology).
 
 ---
 
-*Last updated: 2026-06-12 — §A global decisions settled (tag palette already at 12; three contrast fixes applied; about header moved to body level; project description enlarged). G1 deferred to Follow ups. Created 2026-06-10 from the current codebase + the 2026-06-09 full-site code review. Record decisions as they're made in ROADMAP.md.*
+*Last updated: 2026-06-17 — §C.9 About pass done (full shared header via js/about.js, credit copy updated to AHO research group, placeholder links removed); print §C.8 closed with quality follow-ups logged. Created 2026-06-10 from the current codebase + the 2026-06-09 full-site code review. Record decisions as they're made in ROADMAP.md.*
 *Companion files: BRIEF.md, R&D.md, ROADMAP.md, ANALYTICS-RESEARCH.md*
