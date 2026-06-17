@@ -11,8 +11,8 @@
 | | |
 |---|---|
 | **Active phase** | Phase 8 — UX/UI & Visual Design Pass (page-by-page, tracked in [UX-DESIGN-PASS.md](UX-DESIGN-PASS.md)) |
-| **Last session** | **v000.4 committed + tagged (not yet pushed).** Full-site code review + security/a11y batch. Self-hosted IBM Plex typography. Landing redesign. **Unified gallery** — What is?/What if? merged into one view with ALL/WHAT IS?/WHAT IF? type filter, single "Gallery" nav, lowercase-i house style; Mixed sort; theme sections wrap (no horizontal scroll). Loading bar + error banner; keyboard a11y; modal focus-trap. |
-| **Immediate next** | **Run Supabase `text_boxes jsonb` column SQL, then push v000.4** (Netlify auto-deploys; card saving breaks without the column). Then continue the UX pass at **card.html (§C.3)**. |
+| **Last session** | **UX pass continued, all pushed to `main` (Netlify live).** Supabase `text_boxes` + `draft` columns added. Draft cards, text-box redesign, clickable in-card links, author dropdown. **Print** kept as html2canvas + jsPDF PDF download (browser-print rejected); vertical references text fixed for export. **About** page reworked — full shared project header (js/about.js), refreshed copy, credit linked to AHO + Design for Society and Technology Medium. |
+| **Immediate next** | Continue the UX pass — **analysis.html (§C.6)** and **creative.html (§C.7)** are the remaining pages. Creative carries an open design-direction decision (combine What Is? cards vs. one card + constraint prompt). |
 | **Supabase project** | `https://bnqmmdymxfcptfxgvxzm.supabase.co` — EU West (Frankfurt) |
 | **sessionStorage keys** | `whats-active-project`, `whats-access-{projectId}`, `whats-seeded` |
 | **localStorage keys** | `whats-session-id`, `whats-user-name` (annotation identity only — all card/project data now in Supabase) |
@@ -50,6 +50,8 @@ WHATS/
 ├── create.html             ← card creation + edit mode
 ├── create-project.html     ← new project form
 ├── analysis.html           ← analysis dashboard (?project=id)
+├── creative.html           ← creative / ideation spark view (?project=id)
+├── print.html              ← PDF export (card-select grid → A4 PDF download)
 ├── about.html
 ├── css/
 │   └── styles.css          ← all styles (design tokens, cards, landing, analysis, modal, print)
@@ -61,7 +63,10 @@ WHATS/
 │   ├── create.js           ← card creation/edit logic
 │   ├── create-project.js   ← project creation logic
 │   ├── landing.js          ← landing page logic (project grid, password modal)
-│   └── analysis.js         ← analysis dashboard logic (all visualisations)
+│   ├── analysis.js         ← analysis dashboard logic (all visualisations)
+│   ├── creative.js         ← creative spark view logic
+│   ├── print.js            ← PDF export (html2canvas + jsPDF, one card per A4 page)
+│   └── about.js            ← wires the shared project header on the About page
 ├── assets/
 │   └── images/
 ├── ROADMAP.md
@@ -79,7 +84,7 @@ WHATS/
 | Frontend | HTML + CSS + vanilla JS | No framework needed yet — keeping it simple |
 | Data storage v1 | `localStorage` + `sessionStorage` | No backend needed for prototype |
 | Data storage v2 | Supabase (Postgres + RLS) — **EU region (Frankfurt)** | Free tier, beginner-friendly. RLS mandatory. |
-| PDF export | **Browser print + `@media print`** | Print gives vector, selectable-text, true A4 |
+| PDF export | **html2canvas + jsPDF download** (one card per A4 page) | Browser print dialog was too unreliable (margins/scaling/headers); see Decision #28 |
 | Hosting | Netlify (v1) | Free, Git-connected |
 | Dev environment | VS Code + Live Server + Claude extension | In-editor AI |
 
@@ -127,6 +132,9 @@ WHATS/
 | 25 | House style casing | **Lowercase-i "What is?" / "What if?"** site-wide in UI text (ALL-CAPS logos/labels exempt). | Phase 8 |
 | 26 | Card + background | **Card surface stays plain white, no pattern/colour** (type shown only via shadow + header label). **Page background = light-grey halftone dots.** Revisits #17/#18; the What is?/What if? card differentiation is parked for the next design iteration. | Phase 8 |
 | 27 | Tag palette | **12 muted riso tones**, hashed per tag (expanded from 5). | Phase 8 |
+| 28 | PDF export method | **html2canvas + jsPDF download** (A4-landscape, one card per page). Browser print + `@media print` was implemented then **rejected** — the print dialog (margins/scaling/added headers) was too unreliable. Reverses #11. Trade-off: raster output (text not selectable). | Phase 8 |
+| 29 | Draft cards | **`draft` boolean column** + "Mark as draft" action and DRAFT marker; Drafts sort view in the gallery. | Phase 8 |
+| 30 | About header | **Full shared project header** (matches gallery), wired via `js/about.js` to the active project. | Phase 8 |
 
 ---
 
@@ -323,18 +331,18 @@ A standalone view — separate nav link — for generative ideation. Not a galle
 
 ### Supabase-dependent (cannot be fixed in front-end alone)
 - [ ] **[Critical] Verify RLS is actually enabled** on `projects`, `cards`, `annotations`, and that policies don't expose `editor_password` / `workshop_password` to anon reads. Phase 7 records RLS as enabled — confirm in the dashboard, since with the publishable key in `db.js` an RLS gap means public read/write/delete of all data including passwords.
-- [ ] **[Critical] Text boxes don't persist** — `create.js` writes `textBoxes` and `renderCard` renders them, but `_cardToDb` / `_dbToCard` have no `text_boxes` mapping. Add a `text_boxes jsonb` column and map it both ways (`js/db.js:12-46`).
+- [x] **[Critical] Text boxes don't persist** — added `text_boxes jsonb` column + `draft boolean`; `_cardToDb` / `_dbToCard` map both ways.
 - [ ] **[High] Move password verification server-side** — passwords are stored plaintext and compared in the browser (`app.js:30`, `landing.js:41`), so they ship to every visitor and the gate is bypassable. Verify via a Supabase RPC / Edge Function that returns only a boolean; stop selecting password columns to anon.
 - [ ] **[Medium] Validate JSON import** before upsert — currently any object with `id`+`type` is written (`app.js:336-368`); whitelist fields/types, cap count, and report skipped/rejected records instead of silently dropping them.
 
 ### Front-end (behavioural — deferred from the review batch)
-- [ ] **[High] Card editor unsaved-changes guard** — no `beforeunload`/autosave; Back or tab-close loses all edits (`create.js:387-525`).
-- [ ] **[High] Keyboard-operable cards & tiles** — project tiles (`landing.js:77`), gallery cards (`app.js:308`), and print cards (`print.js:73`) are click-only `<div>`s; make them real buttons/links or add `tabindex`+`role`+Enter/Space.
-- [ ] **[High] Password modal a11y** — add focus trap, Escape-to-close, focus return, and mark background inert (`landing.js:30`, `app.js:14`).
-- [ ] **[High] aria-labels on icon-only controls** — `···` menu trigger, card prev/next `←`/`→` arrows (`gallery.html:21`, `card.html:56,62`).
-- [ ] **[High] Fix remaining contrast failures** — yellow warn-count `#E8C01A` on white (1.75:1, `styles.css:2728`) and `.about-link` blue (1.84:1, `styles.css:1308`); black-on-pink active state is borderline at 4.28:1.
+- [x] **[High] Card editor unsaved-changes guard** — added `beforeunload` guard (dirty flag set on edits, cleared on save/delete/cancel/back).
+- [x] **[High] Keyboard-operable cards & tiles** — project tiles and gallery cards now have `role="button"`+`tabindex`+Enter/Space. *(print cards still click-only — minor.)*
+- [x] **[High] Password modal a11y** — focus trap, Escape-to-close, focus return added (landing.js).
+- [x] **[High] aria-labels on icon-only controls** — card prev/next arrows now SVG with `aria-label`; `···` trigger has `aria-expanded`.
+- [x] **[High] Fix remaining contrast failures** — warn count → `#8A6D00`; `.about-link` → riso-green + underline; What If? new-card button → white on pink.
 - [ ] **[Medium] Surface failed writes** — failed deletes redirect as if successful (`card.js:124`), and reactions/comments render optimistically before the write resolves; show error + revert on failure.
-- [ ] **[Medium] Double-submit guards** on project create and reaction/comment posting (`create-project.js:55`, `card.js:167,198`).
+- [x] **[Medium] Double-submit guards** — added on project create (`create-project.js`). *(reaction/comment posting still open.)*
 
 ### Code quality (lower priority, from review)
 - [ ] Read helpers swallow DB errors as `[]`/`null` — can't distinguish "empty" from "failed" (`db.js:79,103,116`).
@@ -344,4 +352,4 @@ A standalone view — separate nav link — for generative ideation. Not a galle
 
 ---
 
-*Last updated: 2026-06-15 — v000.4 committed + tagged on `main` (not yet pushed — pending Supabase `text_boxes` column). UX/UI design pass underway (UX-DESIGN-PASS.md): landing + gallery done, gallery unified into one view. Decisions #24–27 added. Next: push v000.4 after the SQL, then card.html (§C.3).*
+*Last updated: 2026-06-17 — UX/UI design pass: landing, gallery, card, create, create-project, print, about all done and pushed to `main` (Netlify live). Supabase `text_boxes` + `draft` columns added. Decisions #28–30 added (PDF-download method, draft cards, About shared header). Remaining UX pages: analysis (§C.6) + creative (§C.7).*
