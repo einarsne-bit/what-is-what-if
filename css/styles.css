@@ -2667,6 +2667,24 @@ button.affinity-group__header {
 .axis-legend__dot--wi  { background: var(--color-riso-green); }
 .axis-legend__dot--wif { background: var(--color-riso-pink); margin-left: 8px; }
 .axis-plot { width: 100%; }
+.axis-bridge-callout {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: var(--color-ink);
+  line-height: 1.4;
+}
+.axis-bridge-callout strong { font-weight: 900; }
+.axis-bridge-callout__dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--color-riso-pink);
+  border: 2px solid var(--color-black);
+  flex-shrink: 0;
+}
 
 /* Annotation consensus vs. spread */
 .annot-summary {

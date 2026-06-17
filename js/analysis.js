@@ -640,23 +640,43 @@ function renderAxisScatter(ctx) {
   frame += `<text transform="translate(13,${m.top + plotH / 2}) rotate(-90)" text-anchor="middle" font-size="10" font-weight="700" fill="var(--color-ink)" font-family="monospace" letter-spacing="0.04em">${escHtml(ay.label.toUpperCase())}</text>`;
   svg.innerHTML = frame;
 
-  // Dots — WI first so WIF (pink) reads on top
+  // Bridges = cards carrying BOTH themes (only meaningful when both axes are themes)
+  const bothThemes = ax.isTheme && ay.isTheme;
+  const isBridge = card => bothThemes && ax.value(card) === 1 && ay.value(card) === 1;
+
   const draw = card => {
+    const bridge = isBridge(card);
     const cx = xScale(ax.value(card)) + (xJit ? jitterFor(card.id, ax.key) * xJit : 0);
     const cy = yScale(ay.value(card)) + (yJit ? jitterFor(card.id, "y" + ay.key) * yJit : 0);
     const c = document.createElementNS(svgNS, "circle");
     c.setAttribute("cx", cx.toFixed(1));
     c.setAttribute("cy", cy.toFixed(1));
-    c.setAttribute("r", 5);
+    c.setAttribute("r", bridge ? 7 : 5);
     c.setAttribute("fill", card.type === "what-if" ? "var(--color-riso-pink)" : "var(--color-riso-green)");
-    c.setAttribute("fill-opacity", "0.75");
+    c.setAttribute("fill-opacity", bridge ? 0.95 : 0.7);
     c.setAttribute("stroke", "var(--color-black)");
-    c.setAttribute("stroke-width", "0.5");
+    c.setAttribute("stroke-width", bridge ? 2 : 0.5);
     bindMark(c, card);
     svg.appendChild(c);
   };
-  cards.filter(c => c.type === "what-is").forEach(draw);
-  cards.filter(c => c.type === "what-if").forEach(draw);
+
+  // Non-bridge first (WI then WIF), then bridges on top so they read clearly
+  const plain = cards.filter(c => !isBridge(c));
+  const bridges = cards.filter(isBridge);
+  plain.filter(c => c.type === "what-is").forEach(draw);
+  plain.filter(c => c.type === "what-if").forEach(draw);
+  bridges.forEach(draw);
+
+  // Callout: how many cards bridge the two themes
+  if (bothThemes) {
+    const n = bridges.length;
+    const callout = document.createElement("p");
+    callout.className = "axis-bridge-callout";
+    callout.innerHTML = n
+      ? `<span class="axis-bridge-callout__dot"></span><strong>${n}</strong> card${n !== 1 ? "s" : ""} bridge ${escHtml(ax.label)} × ${escHtml(ay.label)} — the larger ringed dots.`
+      : `No cards yet bridge ${escHtml(ax.label)} × ${escHtml(ay.label)}.`;
+    el.appendChild(callout);
+  }
 
   el.appendChild(svg);
 }
