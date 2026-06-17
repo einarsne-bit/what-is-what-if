@@ -2662,6 +2662,75 @@ button.affinity-group__header {
   text-shadow: 0 1px 2px rgba(0,0,0,0.4);
 }
 
+/* Breadth & gaps */
+.breadth__cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+.breadth__label {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 8px;
+  color: var(--color-white);
+  margin-bottom: 8px;
+}
+.breadth__label--wi  { background: var(--color-riso-green); }
+.breadth__label--wif { background: var(--color-riso-pink); }
+.breadth__stat { margin: 0; font-size: var(--text-sm); line-height: 1.5; }
+.breadth__stat strong { font-weight: 900; }
+.breadth__note { margin: 4px 0 0; font-size: 11px; color: var(--color-muted); }
+
+.breadth__gaps {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  border-top: 1px solid var(--color-border);
+  padding-top: 20px;
+}
+.breadth__gap-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 4px;
+}
+.breadth__gap-desc { margin: 0 0 10px; font-size: 11px; color: var(--color-muted); line-height: 1.5; }
+.breadth__chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.breadth__chip {
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 3px 8px;
+  border: 1px solid var(--tag-bg, var(--color-black));
+  background: var(--tag-bg, #eee);
+  color: var(--tag-color, #333);
+  cursor: pointer;
+}
+.breadth__none { margin: 0; font-size: 11px; color: var(--color-muted); font-style: italic; }
+.breadth__spark {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--color-black);
+  border-bottom: 2px solid var(--color-riso-green);
+  padding-bottom: 2px;
+}
+.breadth__spark:hover { color: var(--color-riso-green); }
+
+@media (max-width: 700px) {
+  .breadth__cols, .breadth__gaps { grid-template-columns: 1fr; }
+}
+
 /* Themes drill-down (dual bars behind a disclosure) */
 .theme-detail { margin-top: 16px; }
 .theme-detail__summary {

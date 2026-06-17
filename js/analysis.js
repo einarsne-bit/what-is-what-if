@@ -412,6 +412,79 @@ function renderTagChart(ctx) {
   });
 }
 
+// ── Breadth & gaps (Modes D + E) ─────────────────────────────────────────────────
+function renderBreadth(ctx) {
+  const el = document.getElementById("breadth");
+  const totalThemes = ctx.tags.length;
+
+  if (!totalThemes) {
+    el.innerHTML = `<p class="outlier-empty">No themes in view yet.</p>`;
+    return;
+  }
+
+  const wiThemes  = ctx.tagStats.filter(d => d.wi  > 0);
+  const wifThemes = ctx.tagStats.filter(d => d.wif > 0);
+
+  // Concentration: share held by the single biggest theme (per type)
+  const share = (stats, key) => {
+    const tot = stats.reduce((s, d) => s + d[key], 0);
+    if (!tot) return null;
+    const top = stats.slice().sort((a, b) => b[key] - a[key])[0];
+    return { name: top.tag, pct: Math.round((top[key] / tot) * 100) };
+  };
+  const wiTop  = share(ctx.tagStats, "wi");
+  const wifTop = share(ctx.tagStats, "wif");
+
+  const breadthLine = (n, noun, themesCovered, top) => {
+    if (!n) return `<p class="breadth__stat">No ${noun} in view.</p>`;
+    let s = `<p class="breadth__stat"><strong>${n}</strong> ${noun} across `
+      + `<strong>${themesCovered}</strong> of ${totalThemes} theme${totalThemes !== 1 ? "s" : ""}.</p>`;
+    if (top) s += `<p class="breadth__note">Most concentrated in “${escHtml(top.name)}” (${top.pct}%).</p>`;
+    return s;
+  };
+
+  // Gap A — observations with no idea yet (the sanctioned creative-mode nudge)
+  const noIdeaYet  = ctx.tagStats.filter(d => d.wi > 0 && d.wif === 0);
+  // Gap B — ideas in themes with no observation behind them (exploration prompt, not a flag)
+  const ideasAhead = ctx.tagStats.filter(d => d.wif > 0 && d.wi === 0);
+
+  const chips = list => list.length
+    ? `<div class="breadth__chips">` + list.map(d => {
+        const tc = tagColor(d.tag);
+        return `<button class="breadth__chip" data-tag="${escHtml(d.tag)}" style="--tag-bg:${tc.bg};--tag-color:${tc.text}">${escHtml(d.tag)}</button>`;
+      }).join("") + `</div>`
+    : `<p class="breadth__none">None — every theme has both.</p>`;
+
+  el.innerHTML = `
+    <div class="breadth__cols">
+      <div class="breadth__col">
+        <span class="breadth__label breadth__label--wi">Insights breadth</span>
+        ${breadthLine(ctx.wi.length, "observations", wiThemes.length, wiTop)}
+      </div>
+      <div class="breadth__col">
+        <span class="breadth__label breadth__label--wif">Ideas breadth</span>
+        ${breadthLine(ctx.wif.length, "ideas", wifThemes.length, wifTop)}
+      </div>
+    </div>
+    <div class="breadth__gaps">
+      <div class="breadth__gap">
+        <h3 class="breadth__gap-title">Observations with no idea yet</h3>
+        <p class="breadth__gap-desc">Themes rich in What is? but no What if? — ripe for ideation.</p>
+        ${chips(noIdeaYet)}
+        ${noIdeaYet.length ? `<a class="breadth__spark" href="creative.html?project=${projectId}">↪ Spark ideas in creative mode</a>` : ""}
+      </div>
+      <div class="breadth__gap">
+        <h3 class="breadth__gap-title">Ideas ahead of evidence</h3>
+        <p class="breadth__gap-desc">Themes with What if? but no What is? yet — worth grounding with more fieldwork.</p>
+        ${chips(ideasAhead)}
+      </div>
+    </div>`;
+
+  el.querySelectorAll("[data-tag]").forEach(btn => {
+    btn.addEventListener("click", () => { toggleSet(filter.tags, btn.dataset.tag); renderAll(); });
+  });
+}
+
 // ── Connections (coverage map) ───────────────────────────────────────────────────
 function renderCoverageMap(ctx) {
   const el = document.getElementById("coverage-map");
@@ -591,6 +664,7 @@ function renderAll() {
 
   renderThemesTreemap(ctx);
   renderTagChart(ctx);
+  renderBreadth(ctx);
   renderCoverageMap(ctx);
   renderAffinityGroups(ctx);
   renderAuthors(ctx);

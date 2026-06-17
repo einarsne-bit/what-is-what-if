@@ -139,7 +139,7 @@
 
 **Build (branch `analysis-redesign`):**
 - [x] **Phase 1 — restructure + interactivity backbone.** Cut timeline/matrix/health. Added a shared filter context (type · themes · creators · annotated · drafts) that drives every panel (brushing-by-filtering); details-on-demand hover preview on all card marks; clickable masthead with a "shape" sentence; reframed Connections panel (neutral unlinked state); Author contributions → count bars. Panels re-point off the visible set; empty/no-results states added.
-- [ ] Phase 2 — themes treemap (decided: treemap + bars drill-down) · breadth panels (D+E) · annotation consensus/spread
+- [~] Phase 2 — **themes treemap** ✅ (squarified, click-to-filter, bars as drill-down) · **breadth & gaps panel** ✅ (insights/ideas breadth + theme coverage gaps, with creative-mode nudge) · [ ] annotation consensus/spread (remaining)
 - [ ] Phase 3 — axis workbench (decided: data-axes + plan manual placement/storage) · tag-overlap affinity
 
 **Still open (revisit at the relevant phase):** affinity tag-overlap vs. manual board · creative-mode hooks (wire vs. stub until §C.7)
