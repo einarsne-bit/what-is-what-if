@@ -144,6 +144,44 @@ Building on branch `analysis-redesign`.
 
 ---
 
+## Expansion research (2026-06-17)
+
+*Online scan of where qualitative-analysis tooling is heading (UX-research repositories, AI-assisted thematic analysis, and the visual-analytics / sensemaking literature), filtered through this tool's principles: **not another Miro**, method-specific, low-threshold for citizens, grounded speculation, and anonymous-by-design annotations.* Phases 1–3 are built; the items below are candidates for what comes **after**.
+
+### What the field is doing now
+- **AI-assisted coding & theme extraction is the headline shift.** Dovetail, NVivo, ATLAS.ti, MAXQDA, Speak now auto-transcribe, auto-tag, cluster themes, extract highlights, and summarise — pitched as cutting manual coding time, with the human kept in the loop ("AI suggests, you decide").
+- **Semantic search & embeddings** turn a card collection into a meaning-indexed store you can query by concept, not keyword; metadata enrichment before embedding sharply improves retrieval.
+- **Mixed-methods context**: MAXQDA/Dedoose add code-frequency charts, cross-tabs, and agreement scores — quantitative texture over qualitative material.
+- **Visual-analytics sensemaking**: the foraging → synthesis loop, **spatial workspaces** for externalising hypotheses, human-guided (interactive) topic modelling, and the **data / navigation / knowledge** three-view framework.
+
+### Expansion candidates, tiered for this tool
+
+**Tier 1 — front-end, no new deps, high fit (buildable like Phases 1–3)**
+- **Comparison mode** — two filtered subsets side by side (theme A vs theme B, author vs author, drafts vs published). Sensemaking by contrast; reuses the shared filter.
+- **Cross-tab heatmap** — theme × author or theme × type as a small grid (mixed-methods "code frequency"). Different from the cut connection-matrix: it's about coverage/contribution, not card-to-card links.
+- **Saved views / pinned insights** — pin a filtered state or a finding ("8 cards bridge X × Y") as a named insight. Seeds the catalogue (Journey 6) and the "knowledge view" of the sensemaking framework.
+- **Tag canonicalisation (non-AI first)** — edit-distance/case-fold to flag near-duplicate tags ("Politics/politics/Political") and suggest merges. Cheap, big hygiene payoff (already noted in ANALYTICS-RESEARCH.md Tier-2 #5).
+
+**Tier 2 — needs the Anthropic API (keep human-in-the-loop; mind cost + the anonymity of citizen annotations)**
+- **Auto-synthesis / narrative draft** — generate a project summary: dominant themes, tensions, well-grounded vs. speculative ideas, candidate gaps. A *draft* the team edits, not a verdict.
+- **"Ask your project"** (RAG over cards) — natural-language questions ("what did we hear about waiting times?") answered with citations to specific cards.
+- **AI theme suggestions** — propose candidate themes/merges from card text to complement hand tags; never auto-commit.
+- *(Use the latest Claude models if built. Sentiment/entity extraction is common elsewhere but a weak fit — citizen annotations are deliberately anonymous and small-N; avoid re-identification.)*
+
+**Tier 3 — needs a data-model change (and sometimes AI)**
+- **Spatial synthesis canvas** — a free 2D board to drag cards into clusters and name them (digital KJ/affinity). The sensemaking literature's "spatial workspace"; pairs with the axis-workbench **manual placement (3b)** already planned. Needs per-card/position storage.
+- **Semantic clustering (embeddings)** — affinity by *meaning*, not shared tags; an alternative to the tag-pair groups. Needs an embedding step + vector storage.
+- **Cross-project synthesis** — themes/patterns across several projects (repository-scale). Larger; revisit when there are many projects.
+
+### Recommended next three
+1. **Comparison mode** (Tier 1) — the highest-value sensemaking add that needs nothing new.
+2. **Saved views / pinned insights** (Tier 1) — turns exploration into a record, and feeds the catalogue.
+3. **Auto-synthesis draft** (Tier 2) — the clearest payoff from AI, and squarely method-aligned if framed as a draft.
+
+Defer the spatial canvas / embeddings to a dedicated phase — they change the data model and overlap with the planned manual axis placement (3b).
+
+---
+
 ## Sources & further reading
 
 *Affinity diagramming & automated clustering*
@@ -157,8 +195,20 @@ Building on branch `analysis-redesign`.
 - [Brushing and linking (overview)](https://en.wikipedia.org/wiki/Brushing_and_linking)
 - [Dashboard Design Patterns (arXiv 2205.00757)](https://arxiv.org/pdf/2205.00757)
 
+*Expansion research — qualitative-analysis tooling & AI-assisted synthesis*
+- [User Interviews — UX Research Tools Map 2026](https://www.userinterviews.com/ux-research-tools-map)
+- [Conveo — AI tools for thematic analysis (2026)](https://conveo.ai/insights/ai-tools-for-thematic-analysis)
+- [Speak AI — Best qualitative data analysis software (AI-powered)](https://speakai.co/the-best-qualitative-data-analysis-software/)
+- [UserBit — UX research analytics dashboard / qualitative analysis](https://userbit.com/content/solutions/research-analysis)
+
+*Expansion research — visual-analytics sensemaking & embeddings*
+- [Interactive Visual Analytics for Sensemaking with Big Text (ScienceDirect)](https://www.sciencedirect.com/science/article/abs/pii/S2214579618302995)
+- [VisPile — visual analytics over documents with LLMs + knowledge graphs (arXiv 2510.09605)](https://arxiv.org/pdf/2510.09605)
+- [Atlan — What are embeddings in AI? Search & RAG (2026)](https://atlan.com/know/what-are-embeddings-ai-search/)
+- [TechTarget — Embedding models for semantic search: a guide](https://www.techtarget.com/searchenterpriseai/tip/Embedding-models-for-semantic-search-A-guide)
+
 *(Saturation, repositories, workshop consensus sources carried in ANALYTICS-RESEARCH.md.)*
 
 ---
 
-*Last updated: 2026-06-17 — created from the §C.6 analysis directives. Reframes ANALYTICS-RESEARCH.md from diagnostics toward overview/exploration; records the timeline/matrix/health cuts and the "missing connections = nudge, not flag" principle.*
+*Last updated: 2026-06-17 — added the Expansion research section (post-Phase-3 candidates from a scan of qualitative-analysis tooling, AI-assisted synthesis, and visual-analytics sensemaking). Earlier: created from the §C.6 analysis directives; reframes ANALYTICS-RESEARCH.md from diagnostics toward overview/exploration; records the timeline/matrix/health cuts and the "missing connections = nudge, not flag" principle.*
