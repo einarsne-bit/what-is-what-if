@@ -290,7 +290,89 @@ function renderAnnotationActivity(ctx) {
   });
 }
 
-// ── Themes (tag frequency) ───────────────────────────────────────────────────────
+// ── Themes treemap (overview) ────────────────────────────────────────────────────
+// Squarified treemap (Bruls, Huizing & van Wijk) — keeps cells close to square.
+function squarify(items, x, y, w, h) {
+  const rects = [];
+  const total = items.reduce((s, d) => s + d.value, 0);
+  if (total <= 0 || w <= 0 || h <= 0) return rects;
+
+  let rem = items.map(d => ({ ...d, area: (d.value / total) * (w * h) }));
+  let cx = x, cy = y, cw = w, ch = h;
+
+  const worst = (row, side) => {
+    const sum = row.reduce((s, r) => s + r.area, 0);
+    const max = Math.max(...row.map(r => r.area));
+    const min = Math.min(...row.map(r => r.area));
+    const s2 = sum * sum;
+    return Math.max((side * side * max) / s2, s2 / (side * side * min));
+  };
+
+  while (rem.length) {
+    const side = Math.min(cw, ch);
+    if (side <= 0) break;
+    let row = [];
+    let i = 0;
+    while (i < rem.length) {
+      const candidate = [...row, rem[i]];
+      if (row.length === 0 || worst(candidate, side) <= worst(row, side)) {
+        row = candidate; i++;
+      } else break;
+    }
+    const rowArea = row.reduce((s, r) => s + r.area, 0);
+    if (cw <= ch) {
+      const rowH = rowArea / cw;
+      let px = cx;
+      row.forEach(r => { const rw = r.area / rowH; rects.push({ ...r, x: px, y: cy, w: rw, h: rowH }); px += rw; });
+      cy += rowH; ch -= rowH;
+    } else {
+      const rowW = rowArea / ch;
+      let py = cy;
+      row.forEach(r => { const rh = r.area / rowW; rects.push({ ...r, x: cx, y: py, w: rowW, h: rh }); py += rh; });
+      cx += rowW; cw -= rowW;
+    }
+    rem = rem.slice(row.length);
+  }
+  return rects;
+}
+
+function renderThemesTreemap(ctx) {
+  const el = document.getElementById("theme-treemap");
+  el.innerHTML = "";
+  const themes = ctx.tagStats.filter(d => d.total > 0).slice(0, 40);
+  if (!themes.length) {
+    el.innerHTML = `<p class="outlier-empty">No themes in view.</p>`;
+    return;
+  }
+
+  const W = el.clientWidth || 600;
+  const H = 300;
+  el.style.height = H + "px";
+
+  const rects = squarify(themes.map(d => ({ ...d, value: d.total })), 0, 0, W, H);
+
+  rects.forEach(r => {
+    const wiPct = r.total ? Math.round((r.wi / r.total) * 100) : 0;
+    const cell = document.createElement("button");
+    cell.className = "theme-cell" + (filter.tags.has(r.tag) ? " theme-cell--active" : "");
+    cell.style.left   = r.x + "px";
+    cell.style.top    = r.y + "px";
+    cell.style.width  = Math.max(0, r.w - 2) + "px";
+    cell.style.height = Math.max(0, r.h - 2) + "px";
+    cell.style.background =
+      `linear-gradient(to right, var(--color-riso-green) 0 ${wiPct}%, var(--color-riso-pink) ${wiPct}% 100%)`;
+    // Label only when the cell is big enough to read
+    if (r.w > 46 && r.h > 26) {
+      cell.innerHTML = `<span class="theme-cell__name">${escHtml(r.tag)}</span>` +
+                       `<span class="theme-cell__count">${r.total}</span>`;
+    }
+    cell.title = `${r.tag} — ${r.total} card${r.total !== 1 ? "s" : ""} (${r.wi} What is?, ${r.wif} What if?)`;
+    cell.addEventListener("click", () => { toggleSet(filter.tags, r.tag); renderAll(); });
+    el.appendChild(cell);
+  });
+}
+
+// ── Themes (tag frequency) — drill-down detail ────────────────────────────────────
 function renderTagChart(ctx) {
   const container = document.getElementById("tag-chart");
   const top = ctx.tagStats.slice(0, 24);
@@ -507,11 +589,12 @@ function renderAll() {
   noResults.hidden = !empty;
   if (empty) return;
 
-  renderAnnotationActivity(ctx);
+  renderThemesTreemap(ctx);
   renderTagChart(ctx);
   renderCoverageMap(ctx);
   renderAffinityGroups(ctx);
   renderAuthors(ctx);
+  renderAnnotationActivity(ctx);
   renderTagCooccurrence(ctx);
 }
 
@@ -522,7 +605,13 @@ renderAll();
 let resizeTimer;
 window.addEventListener("resize", () => {
   clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(() => { if (!getVisible().length) return; renderCoverageMap(compute(getVisible())); }, 150);
+  resizeTimer = setTimeout(() => {
+    const visible = getVisible();
+    if (!visible.length) return;
+    const ctx = compute(visible);
+    renderThemesTreemap(ctx);
+    renderCoverageMap(ctx);
+  }, 150);
 });
 
 })(); // end async IIFE

@@ -103,33 +103,34 @@
 
       <div class="analysis-grid" id="analysis-grid">
 
-        <!-- Annotation activity — full width, first -->
-        <section class="analysis-panel analysis-panel--full" id="panel-annotations">
-          <header class="analysis-panel__header">
-            <h2 class="analysis-panel__title">Annotation activity</h2>
-            <p class="analysis-panel__desc">Which cards drew the most response. Ranked by reactions + comments; click a card to open it.</p>
-          </header>
-          <div class="annotation-activity" id="annotation-activity">
-            <p class="outlier-empty">No annotations yet. Reactions and comments added in the card view will appear here.</p>
-          </div>
-        </section>
-
-        <!-- Tag frequency -->
-        <section class="analysis-panel analysis-panel--half">
+        <!-- Themes — treemap overview (lead), bars as drill-down -->
+        <section class="analysis-panel analysis-panel--full">
           <header class="analysis-panel__header">
             <h2 class="analysis-panel__title">Themes</h2>
-            <p class="analysis-panel__desc">Cards per theme — green = What is?, pink = What if?. Click a theme to filter the whole dashboard.</p>
+            <p class="analysis-panel__desc">Each block is a theme; size = how many cards carry it. The green/pink split shows What is? vs. What if?. Click a block to filter the whole dashboard.</p>
           </header>
-          <div class="tag-chart" id="tag-chart"></div>
+          <div class="theme-treemap" id="theme-treemap"></div>
+          <details class="theme-detail">
+            <summary class="theme-detail__summary">Show theme breakdown (What is? / What if?)</summary>
+            <div class="tag-chart" id="tag-chart"></div>
+          </details>
         </section>
 
-        <!-- Coverage map -->
+        <!-- Connections + Author contributions -->
         <section class="analysis-panel analysis-panel--half">
           <header class="analysis-panel__header">
             <h2 class="analysis-panel__title">Connections</h2>
             <p class="analysis-panel__desc">Lines link What if? ideas to the What is? observations they build on. Unlinked cards sit in grey — that's fine, ideas can come from anywhere.</p>
           </header>
           <div class="coverage-map" id="coverage-map"></div>
+        </section>
+
+        <section class="analysis-panel analysis-panel--half">
+          <header class="analysis-panel__header">
+            <h2 class="analysis-panel__title">Author contributions</h2>
+            <p class="analysis-panel__desc">How many cards each contributor has made. Click a name to filter.</p>
+          </header>
+          <div class="swimlane-wrap" id="swimlane"></div>
         </section>
 
         <!-- Affinity groups -->
@@ -141,16 +142,19 @@
           <div class="affinity-groups" id="affinity-groups"></div>
         </section>
 
-        <!-- Author swim-lane + Tag co-occurrence -->
-        <section class="analysis-panel analysis-panel--half">
+        <!-- Annotation activity -->
+        <section class="analysis-panel analysis-panel--full" id="panel-annotations">
           <header class="analysis-panel__header">
-            <h2 class="analysis-panel__title">Author contributions</h2>
-            <p class="analysis-panel__desc">How many cards each contributor has made. Click a name to filter.</p>
+            <h2 class="analysis-panel__title">Annotation activity</h2>
+            <p class="analysis-panel__desc">Which cards drew the most response. Ranked by reactions + comments; click a card to open it.</p>
           </header>
-          <div class="swimlane-wrap" id="swimlane"></div>
+          <div class="annotation-activity" id="annotation-activity">
+            <p class="outlier-empty">No annotations yet. Reactions and comments added in the card view will appear here.</p>
+          </div>
         </section>
 
-        <section class="analysis-panel analysis-panel--half">
+        <!-- Tag co-occurrence -->
+        <section class="analysis-panel analysis-panel--full">
           <header class="analysis-panel__header">
             <h2 class="analysis-panel__title">Tag co-occurrence</h2>
             <p class="analysis-panel__desc">Tag pairs that appear together most often — potential theme clusters.</p>
