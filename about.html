@@ -6,12 +6,15 @@
     <title>About — What is? / What if?</title>
     <link rel="stylesheet" href="css/styles.css" />
   </head>
-  <body>
+  <body class="project-page">
 
     <header class="site-header">
-      <a href="index.html" class="site-header__home">WHAT IS? / WHAT IF?</a>
+      <a href="#" class="site-header__home" id="header-logo">WHAT IS? / WHAT IF? / <span id="header-project-name"></span></a>
       <nav class="site-nav">
-        <a class="nav-link nav-link--active" href="about.html">About</a>
+        <a class="nav-link" id="nav-gallery" href="#">Gallery</a>
+        <a class="nav-link" id="nav-creative" href="#">Creative</a>
+        <a class="nav-link" id="nav-analysis" href="#">Analysis</a>
+        <a class="nav-link" id="nav-print" href="#">Print</a>
         <div class="nav-more">
           <button class="nav-link nav-more__trigger" id="nav-more-btn" aria-expanded="false">···</button>
           <div class="nav-more__menu" id="nav-more-menu">
@@ -102,20 +105,9 @@
 
     </div>
 
-    <script>
-      (function () {
-        var btn  = document.getElementById("nav-more-btn");
-        var menu = document.getElementById("nav-more-menu");
-        btn.addEventListener("click", function (e) {
-          e.stopPropagation();
-          var open = menu.classList.toggle("is-open");
-          btn.setAttribute("aria-expanded", open);
-        });
-        document.addEventListener("click", function () {
-          menu.classList.remove("is-open");
-          btn.setAttribute("aria-expanded", "false");
-        });
-      })();
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/data.js"></script>
+    <script src="js/db.js"></script>
+    <script src="js/about.js"></script>
   </body>
 </html>
