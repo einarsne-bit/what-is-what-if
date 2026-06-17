@@ -9,10 +9,16 @@
   <body>
 
     <header class="site-header">
-      <a href="index.html" class="site-title">What is? / What if?</a>
+      <a href="index.html" class="site-header__home">WHAT IS? / WHAT IF?</a>
       <nav class="site-nav">
-        <a href="index.html" class="nav-link">Projects</a>
-        <a href="about.html" class="nav-link nav-link--active">About</a>
+        <a class="nav-link nav-link--active" href="about.html">About</a>
+        <div class="nav-more">
+          <button class="nav-link nav-more__trigger" id="nav-more-btn" aria-expanded="false">···</button>
+          <div class="nav-more__menu" id="nav-more-menu">
+            <a class="nav-more__item" href="about.html">About</a>
+            <a class="nav-more__item" href="index.html">All projects</a>
+          </div>
+        </div>
       </nav>
     </header>
 
@@ -76,8 +82,9 @@
 
         <div class="about-section about-section--meta">
           <p class="about-body">
-            Built by <strong>Einar Sneve Martinussen</strong> at
-            <a href="#" class="about-link">Råd for design</a>, 2025–2026.
+            Built by the research group <strong>Design for Society and Technology</strong>
+            at the Oslo School of Architecture and Design.
+            Contact: <strong>Einar Sneve Martinussen</strong>
           </p>
           <p class="about-body">
             <a href="index.html" class="about-link">← Back to projects</a>
@@ -88,5 +95,20 @@
 
     </div>
 
+    <script>
+      (function () {
+        var btn  = document.getElementById("nav-more-btn");
+        var menu = document.getElementById("nav-more-menu");
+        btn.addEventListener("click", function (e) {
+          e.stopPropagation();
+          var open = menu.classList.toggle("is-open");
+          btn.setAttribute("aria-expanded", open);
+        });
+        document.addEventListener("click", function () {
+          menu.classList.remove("is-open");
+          btn.setAttribute("aria-expanded", "false");
+        });
+      })();
+    </script>
   </body>
 </html>
