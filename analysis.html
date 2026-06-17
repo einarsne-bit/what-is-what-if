@@ -103,7 +103,18 @@
 
       <div class="analysis-grid" id="analysis-grid">
 
-        <!-- Themes — treemap overview (lead), bars as drill-down -->
+        <!-- Annotation activity — top -->
+        <section class="analysis-panel analysis-panel--full" id="panel-annotations">
+          <header class="analysis-panel__header">
+            <h2 class="analysis-panel__title">Annotation activity</h2>
+            <p class="analysis-panel__desc">Which cards drew the most response. Ranked by reactions + comments; click a card to open it.</p>
+          </header>
+          <div class="annotation-activity" id="annotation-activity">
+            <p class="outlier-empty">No annotations yet. Reactions and comments added in the card view will appear here.</p>
+          </div>
+        </section>
+
+        <!-- Themes — treemap overview, bars as drill-down -->
         <section class="analysis-panel analysis-panel--full">
           <header class="analysis-panel__header">
             <h2 class="analysis-panel__title">Themes</h2>
@@ -125,7 +136,16 @@
           <div class="breadth" id="breadth"></div>
         </section>
 
-        <!-- Connections + Author contributions -->
+        <!-- Affinity groups -->
+        <section class="analysis-panel analysis-panel--full">
+          <header class="analysis-panel__header">
+            <h2 class="analysis-panel__title">Affinity groups</h2>
+            <p class="analysis-panel__desc">Cards grouped by theme. Click a theme name to filter; click a card to open it.</p>
+          </header>
+          <div class="affinity-groups" id="affinity-groups"></div>
+        </section>
+
+        <!-- Connections + Tag co-occurrence -->
         <section class="analysis-panel analysis-panel--half">
           <header class="analysis-panel__header">
             <h2 class="analysis-panel__title">Connections</h2>
@@ -136,39 +156,19 @@
 
         <section class="analysis-panel analysis-panel--half">
           <header class="analysis-panel__header">
-            <h2 class="analysis-panel__title">Author contributions</h2>
-            <p class="analysis-panel__desc">How many cards each contributor has made. Click a name to filter.</p>
-          </header>
-          <div class="swimlane-wrap" id="swimlane"></div>
-        </section>
-
-        <!-- Affinity groups -->
-        <section class="analysis-panel analysis-panel--full">
-          <header class="analysis-panel__header">
-            <h2 class="analysis-panel__title">Affinity groups</h2>
-            <p class="analysis-panel__desc">Cards grouped by theme. Click a theme name to filter; click a card to open it.</p>
-          </header>
-          <div class="affinity-groups" id="affinity-groups"></div>
-        </section>
-
-        <!-- Annotation activity -->
-        <section class="analysis-panel analysis-panel--full" id="panel-annotations">
-          <header class="analysis-panel__header">
-            <h2 class="analysis-panel__title">Annotation activity</h2>
-            <p class="analysis-panel__desc">Which cards drew the most response. Ranked by reactions + comments; click a card to open it.</p>
-          </header>
-          <div class="annotation-activity" id="annotation-activity">
-            <p class="outlier-empty">No annotations yet. Reactions and comments added in the card view will appear here.</p>
-          </div>
-        </section>
-
-        <!-- Tag co-occurrence -->
-        <section class="analysis-panel analysis-panel--full">
-          <header class="analysis-panel__header">
             <h2 class="analysis-panel__title">Tag co-occurrence</h2>
             <p class="analysis-panel__desc">Tag pairs that appear together most often — potential theme clusters.</p>
           </header>
           <div class="cooc-table" id="cooc-table"></div>
+        </section>
+
+        <!-- Author contributions — bottom -->
+        <section class="analysis-panel analysis-panel--full">
+          <header class="analysis-panel__header">
+            <h2 class="analysis-panel__title">Author contributions</h2>
+            <p class="analysis-panel__desc">How many cards each contributor has made. Click a name to filter.</p>
+          </header>
+          <div class="swimlane-wrap" id="swimlane"></div>
         </section>
 
       </div>
