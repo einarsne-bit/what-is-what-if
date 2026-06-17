@@ -599,12 +599,16 @@ function renderAxisScatter(ctx) {
   const W = el.clientWidth || 600, H = 360;
   const m = { top: 16, right: 18, bottom: 40, left: 56 };
   const plotW = W - m.left - m.right, plotH = H - m.top - m.bottom;
-  const xScale = v => m.left + ((v - xMin) / (xMax - xMin)) * plotW;
-  const yScale = v => m.top + plotH - ((v - yMin) / (yMax - yMin)) * plotH;
+  // Theme (binary) axes are inset — 0 → 25%, 1 → 75% — so each cluster sits in
+  // the middle of its half rather than jammed on the plot edge.
+  const xFrac = v => ax.isTheme ? 0.25 + v * 0.5 : (v - xMin) / (xMax - xMin);
+  const yFrac = v => ay.isTheme ? 0.25 + v * 0.5 : (v - yMin) / (yMax - yMin);
+  const xScale = v => m.left + xFrac(v) * plotW;
+  const yScale = v => m.top + plotH - yFrac(v) * plotH;
 
   // Jitter amplitude (px) for binary theme axes, so points spread within a corner
-  const xJit = ax.isTheme ? Math.abs(xScale(1) - xScale(0)) * 0.16 : 0;
-  const yJit = ay.isTheme ? Math.abs(yScale(1) - yScale(0)) * 0.16 : 0;
+  const xJit = ax.isTheme ? Math.abs(xScale(1) - xScale(0)) * 0.30 : 0;
+  const yJit = ay.isTheme ? Math.abs(yScale(1) - yScale(0)) * 0.30 : 0;
 
   const svgNS = "http://www.w3.org/2000/svg";
   const svg = document.createElementNS(svgNS, "svg");
