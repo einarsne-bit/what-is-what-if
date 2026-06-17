@@ -125,7 +125,7 @@ All seven respond to the shared filter; all card marks open the card.
 - **Phase 1 — Restructure + interactivity backbone.** Cut timeline/matrix/health. Stand up the shared filter context + brushing/linking + details-on-demand. Re-point existing panels (stats, tag bars, coverage map, annotation activity) into it. *Highest leverage, mostly reuse.*
 - **Phase 2 — New overviews.** Themes treemap (B), breadth panels (D+E) with creative-mode hooks, annotation consensus/spread (C).
 - **Phase 3 — The novel panels.** Axis workbench (G, data-axes first), tag-overlap affinity (H#1).
-- **Later / V2 (data-model or AI).** Manual axis values (G), embedding-based affinity (H#3), manual KJ board (H#4), session-aware annotation views (ANALYTICS-RESEARCH.md Tier-3).
+- **Later / V2 (data-model).** Manual axis values (G), manual KJ board (H#4), session-aware annotation views (ANALYTICS-RESEARCH.md Tier-3). *Embedding-based affinity (H#3) is AI — on hold.*
 
 ---
 
@@ -148,6 +148,8 @@ Building on branch `analysis-redesign`.
 
 *Online scan of where qualitative-analysis tooling is heading (UX-research repositories, AI-assisted thematic analysis, and the visual-analytics / sensemaking literature), filtered through this tool's principles: **not another Miro**, method-specific, low-threshold for citizens, grounded speculation, and anonymous-by-design annotations.* Phases 1–3 are built; the items below are candidates for what comes **after**.
 
+> **⛔ AI functionality is ON HOLD (project decision, 2026-06-17).** All Anthropic-API / embeddings / LLM features below are parked until further notice. Pursue the **non-AI** candidates only (Tier 1, and the non-embeddings parts of Tier 3). AI items are kept here for the record, marked *(on hold)*.
+
 ### What the field is doing now
 - **AI-assisted coding & theme extraction is the headline shift.** Dovetail, NVivo, ATLAS.ti, MAXQDA, Speak now auto-transcribe, auto-tag, cluster themes, extract highlights, and summarise — pitched as cutting manual coding time, with the human kept in the loop ("AI suggests, you decide").
 - **Semantic search & embeddings** turn a card collection into a meaning-indexed store you can query by concept, not keyword; metadata enrichment before embedding sharply improves retrieval.
@@ -162,23 +164,23 @@ Building on branch `analysis-redesign`.
 - **Saved views / pinned insights** — pin a filtered state or a finding ("8 cards bridge X × Y") as a named insight. Seeds the catalogue (Journey 6) and the "knowledge view" of the sensemaking framework.
 - **Tag canonicalisation (non-AI first)** — edit-distance/case-fold to flag near-duplicate tags ("Politics/politics/Political") and suggest merges. Cheap, big hygiene payoff (already noted in ANALYTICS-RESEARCH.md Tier-2 #5).
 
-**Tier 2 — needs the Anthropic API (keep human-in-the-loop; mind cost + the anonymity of citizen annotations)**
-- **Auto-synthesis / narrative draft** — generate a project summary: dominant themes, tensions, well-grounded vs. speculative ideas, candidate gaps. A *draft* the team edits, not a verdict.
-- **"Ask your project"** (RAG over cards) — natural-language questions ("what did we hear about waiting times?") answered with citations to specific cards.
-- **AI theme suggestions** — propose candidate themes/merges from card text to complement hand tags; never auto-commit.
-- *(Use the latest Claude models if built. Sentiment/entity extraction is common elsewhere but a weak fit — citizen annotations are deliberately anonymous and small-N; avoid re-identification.)*
+**Tier 2 — ON HOLD (needs the Anthropic API) — parked per the AI-hold decision**
+- *(on hold)* **Auto-synthesis / narrative draft** — generate a project summary: dominant themes, tensions, grounded vs. speculative ideas, gaps. A *draft* the team edits, not a verdict.
+- *(on hold)* **"Ask your project"** (RAG over cards) — natural-language questions answered with citations to specific cards.
+- *(on hold)* **AI theme suggestions** — propose candidate themes/merges from card text; never auto-commit.
+- *(Sentiment/entity extraction is common elsewhere but a weak fit regardless — citizen annotations are deliberately anonymous and small-N; avoid re-identification.)*
 
-**Tier 3 — needs a data-model change (and sometimes AI)**
-- **Spatial synthesis canvas** — a free 2D board to drag cards into clusters and name them (digital KJ/affinity). The sensemaking literature's "spatial workspace"; pairs with the axis-workbench **manual placement (3b)** already planned. Needs per-card/position storage.
-- **Semantic clustering (embeddings)** — affinity by *meaning*, not shared tags; an alternative to the tag-pair groups. Needs an embedding step + vector storage.
-- **Cross-project synthesis** — themes/patterns across several projects (repository-scale). Larger; revisit when there are many projects.
+**Tier 3 — needs a data-model change (AI parts on hold)**
+- **Spatial synthesis canvas** *(non-AI — eligible)* — a free 2D board to drag cards into clusters and name them (digital KJ/affinity). The sensemaking literature's "spatial workspace"; pairs with the axis-workbench **manual placement (3b)** already planned. Needs per-card/position storage.
+- *(on hold)* **Semantic clustering (embeddings)** — affinity by *meaning* rather than shared tags. Needs an embedding step + vector storage (AI).
+- **Cross-project synthesis** *(non-AI — eligible)* — themes/patterns across several projects (repository-scale). Larger; revisit when there are many projects.
 
-### Recommended next three
+### Recommended next three (non-AI)
 1. **Comparison mode** (Tier 1) — the highest-value sensemaking add that needs nothing new.
 2. **Saved views / pinned insights** (Tier 1) — turns exploration into a record, and feeds the catalogue.
-3. **Auto-synthesis draft** (Tier 2) — the clearest payoff from AI, and squarely method-aligned if framed as a draft.
+3. **Cross-tab heatmap** (Tier 1) — theme × author / theme × type coverage, the mixed-methods "code frequency" view.
 
-Defer the spatial canvas / embeddings to a dedicated phase — they change the data model and overlap with the planned manual axis placement (3b).
+Then consider **3b manual axis placement** / the **spatial synthesis canvas** (both non-AI but need a data-model change). The AI Tier-2 items stay parked until the AI-hold is lifted.
 
 ---
 
@@ -211,4 +213,4 @@ Defer the spatial canvas / embeddings to a dedicated phase — they change the d
 
 ---
 
-*Last updated: 2026-06-17 — added the Expansion research section (post-Phase-3 candidates from a scan of qualitative-analysis tooling, AI-assisted synthesis, and visual-analytics sensemaking). Earlier: created from the §C.6 analysis directives; reframes ANALYTICS-RESEARCH.md from diagnostics toward overview/exploration; records the timeline/matrix/health cuts and the "missing connections = nudge, not flag" principle.*
+*Last updated: 2026-06-17 — **AI functionality put on hold (project decision)**; expansion Tier-2 (AI) and embeddings clustering parked, recommended next three are now non-AI. Earlier today: added the Expansion research section; created from the §C.6 analysis directives; reframes ANALYTICS-RESEARCH.md from diagnostics toward overview/exploration; records the timeline/matrix/health cuts and the "missing connections = nudge, not flag" principle.*
