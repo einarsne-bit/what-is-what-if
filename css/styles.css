@@ -2888,6 +2888,14 @@ button.affinity-group__header {
   color: var(--color-muted);
   font-style: italic;
 }
+.affinity-caption {
+  grid-column: 1 / -1;
+  margin: 0 0 4px;
+  font-size: 11px;
+  color: var(--color-muted);
+  line-height: 1.5;
+}
+.affinity-caption strong { color: var(--color-ink); font-weight: 700; }
 
 /* Themes drill-down (dual bars behind a disclosure) */
 .theme-detail { margin-top: 16px; }

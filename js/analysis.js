@@ -794,49 +794,88 @@ function sharedThemeGroups(cards, minCards = 2, limit = 12) {
   return { groups: chosen, coveredIds: covered };
 }
 
+function affinityTagChip(t) {
+  const tc = tagColor(t);
+  const active = filter.tags.has(t) ? " affinity-cluster__tag--active" : "";
+  return `<button class="affinity-cluster__tag${active}" data-tag="${escHtml(t)}" style="--tag-bg:${tc.bg};--tag-color:${tc.text}">${escHtml(t)}</button>`;
+}
+
+function affinityCardChips(wrap, cards) {
+  [...cards.filter(c => c.type === "what-is"), ...cards.filter(c => c.type === "what-if")].forEach(c => {
+    const chip = document.createElement("span");
+    chip.className = `affinity-chip affinity-chip--${c.type === "what-if" ? "wif" : "wi"}`;
+    chip.textContent = c.title;
+    bindMark(chip, c);
+    wrap.appendChild(chip);
+  });
+}
+
 function renderAffinityGroups(ctx) {
   const container = document.getElementById("affinity-groups");
   container.innerHTML = "";
+  const selected = [...filter.tags];
 
-  const { groups, coveredIds } = sharedThemeGroups(ctx.cards, 2, 12);
-  if (!groups.length) {
-    container.innerHTML = `<p class="outlier-empty">No two cards share a pair of themes yet — add overlapping tags to see groups.</p>`;
+  const caption = document.createElement("p");
+  caption.className = "affinity-caption";
+
+  // ── Default: one group per theme (broad overview) ──────────────────────────
+  if (!selected.length) {
+    const themes = ctx.tagStats.filter(d => d.total > 0).slice(0, 16);
+    if (!themes.length) {
+      container.innerHTML = `<p class="outlier-empty">No themes in view.</p>`;
+      return;
+    }
+    caption.textContent = "Cards grouped by theme. Click a theme to drill into its affinities — pairings with other themes.";
+    container.appendChild(caption);
+
+    themes.forEach(({ tag }) => {
+      const cards = ctx.cards.filter(c => (c.tags || []).includes(tag));
+      const wiN = cards.filter(c => c.type === "what-is").length;
+      const group = document.createElement("div");
+      group.className = "affinity-group affinity-cluster";
+      group.innerHTML = `
+        <div class="affinity-cluster__header">
+          <div class="affinity-cluster__tags">${affinityTagChip(tag)}</div>
+          <span class="affinity-group__count" title="${wiN} What is? · ${cards.length - wiN} What if?">${cards.length}</span>
+        </div>
+        <div class="affinity-group__cards"></div>`;
+      group.querySelector("[data-tag]").addEventListener("click", () => { toggleSet(filter.tags, tag); renderAll(); });
+      affinityCardChips(group.querySelector(".affinity-group__cards"), cards);
+      container.appendChild(group);
+    });
     return;
   }
 
-  const tagChip = t => {
-    const tc = tagColor(t);
-    const active = filter.tags.has(t) ? " affinity-cluster__tag--active" : "";
-    return `<button class="affinity-cluster__tag${active}" data-tag="${escHtml(t)}" style="--tag-bg:${tc.bg};--tag-color:${tc.text}">${escHtml(t)}</button>`;
-  };
+  // ── A theme is selected → drill into affinity (theme-pair) groups ───────────
+  caption.innerHTML = `Affinities within <strong>${selected.map(escHtml).join(" + ")}</strong> — theme pairs these cards share. <button class="link-btn" id="aff-clear">show all themes</button>`;
+  container.appendChild(caption);
+  container.querySelector("#aff-clear").addEventListener("click", () => { filter.tags.clear(); renderAll(); });
+
+  const { groups, coveredIds } = sharedThemeGroups(ctx.cards, 2, 12);
+  if (!groups.length) {
+    const none = document.createElement("p");
+    none.className = "affinity-loose";
+    none.textContent = "These cards don't share theme pairs with one another.";
+    container.appendChild(none);
+    return;
+  }
 
   groups.forEach(g => {
-    const wiN  = g.cards.filter(c => c.type === "what-is").length;
-    const wifN = g.cards.filter(c => c.type === "what-if").length;
-
+    const wiN = g.cards.filter(c => c.type === "what-is").length;
     const group = document.createElement("div");
     group.className = "affinity-group affinity-cluster";
     group.innerHTML = `
       <div class="affinity-cluster__header">
         <div class="affinity-cluster__tags">
-          ${tagChip(g.a)}<span class="affinity-cluster__x">×</span>${tagChip(g.b)}
+          ${affinityTagChip(g.a)}<span class="affinity-cluster__x">×</span>${affinityTagChip(g.b)}
         </div>
-        <span class="affinity-group__count" title="${wiN} What is? · ${wifN} What if?">${g.cards.length}</span>
+        <span class="affinity-group__count" title="${wiN} What is? · ${g.cards.length - wiN} What if?">${g.cards.length}</span>
       </div>
       <div class="affinity-group__cards"></div>`;
-
     group.querySelectorAll("[data-tag]").forEach(btn => {
       btn.addEventListener("click", () => { toggleSet(filter.tags, btn.dataset.tag); renderAll(); });
     });
-
-    const cardsWrap = group.querySelector(".affinity-group__cards");
-    [...g.cards.filter(c => c.type === "what-is"), ...g.cards.filter(c => c.type === "what-if")].forEach(c => {
-      const chip = document.createElement("span");
-      chip.className = `affinity-chip affinity-chip--${c.type === "what-if" ? "wif" : "wi"}`;
-      chip.textContent = c.title;
-      bindMark(chip, c);
-      cardsWrap.appendChild(chip);
-    });
+    affinityCardChips(group.querySelector(".affinity-group__cards"), g.cards);
     container.appendChild(group);
   });
 
@@ -844,7 +883,7 @@ function renderAffinityGroups(ctx) {
   if (out) {
     const note = document.createElement("p");
     note.className = "affinity-loose";
-    note.textContent = `${out} card${out !== 1 ? "s" : ""} aren't in a shared-theme group — they don't share a theme pair with enough others.`;
+    note.textContent = `${out} card${out !== 1 ? "s" : ""} here don't share a further theme pair.`;
     container.appendChild(note);
   }
 }
