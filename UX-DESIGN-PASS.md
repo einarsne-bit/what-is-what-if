@@ -126,19 +126,23 @@
 - [x] Required vs optional → name required, all else optional
 - [x] Preview → mirrors the project tile + access summary (kept)
 
-### 6. analysis.html — Dashboard
-**Check/fix**
-- [ ] Visual consistency across the ~10 panels (borders/shadows)
-- [ ] Yellow warn-count contrast
-- [ ] Responsive SVG panels
-- [ ] Empty states for thin projects
-- [ ] Roadmap flags this page as "functional but plain"
+### 6. analysis.html — Dashboard — 🔬 R&D + plan stage (see [ANALYSIS-PLAN.md](ANALYSIS-PLAN.md))
+**Treated as an R&D effort** — reframed from diagnostics toward **overview + exploration + interactivity**. Full research + redesign plan in ANALYSIS-PLAN.md.
 
-**Decide**
-- [ ] Which panels earn their place — reorder or cut
-- [ ] Which **Tier-1 additions** from ANALYTICS-RESEARCH.md to build (grounding-health, saturation curve, annotation heatmap)
-- [ ] Is this page design-team-only (gate from citizens)?
-- [ ] Overall visual treatment for the page
+**Decided**
+- [x] **Audience** → **everyone with project access** (no editor-gating)
+- [x] **Cut:** Timeline (not needed), Connection matrix (doesn't read), Research health (diagnostic framing dropped for now)
+- [x] **Principle:** connections WI↔WIF are interesting but not central; **missing links are NOT a red flag** (ideas can come from anywhere) — instead nudge toward idea-making (hook into creative mode)
+- [x] Contrast/warn-count already fixed in §A
+
+**Modes to build (researched in ANALYSIS-PLAN.md):** dataset overview · themes overview · annotations overview · breadth of insights · breadth of ideas · connections (exploratory) · **axis diagram (new)** · affinity groups (tag-overlap clustering) · **dashboard-wide interactivity** (shared filter + brushing/linking + details-on-demand)
+
+**Open (awaiting direction — see plan §"Open questions"):**
+- [ ] Themes: treemap vs. keep bars
+- [ ] Axis workbench: data-derived axes only, or manual placement + storage
+- [ ] Affinity: tag-overlap now, or plan the manual drag-to-cluster board
+- [ ] Creative-mode hooks: wire now or stub until §C.7
+- [ ] Scope of this pass: Phase 1 (restructure + interactivity) only, or push into Phase 2 overviews
 
 ### 7. creative.html — Creative / ideation
 **Check/fix**
