@@ -759,64 +759,69 @@ function renderCoverageMap(ctx) {
   el.appendChild(svg);
 }
 
-// ── Affinity groups (clusters by shared-tag overlap) ─────────────────────────────
-// Cards are linked when they share ≥ minShared tags; connected components form
-// clusters that can span several themes (not one bucket per tag).
-function clusterByTagOverlap(cards, minShared = 2) {
-  const tagged = cards.filter(c => (c.tags || []).length);
-  const parent = tagged.map((_, i) => i);
-  const find = i => { while (parent[i] !== i) { parent[i] = parent[parent[i]]; i = parent[i]; } return i; };
-  const union = (a, b) => { const ra = find(a), rb = find(b); if (ra !== rb) parent[ra] = rb; };
-  const sets = tagged.map(c => new Set(c.tags));
+// ── Affinity groups (shared-theme combinations) ──────────────────────────────────
+// One group per theme PAIR; a group holds exactly the cards carrying BOTH themes,
+// so membership is always provable. Cards may appear in several groups (true to
+// multi-tagging). A greedy de-dup stops one popular theme from flooding the list.
+function sharedThemeGroups(cards, minCards = 2, limit = 12) {
+  const pairCards = new Map();
+  cards.forEach(c => {
+    const tags = [...new Set(c.tags || [])].sort();
+    for (let i = 0; i < tags.length; i++)
+      for (let j = i + 1; j < tags.length; j++) {
+        const key = tags[i] + " " + tags[j];
+        if (!pairCards.has(key)) pairCards.set(key, []);
+        pairCards.get(key).push(c);
+      }
+  });
 
-  for (let i = 0; i < tagged.length; i++) {
-    for (let j = i + 1; j < tagged.length; j++) {
-      let shared = 0;
-      for (const t of sets[i]) { if (sets[j].has(t) && ++shared >= minShared) break; }
-      if (shared >= minShared) union(i, j);
-    }
+  const candidates = [...pairCards.entries()]
+    .map(([key, cs]) => { const [a, b] = key.split(" "); return { a, b, cards: cs }; })
+    .filter(g => g.cards.length >= minCards)
+    .sort((x, y) => y.cards.length - x.cards.length);
+
+  // Greedy selection: skip a pair whose cards are >80% already covered
+  const chosen = [];
+  const covered = new Set();
+  for (const g of candidates) {
+    if (chosen.length >= limit) break;
+    const ids = g.cards.map(c => c.id);
+    const overlap = ids.filter(id => covered.has(id)).length / ids.length;
+    if (chosen.length && overlap > 0.8) continue;
+    chosen.push(g);
+    ids.forEach(id => covered.add(id));
   }
-  const groups = {};
-  tagged.forEach((c, i) => { (groups[find(i)] ||= []).push(c); });
-  return Object.values(groups);
+  return { groups: chosen, coveredIds: covered };
 }
 
 function renderAffinityGroups(ctx) {
   const container = document.getElementById("affinity-groups");
   container.innerHTML = "";
-  if (!ctx.cards.some(c => (c.tags || []).length)) {
-    container.innerHTML = `<p class="outlier-empty">No tagged cards in view.</p>`;
+
+  const { groups, coveredIds } = sharedThemeGroups(ctx.cards, 2, 12);
+  if (!groups.length) {
+    container.innerHTML = `<p class="outlier-empty">No two cards share a pair of themes yet — add overlapping tags to see groups.</p>`;
     return;
   }
 
-  const clusters = clusterByTagOverlap(ctx.cards, 2)
-    .sort((a, b) => b.length - a.length);
-  const multi = clusters.filter(c => c.length >= 2);
-  const loose = clusters.filter(c => c.length === 1).map(c => c[0]);
+  const tagChip = t => {
+    const tc = tagColor(t);
+    const active = filter.tags.has(t) ? " affinity-cluster__tag--active" : "";
+    return `<button class="affinity-cluster__tag${active}" data-tag="${escHtml(t)}" style="--tag-bg:${tc.bg};--tag-color:${tc.text}">${escHtml(t)}</button>`;
+  };
 
-  if (!multi.length) {
-    container.innerHTML = `<p class="outlier-empty">No cards share two or more themes yet — nothing clusters at this threshold.</p>`;
-    return;
-  }
-
-  multi.slice(0, 12).forEach(members => {
-    // Cluster signature = the tags most shared across its members (top 3)
-    const freq = {};
-    members.forEach(c => (c.tags || []).forEach(t => { freq[t] = (freq[t] || 0) + 1; }));
-    const topTags = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 3).map(e => e[0]);
+  groups.forEach(g => {
+    const wiN  = g.cards.filter(c => c.type === "what-is").length;
+    const wifN = g.cards.filter(c => c.type === "what-if").length;
 
     const group = document.createElement("div");
     group.className = "affinity-group affinity-cluster";
-    const chipsHtml = topTags.map(t => {
-      const tc = tagColor(t);
-      const active = filter.tags.has(t) ? " affinity-cluster__tag--active" : "";
-      return `<button class="affinity-cluster__tag${active}" data-tag="${escHtml(t)}" style="--tag-bg:${tc.bg};--tag-color:${tc.text}">${escHtml(t)}</button>`;
-    }).join("");
-
     group.innerHTML = `
       <div class="affinity-cluster__header">
-        <div class="affinity-cluster__tags">${chipsHtml}</div>
-        <span class="affinity-group__count">${members.length}</span>
+        <div class="affinity-cluster__tags">
+          ${tagChip(g.a)}<span class="affinity-cluster__x">×</span>${tagChip(g.b)}
+        </div>
+        <span class="affinity-group__count" title="${wiN} What is? · ${wifN} What if?">${g.cards.length}</span>
       </div>
       <div class="affinity-group__cards"></div>`;
 
@@ -825,8 +830,7 @@ function renderAffinityGroups(ctx) {
     });
 
     const cardsWrap = group.querySelector(".affinity-group__cards");
-    const ordered = [...members.filter(c => c.type === "what-is"), ...members.filter(c => c.type === "what-if")];
-    ordered.forEach(c => {
+    [...g.cards.filter(c => c.type === "what-is"), ...g.cards.filter(c => c.type === "what-if")].forEach(c => {
       const chip = document.createElement("span");
       chip.className = `affinity-chip affinity-chip--${c.type === "what-if" ? "wif" : "wi"}`;
       chip.textContent = c.title;
@@ -836,10 +840,11 @@ function renderAffinityGroups(ctx) {
     container.appendChild(group);
   });
 
-  if (loose.length) {
+  const out = ctx.cards.filter(c => !coveredIds.has(c.id)).length;
+  if (out) {
     const note = document.createElement("p");
     note.className = "affinity-loose";
-    note.textContent = `${loose.length} card${loose.length !== 1 ? "s" : ""} don't share two or more themes with others.`;
+    note.textContent = `${out} card${out !== 1 ? "s" : ""} aren't in a shared-theme group — they don't share a theme pair with enough others.`;
     container.appendChild(note);
   }
 }

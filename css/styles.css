@@ -2865,7 +2865,8 @@ button.affinity-group__header {
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
 }
-.affinity-cluster__tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.affinity-cluster__tags { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.affinity-cluster__x { font-size: 10px; font-weight: 700; color: var(--color-muted); }
 .affinity-cluster__tag {
   font-family: inherit;
   font-size: 9px;
