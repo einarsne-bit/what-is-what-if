@@ -136,6 +136,20 @@
           <div class="breadth" id="breadth"></div>
         </section>
 
+        <!-- Compare — two subsets side by side (independent of the filter) -->
+        <section class="analysis-panel analysis-panel--full">
+          <header class="analysis-panel__header">
+            <h2 class="analysis-panel__title">Compare</h2>
+            <p class="analysis-panel__desc">Set two sides — by type, theme, author, or status — and compare them across the whole project. Independent of the filter above.</p>
+          </header>
+          <div class="compare-controls">
+            <label class="axis-control">A <select id="cmp-a" class="axis-select"></select></label>
+            <span class="compare-vs">vs</span>
+            <label class="axis-control">B <select id="cmp-b" class="axis-select"></select></label>
+          </div>
+          <div class="compare" id="compare"></div>
+        </section>
+
         <!-- Axis workbench — place cards along two chosen dimensions -->
         <section class="analysis-panel analysis-panel--full">
           <header class="analysis-panel__header">

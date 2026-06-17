@@ -695,6 +695,95 @@ function renderAxisScatter(ctx) {
   el.appendChild(svg);
 }
 
+// ── Compare (two subsets side by side — across the whole project) ────────────────
+let cmpA = "type:what-is";
+let cmpB = "type:what-if";
+
+function cmpPredicate(sel) {
+  const i = sel.indexOf(":");
+  const kind = sel.slice(0, i), val = sel.slice(i + 1);
+  if (kind === "type")   return c => c.type === val;
+  if (kind === "status") return val === "draft" ? c => c.draft : c => !c.draft;
+  if (kind === "tag")    return c => (c.tags || []).includes(val);
+  if (kind === "author") return c => c.author === val;
+  return () => false;
+}
+function cmpLabel(sel) {
+  const i = sel.indexOf(":");
+  const kind = sel.slice(0, i), val = sel.slice(i + 1);
+  if (kind === "type")   return val === "what-is" ? "What is?" : "What if?";
+  if (kind === "status") return val === "draft" ? "Drafts" : "Published";
+  return val;
+}
+
+function buildCompareControls() {
+  const opt = (v, l) => `<option value="${escHtml(v)}">${escHtml(l)}</option>`;
+  const groups = () =>
+    `<optgroup label="Type">${opt("type:what-is", "What is?")}${opt("type:what-if", "What if?")}</optgroup>` +
+    `<optgroup label="Status">${opt("status:draft", "Drafts")}${opt("status:published", "Published")}</optgroup>` +
+    (allAuthors.length ? `<optgroup label="Authors">${allAuthors.map(a => opt("author:" + a, a)).join("")}</optgroup>` : "") +
+    (allTags.length ? `<optgroup label="Themes">${allTags.map(t => opt("tag:" + t, t)).join("")}</optgroup>` : "");
+
+  const aSel = document.getElementById("cmp-a");
+  const bSel = document.getElementById("cmp-b");
+  aSel.innerHTML = groups(); bSel.innerHTML = groups();
+  aSel.value = cmpA; bSel.value = cmpB;
+  aSel.addEventListener("change", () => { cmpA = aSel.value; renderCompare(); });
+  bSel.addEventListener("change", () => { cmpB = bSel.value; renderCompare(); });
+}
+
+function renderCompare() {
+  const el = document.getElementById("compare");
+  const stat = sel => {
+    const sub = all.filter(cmpPredicate(sel));
+    const freq = {};
+    sub.forEach(c => (c.tags || []).forEach(t => { freq[t] = (freq[t] || 0) + 1; }));
+    return {
+      n:       sub.length,
+      wi:      sub.filter(c => c.type === "what-is").length,
+      wif:     sub.filter(c => c.type === "what-if").length,
+      themesN: new Set(sub.flatMap(c => c.tags || [])).size,
+      topThemes: Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 3).map(e => e[0]),
+      annot:   sub.reduce((s, c) => s + annotCount(c.id), 0),
+      links:   sub.reduce((s, c) => s + (linkCountById[c.id] || 0), 0),
+      authors: new Set(sub.map(c => c.author).filter(Boolean)).size,
+    };
+  };
+  const A = stat(cmpA), B = stat(cmpB);
+
+  const rows = [
+    { label: "Cards",          a: A.n,       b: B.n,       aSub: `${A.wi}/${A.wif}`, bSub: `${B.wi}/${B.wif}` },
+    { label: "Distinct themes", a: A.themesN, b: B.themesN },
+    { label: "Annotations",     a: A.annot,   b: B.annot },
+    { label: "Connections",     a: A.links,   b: B.links },
+    { label: "Authors",         a: A.authors, b: B.authors },
+  ];
+  const rowHtml = r => {
+    const mx = Math.max(r.a, r.b, 1);
+    const cell = (v, sub, side) => `
+      <div class="compare__cell">
+        <span class="compare__num">${v}${sub ? ` <em>${sub}</em>` : ""}</span>
+        <div class="compare__track"><div class="compare__bar compare__bar--${side}" style="width:${(v / mx * 100).toFixed(1)}%"></div></div>
+      </div>`;
+    return `<div class="compare__metric">${r.label}</div>${cell(r.a, r.aSub, "a")}${cell(r.b, r.bSub, "b")}`;
+  };
+  const chip = t => {
+    const tc = tagColor(t);
+    return `<span class="compare__theme" style="--tag-bg:${tc.bg};--tag-color:${tc.text}">${escHtml(t)}</span>`;
+  };
+
+  el.innerHTML = `
+    <div class="compare__grid">
+      <div class="compare__corner"></div>
+      <div class="compare__sidehead compare__sidehead--a">${escHtml(cmpLabel(cmpA))}</div>
+      <div class="compare__sidehead compare__sidehead--b">${escHtml(cmpLabel(cmpB))}</div>
+      ${rows.map(rowHtml).join("")}
+      <div class="compare__metric">Top themes</div>
+      <div class="compare__themes">${A.topThemes.map(chip).join("") || "—"}</div>
+      <div class="compare__themes">${B.topThemes.map(chip).join("") || "—"}</div>
+    </div>`;
+}
+
 // ── Connections (coverage map) ───────────────────────────────────────────────────
 function renderCoverageMap(ctx) {
   const el = document.getElementById("coverage-map");
@@ -981,6 +1070,8 @@ function renderAll() {
 
 buildFilterControls();
 buildAxisControls();
+buildCompareControls();
+renderCompare();   // independent of the shared filter — render once
 renderAll();
 
 let resizeTimer;
