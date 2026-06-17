@@ -1028,6 +1028,63 @@ function renderAffinityGroups(ctx) {
   }
 }
 
+// ── Tag hygiene (near-duplicate themes — project-wide, filter-independent) ───────
+function levLE1(a, b) {
+  // Levenshtein distance, but only need to know if it's ≤ 1
+  const m = a.length, n = b.length;
+  if (Math.abs(m - n) > 1) return false;
+  let diffs = 0, i = 0, j = 0;
+  while (i < m && j < n) {
+    if (a[i] === b[j]) { i++; j++; continue; }
+    if (++diffs > 1) return false;
+    if (m > n) i++;          // deletion from a
+    else if (n > m) j++;     // insertion
+    else { i++; j++; }       // substitution
+  }
+  if (i < m || j < n) diffs++;
+  return diffs <= 1;
+}
+
+function tagHygieneGroups(tags) {
+  const norm = t => t.toLowerCase().replace(/[\s\-_]/g, "").replace(/s$/, "");
+  const norms = tags.map(norm);
+  const parent = tags.map((_, i) => i);
+  const find = i => { while (parent[i] !== i) { parent[i] = parent[parent[i]]; i = parent[i]; } return i; };
+  const union = (a, b) => { const ra = find(a), rb = find(b); if (ra !== rb) parent[ra] = rb; };
+
+  for (let i = 0; i < tags.length; i++)
+    for (let j = i + 1; j < tags.length; j++)
+      if (norms[i] === norms[j] || levLE1(norms[i], norms[j])) union(i, j);
+
+  const groups = {};
+  tags.forEach((t, i) => { (groups[find(i)] ||= []).push(t); });
+  return Object.values(groups).filter(g => g.length > 1);
+}
+
+function renderTagHygiene() {
+  const el = document.getElementById("hygiene");
+  const groups = tagHygieneGroups(allTags);
+  if (!groups.length) {
+    el.innerHTML = `<p class="outlier-empty">No near-duplicate themes — tagging looks clean.</p>`;
+    return;
+  }
+  el.innerHTML = groups.map(g => {
+    const n = all.filter(c => (c.tags || []).some(t => g.includes(t))).length;
+    const chips = g.map(t => {
+      const tc = tagColor(t);
+      return `<button class="hygiene-chip" data-tag="${escHtml(t)}" style="--tag-bg:${tc.bg};--tag-color:${tc.text}">${escHtml(t)}</button>`;
+    }).join("");
+    return `<div class="hygiene-group">
+      <div class="hygiene-chips">${chips}</div>
+      <span class="hygiene-meta">${g.length} spellings · ${n} card${n !== 1 ? "s" : ""}</span>
+    </div>`;
+  }).join("") +
+    `<p class="hygiene-note">These look like one theme spelled differently. Rename them to a single spelling in the card editor to merge.</p>`;
+
+  el.querySelectorAll("[data-tag]").forEach(b =>
+    b.addEventListener("click", () => { toggleSet(filter.tags, b.dataset.tag); renderAll(); }));
+}
+
 // ── Theme cross-tab (themes × author or × type) ──────────────────────────────────
 let crossMode = "author";
 
@@ -1188,7 +1245,8 @@ buildFilterControls();
 buildAxisControls();
 buildCompareControls();
 buildCrosstabControls();
-renderCompare();   // independent of the shared filter — render once
+renderCompare();      // independent of the shared filter — render once
+renderTagHygiene();   // project-wide tag vocabulary — render once
 renderAll();
 
 let resizeTimer;

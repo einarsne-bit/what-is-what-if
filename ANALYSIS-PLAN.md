@@ -162,7 +162,7 @@ Building on branch `analysis-redesign`.
 - **Comparison mode** ✅ *(built 2026-06-17)* — "Compare" panel: two sides chosen by type / theme / author / status, shown side by side (cards + WI/WIF split, distinct themes, annotations, connections, authors, top themes), each metric with A/B bars. Operates across the whole project, independent of the shared filter.
 - **Cross-tab heatmap** ✅ *(built 2026-06-17)* — "Theme cross-tab" panel: themes × author or themes × type, shaded by count; row/column headers click to filter. Mixed-methods coverage/contribution (not card-to-card links).
 - **Saved views / pinned insights** ✅ *(built 2026-06-17)* — "Saved views" bar: pin the current filter state (auto-named from the active filter) and recall or delete it later. Stored per-browser in localStorage. Seeds the catalogue (Journey 6) and the "knowledge view" of the sensemaking framework.
-- **Tag canonicalisation (non-AI first)** — edit-distance/case-fold to flag near-duplicate tags ("Politics/politics/Political") and suggest merges. Cheap, big hygiene payoff (already noted in ANALYTICS-RESEARCH.md Tier-2 #5).
+- **Tag canonicalisation (non-AI)** ✅ *(built 2026-06-17)* — "Tag hygiene" panel: groups near-duplicate themes via case/space/plural normalisation + edit-distance ≤1, with spelling + card counts and a rename hint. Surfaces only (merge stays a card-editor action). Big hygiene payoff (ANALYTICS-RESEARCH.md Tier-2 #5).
 
 **Tier 2 — ON HOLD (needs the Anthropic API) — parked per the AI-hold decision**
 - *(on hold)* **Auto-synthesis / narrative draft** — generate a project summary: dominant themes, tensions, grounded vs. speculative ideas, gaps. A *draft* the team edits, not a verdict.
@@ -175,12 +175,10 @@ Building on branch `analysis-redesign`.
 - *(on hold)* **Semantic clustering (embeddings)** — affinity by *meaning* rather than shared tags. Needs an embedding step + vector storage (AI).
 - **Cross-project synthesis** *(non-AI — eligible)* — themes/patterns across several projects (repository-scale). Larger; revisit when there are many projects.
 
-### Recommended next three (non-AI)
-1. **Comparison mode** (Tier 1) — the highest-value sensemaking add that needs nothing new.
-2. **Saved views / pinned insights** (Tier 1) — turns exploration into a record, and feeds the catalogue.
-3. **Cross-tab heatmap** (Tier 1) — theme × author / theme × type coverage, the mixed-methods "code frequency" view.
+### Recommended next three (non-AI) — ✅ all built (2026-06-17), plus tag hygiene
+All four Tier-1 items are now built: **Comparison mode**, **Cross-tab heatmap**, **Saved views**, and **Tag hygiene**.
 
-Then consider **3b manual axis placement** / the **spatial synthesis canvas** (both non-AI but need a data-model change). The AI Tier-2 items stay parked until the AI-hold is lifted.
+Next up (non-AI, need a data-model change): **3b manual axis placement** / the **spatial synthesis canvas**. The AI Tier-2 items stay parked until the AI-hold is lifted.
 
 ---
 
