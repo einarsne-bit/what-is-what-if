@@ -977,6 +977,69 @@ function renderAffinityGroups(ctx) {
   }
 }
 
+// ── Theme cross-tab (themes × author or × type) ──────────────────────────────────
+let crossMode = "author";
+
+function buildCrosstabControls() {
+  document.querySelectorAll("#crosstab-controls [data-cross]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      crossMode = btn.dataset.cross;
+      document.querySelectorAll("#crosstab-controls [data-cross]")
+        .forEach(b => b.classList.toggle("filter-btn--active", b === btn));
+      renderCrosstab(compute(getVisible()));
+    });
+  });
+}
+
+function renderCrosstab(ctx) {
+  const el = document.getElementById("crosstab");
+  const themes = ctx.tagStats.filter(d => d.total > 0).slice(0, 14).map(d => d.tag);
+  if (!themes.length) { el.innerHTML = `<p class="outlier-empty">No themes in view.</p>`; return; }
+
+  let cols;
+  if (crossMode === "author") {
+    cols = Object.keys(ctx.authorCounts).sort((a, b) => ctx.authorCounts[b] - ctx.authorCounts[a]);
+    if (!cols.length) { el.innerHTML = `<p class="outlier-empty">No named authors in view — try Theme × Type.</p>`; return; }
+  } else {
+    cols = ["what-is", "what-if"];
+  }
+  const colLabel = c => crossMode === "type" ? (c === "what-is" ? "What is?" : "What if?") : c;
+  const inCol = (card, col) => crossMode === "author" ? card.author === col : card.type === col;
+  const cellCount = (theme, col) =>
+    ctx.cards.filter(c => (c.tags || []).includes(theme) && inCol(c, col)).length;
+
+  let max = 1;
+  themes.forEach(t => cols.forEach(co => { max = Math.max(max, cellCount(t, co)); }));
+
+  const gridCols = `150px repeat(${cols.length}, minmax(34px, 1fr))`;
+  let html = `<div class="crosstab__grid" style="grid-template-columns:${gridCols}">`;
+  html += `<div class="crosstab__corner"></div>`;
+  cols.forEach(co => {
+    html += `<button class="crosstab__colhead" data-col="${escHtml(co)}" title="${escHtml(colLabel(co))}">${escHtml(colLabel(co))}</button>`;
+  });
+  themes.forEach(t => {
+    html += `<button class="crosstab__rowhead" data-tag="${escHtml(t)}" title="${escHtml(t)}">${escHtml(t)}</button>`;
+    cols.forEach(co => {
+      const v = cellCount(t, co);
+      const alpha = v ? (0.12 + 0.78 * (v / max)) : 0;
+      const color = alpha > 0.5 ? "#fff" : "var(--color-ink)";
+      html += `<div class="crosstab__cell" style="background:rgba(11,107,0,${alpha.toFixed(2)});color:${color}" title="${escHtml(t)} × ${escHtml(colLabel(co))}: ${v}">${v || ""}</div>`;
+    });
+  });
+  html += `</div>`;
+  el.innerHTML = html;
+
+  el.querySelectorAll("[data-tag]").forEach(b =>
+    b.addEventListener("click", () => { toggleSet(filter.tags, b.dataset.tag); renderAll(); }));
+  if (crossMode === "author") {
+    el.querySelectorAll("[data-col]").forEach(b =>
+      b.addEventListener("click", () => { toggleSet(filter.authors, b.dataset.col); renderAll(); }));
+  } else {
+    el.querySelectorAll("[data-col]").forEach(b =>
+      b.addEventListener("click", () => { filter.type = filter.type === b.dataset.col ? "all" : b.dataset.col; renderAll(); }));
+  }
+}
+
 // ── Author contributions (count per author) ──────────────────────────────────────
 function renderAuthors(ctx) {
   const el = document.getElementById("swimlane");
@@ -1054,6 +1117,7 @@ function renderAll() {
   renderAxisScatter(ctx);
   renderCoverageMap(ctx);
   renderAffinityGroups(ctx);
+  renderCrosstab(ctx);
   renderAuthors(ctx);
   renderAnnotationActivity(ctx);
   renderTagCooccurrence(ctx);
@@ -1071,6 +1135,7 @@ function renderAll() {
 buildFilterControls();
 buildAxisControls();
 buildCompareControls();
+buildCrosstabControls();
 renderCompare();   // independent of the shared filter — render once
 renderAll();
 

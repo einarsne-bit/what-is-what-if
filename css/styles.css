@@ -2623,6 +2623,37 @@ button.affinity-group__header {
 .annot-bar-row { cursor: pointer; }
 .annot-bar-label { text-decoration: none; color: inherit; }
 
+/* Theme cross-tab */
+.crosstab-controls { display: flex; gap: 0; margin-bottom: 14px; }
+.crosstab { overflow-x: auto; }
+.crosstab__grid { display: grid; gap: 2px; min-width: min-content; align-items: stretch; }
+.crosstab__colhead,
+.crosstab__rowhead {
+  font-family: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color-ink);
+  padding: 4px 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.crosstab__colhead { text-align: center; align-self: end; }
+.crosstab__rowhead { text-align: right; }
+.crosstab__colhead:hover,
+.crosstab__rowhead:hover { color: var(--color-riso-green); }
+.crosstab__cell {
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+}
+
 /* Compare panel */
 .compare-controls {
   display: flex;
