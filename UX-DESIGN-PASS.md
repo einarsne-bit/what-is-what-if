@@ -137,12 +137,12 @@
 
 **Modes to build (researched in ANALYSIS-PLAN.md):** dataset overview · themes overview · annotations overview · breadth of insights · breadth of ideas · connections (exploratory) · **axis diagram (new)** · affinity groups (tag-overlap clustering) · **dashboard-wide interactivity** (shared filter + brushing/linking + details-on-demand)
 
-**Open (awaiting direction — see plan §"Open questions"):**
-- [ ] Themes: treemap vs. keep bars
-- [ ] Axis workbench: data-derived axes only, or manual placement + storage
-- [ ] Affinity: tag-overlap now, or plan the manual drag-to-cluster board
-- [ ] Creative-mode hooks: wire now or stub until §C.7
-- [ ] Scope of this pass: Phase 1 (restructure + interactivity) only, or push into Phase 2 overviews
+**Build (branch `analysis-redesign`):**
+- [x] **Phase 1 — restructure + interactivity backbone.** Cut timeline/matrix/health. Added a shared filter context (type · themes · creators · annotated · drafts) that drives every panel (brushing-by-filtering); details-on-demand hover preview on all card marks; clickable masthead with a "shape" sentence; reframed Connections panel (neutral unlinked state); Author contributions → count bars. Panels re-point off the visible set; empty/no-results states added.
+- [ ] Phase 2 — themes treemap (decided: treemap + bars drill-down) · breadth panels (D+E) · annotation consensus/spread
+- [ ] Phase 3 — axis workbench (decided: data-axes + plan manual placement/storage) · tag-overlap affinity
+
+**Still open (revisit at the relevant phase):** affinity tag-overlap vs. manual board · creative-mode hooks (wire vs. stub until §C.7)
 
 ### 7. creative.html — Creative / ideation
 **Check/fix**

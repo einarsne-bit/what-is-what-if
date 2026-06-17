@@ -1,137 +1,316 @@
 // data.js + db.js loaded first
+//
+// Analysis dashboard — Phase 1 (analysis-redesign).
+// A single filterable surface: one shared filter context drives every panel
+// (brushing-by-filtering), with details-on-demand previews on card marks.
+// See ANALYSIS-PLAN.md for the redesign plan.
 
-// ── Async wrapper — all rendering functions close over these variables ─────────
 (async () => {
 
 // ── Project + cards ───────────────────────────────────────────────────────────
 const activeProject = await loadActiveProject();
 const projectId     = activeProject.id;
 const all           = await getProjectCards(projectId);
-const wi            = all.filter(c => c.type === "what-is");
-const wif           = all.filter(c => c.type === "what-if");
 
-// ── Unified project header ────────────────────────────────────────────────────
 initProjectHeader(projectId, "analysis", { projectName: activeProject.name });
 
-// ── Computed data ─────────────────────────────────────────────────────────────
-const allTags    = [...new Set(all.flatMap(c => c.tags))].sort();
-const allAuthors = [...new Set(all.map(c => c.author).filter(Boolean))].sort();
-
-const linkedWiIds = new Set(wif.flatMap(c => c.linkedInsightIds || []));
-
-// ── Annotation data ───────────────────────────────────────────────────────────
-const projectCardIds   = new Set(all.map(c => c.id));
-const rawAnnotList     = await getProjectAnnotations(projectId);
+// ── Annotations (computed once over the whole project) ─────────────────────────
+const projectCardIds    = new Set(all.map(c => c.id));
+const rawAnnotList      = await getProjectAnnotations(projectId);
 const annotationsByCard = {};
 rawAnnotList.forEach(ann => {
   if (projectCardIds.has(ann.card_id)) {
-    if (!annotationsByCard[ann.card_id]) annotationsByCard[ann.card_id] = [];
-    annotationsByCard[ann.card_id].push(ann);
+    (annotationsByCard[ann.card_id] ||= []).push(ann);
   }
 });
+const annotCount = id => (annotationsByCard[id] || []).length;
 
-const allAnnotList   = Object.values(annotationsByCard).flat();
-const totalReactions = allAnnotList.filter(a => a.type === "reaction").length;
-const totalComments  = allAnnotList.filter(a => a.type === "comment").length;
-const commenters     = new Set(allAnnotList.filter(a => a.type === "comment" && a.author).map(a => a.author));
+// ── Full-project facets (filter controls are built from these) ─────────────────
+const allTags    = [...new Set(all.flatMap(c => c.tags || []))].sort();
+const allAuthors = [...new Set(all.map(c => c.author).filter(Boolean))].sort();
 
-const reactionCounts = { "interesting": 0, "follow-thread": 0, "low-hanging-fruit": 0 };
-allAnnotList.filter(a => a.type === "reaction").forEach(a => {
-  if (a.tag in reactionCounts) reactionCounts[a.tag]++;
-});
+// ── Shared filter state — the backbone ─────────────────────────────────────────
+const filter = {
+  type: "all",            // "all" | "what-is" | "what-if"
+  tags: new Set(),
+  authors: new Set(),
+  annotated: false,
+  drafts: false,
+};
 
-// Per-card annotation summary, sorted by total
-const cardActivity = all.map(card => {
-  const list = annotationsByCard[card.id] || [];
-  return {
-    card,
-    interesting:      list.filter(a => a.type === "reaction" && a.tag === "interesting").length,
-    followThread:     list.filter(a => a.type === "reaction" && a.tag === "follow-thread").length,
-    lowHangingFruit:  list.filter(a => a.type === "reaction" && a.tag === "low-hanging-fruit").length,
-    comments:         list.filter(a => a.type === "comment").length,
-    total:            list.length,
-  };
-}).filter(d => d.total > 0).sort((a, b) => b.total - a.total);
+const cardUrl = card => `card.html?id=${card.id}&project=${projectId}`;
 
-const tagStats = allTags.map(tag => ({
-  tag,
-  wi:    wi.filter(c => c.tags.includes(tag)).length,
-  wif:   wif.filter(c => c.tags.includes(tag)).length,
-  total: wi.filter(c => c.tags.includes(tag)).length + wif.filter(c => c.tags.includes(tag)).length,
-})).sort((a, b) => b.total - a.total);
+function filterActive() {
+  return filter.type !== "all" || filter.tags.size || filter.authors.size
+      || filter.annotated || filter.drafts;
+}
 
-// ── Summary stats ─────────────────────────────────────────────────────────────
-document.getElementById("stat-total").textContent   = all.length;
-document.getElementById("stat-wi").textContent      = wi.length;
-document.getElementById("stat-wif").textContent     = wif.length;
-document.getElementById("stat-tags").textContent    = allTags.length;
-document.getElementById("stat-authors").textContent = allAuthors.length;
+function getVisible() {
+  return all.filter(c => {
+    if (filter.type !== "all" && c.type !== filter.type) return false;
+    if (filter.tags.size && !(c.tags || []).some(t => filter.tags.has(t))) return false;
+    if (filter.authors.size && !filter.authors.has(c.author)) return false;
+    if (filter.annotated && annotCount(c.id) === 0) return false;
+    if (filter.drafts && !c.draft) return false;
+    return true;
+  });
+}
 
-const coveragePct = wi.length
-  ? Math.round(linkedWiIds.size / wi.length * 100) + "%"
-  : "—";
-document.getElementById("stat-coverage").textContent   = coveragePct;
-document.getElementById("stat-reactions").textContent  = totalReactions;
-document.getElementById("stat-comments").textContent   = totalComments;
-document.getElementById("stat-commenters").textContent = commenters.size;
+// ── Derived data for the visible set ───────────────────────────────────────────
+function compute(cards) {
+  const wi  = cards.filter(c => c.type === "what-is");
+  const wif = cards.filter(c => c.type === "what-if");
+  const tags = [...new Set(cards.flatMap(c => c.tags || []))];
 
-// ── 0. Annotation activity ────────────────────────────────────────────────────
-function renderAnnotationActivity() {
+  const linkedWiIds = new Set(wif.flatMap(c => c.linkedInsightIds || []));
+
+  const tagStats = tags.map(tag => ({
+    tag,
+    wi:  wi.filter(c => (c.tags || []).includes(tag)).length,
+    wif: wif.filter(c => (c.tags || []).includes(tag)).length,
+    total: cards.filter(c => (c.tags || []).includes(tag)).length,
+  })).sort((a, b) => b.total - a.total);
+
+  const cardActivity = cards.map(card => {
+    const list = annotationsByCard[card.id] || [];
+    return {
+      card,
+      interesting:     list.filter(a => a.type === "reaction" && a.tag === "interesting").length,
+      followThread:    list.filter(a => a.type === "reaction" && a.tag === "follow-thread").length,
+      lowHangingFruit: list.filter(a => a.type === "reaction" && a.tag === "low-hanging-fruit").length,
+      comments:        list.filter(a => a.type === "comment").length,
+      total:           list.length,
+    };
+  }).filter(d => d.total > 0).sort((a, b) => b.total - a.total);
+
+  const authorCounts = {};
+  cards.forEach(c => { if (c.author) authorCounts[c.author] = (authorCounts[c.author] || 0) + 1; });
+
+  return { cards, wi, wif, tags, tagStats, linkedWiIds, cardActivity, authorCounts };
+}
+
+// ── Details-on-demand: shared hover preview popover ────────────────────────────
+const preview = document.createElement("div");
+preview.className = "analysis-preview";
+preview.hidden = true;
+document.body.appendChild(preview);
+
+function showPreview(e, card) {
+  const typeLabel = card.type === "what-if" ? "What if?" : "What is?";
+  const typeClass = card.type === "what-if" ? "wif" : "wi";
+  const tags = (card.tags || []).slice(0, 6)
+    .map(t => `<span class="analysis-preview__tag">${escHtml(t)}</span>`).join("");
+  const n = annotCount(card.id);
+  preview.innerHTML = `
+    <span class="analysis-preview__badge analysis-preview__badge--${typeClass}">${typeLabel}</span>
+    <span class="analysis-preview__title">${escHtml(card.title || "Untitled")}</span>
+    ${card.author ? `<span class="analysis-preview__author">${escHtml(card.author)}</span>` : ""}
+    ${tags ? `<span class="analysis-preview__tags">${tags}</span>` : ""}
+    ${n ? `<span class="analysis-preview__annot">${n} annotation${n !== 1 ? "s" : ""}</span>` : ""}`;
+  preview.hidden = false;
+  movePreview(e);
+}
+function movePreview(e) {
+  const pad = 14;
+  let x = e.clientX + pad, y = e.clientY + pad;
+  const r = preview.getBoundingClientRect();
+  if (x + r.width  > window.innerWidth)  x = e.clientX - r.width  - pad;
+  if (y + r.height > window.innerHeight) y = e.clientY - r.height - pad;
+  preview.style.left = `${x}px`;
+  preview.style.top  = `${y}px`;
+}
+function hidePreview() { preview.hidden = true; }
+
+// Wire a card mark (HTML or SVG element) for preview + click-to-open.
+function bindMark(el, card) {
+  el.style.cursor = "pointer";
+  el.addEventListener("mouseenter", e => showPreview(e, card));
+  el.addEventListener("mousemove", movePreview);
+  el.addEventListener("mouseleave", hidePreview);
+  el.addEventListener("click", () => { hidePreview(); window.location.href = cardUrl(card); });
+}
+
+// ── Filter controls ─────────────────────────────────────────────────────────────
+function toggleSet(set, value) { set.has(value) ? set.delete(value) : set.add(value); }
+
+function buildFilterControls() {
+  // Type buttons + type stat tiles
+  document.querySelectorAll("#af-type [data-type]").forEach(btn => {
+    btn.addEventListener("click", () => { filter.type = btn.dataset.type; renderAll(); });
+  });
+  document.querySelectorAll(".stat-tile[data-type]").forEach(tile => {
+    tile.addEventListener("click", () => { filter.type = tile.dataset.type; renderAll(); });
+  });
+
+  // Show toggles
+  document.querySelectorAll("#af-toggles [data-toggle]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const key = btn.dataset.toggle === "annotated" ? "annotated" : "drafts";
+      filter[key] = !filter[key];
+      renderAll();
+    });
+  });
+
+  // Authors
+  const authorsEl = document.getElementById("af-authors");
+  if (!allAuthors.length) {
+    authorsEl.innerHTML = `<span class="filter-empty">No named authors</span>`;
+  } else {
+    authorsEl.innerHTML = allAuthors.map(a =>
+      `<button class="filter-btn" data-author="${escHtml(a)}">${escHtml(a)}</button>`).join("");
+    authorsEl.querySelectorAll("[data-author]").forEach(btn => {
+      btn.addEventListener("click", () => { toggleSet(filter.authors, btn.dataset.author); renderAll(); });
+    });
+  }
+
+  // Themes (tags)
+  const tagsEl = document.getElementById("af-tags");
+  if (!allTags.length) {
+    tagsEl.innerHTML = `<span class="filter-empty">No themes yet</span>`;
+  } else {
+    tagsEl.innerHTML = allTags.map(t => {
+      const tc = tagColor(t);
+      return `<button class="filter-btn filter-btn--tag" data-tag="${escHtml(t)}"
+        style="--tag-bg:${tc.bg};--tag-color:${tc.text}">${escHtml(t)}</button>`;
+    }).join("");
+    tagsEl.querySelectorAll("[data-tag]").forEach(btn => {
+      btn.addEventListener("click", () => { toggleSet(filter.tags, btn.dataset.tag); renderAll(); });
+    });
+  }
+
+  // Reset
+  document.getElementById("af-reset").addEventListener("click", resetFilters);
+  document.getElementById("af-reset-inline").addEventListener("click", resetFilters);
+}
+
+function resetFilters() {
+  filter.type = "all";
+  filter.tags.clear();
+  filter.authors.clear();
+  filter.annotated = false;
+  filter.drafts = false;
+  renderAll();
+}
+
+function updateFilterUI() {
+  document.querySelectorAll("#af-type [data-type]").forEach(b =>
+    b.classList.toggle("filter-btn--active", b.dataset.type === filter.type));
+  document.querySelectorAll("#af-toggles [data-toggle]").forEach(b => {
+    const key = b.dataset.toggle === "annotated" ? "annotated" : "drafts";
+    b.classList.toggle("filter-btn--active", filter[key]);
+  });
+  document.querySelectorAll("#af-authors [data-author]").forEach(b =>
+    b.classList.toggle("filter-btn--active", filter.authors.has(b.dataset.author)));
+  document.querySelectorAll("#af-tags [data-tag]").forEach(b =>
+    b.classList.toggle("filter-btn--tag-active", filter.tags.has(b.dataset.tag)));
+
+  const active = filterActive();
+  document.getElementById("af-reset").hidden = !active;
+}
+
+// ── Masthead ────────────────────────────────────────────────────────────────────
+function renderMasthead(ctx) {
+  const annotated = ctx.cards.filter(c => annotCount(c.id) > 0).length;
+  const drafts    = ctx.cards.filter(c => c.draft).length;
+
+  document.getElementById("stat-total").textContent     = ctx.cards.length;
+  document.getElementById("stat-wi").textContent        = ctx.wi.length;
+  document.getElementById("stat-wif").textContent       = ctx.wif.length;
+  document.getElementById("stat-tags").textContent      = ctx.tags.length;
+  document.getElementById("stat-authors").textContent   = Object.keys(ctx.authorCounts).length;
+  document.getElementById("stat-annotated").textContent = annotated;
+  document.getElementById("stat-drafts").textContent    = drafts;
+
+  const shapeEl = document.getElementById("analysis-shape");
+  if (!ctx.cards.length) {
+    shapeEl.textContent = filterActive()
+      ? "No cards match the current filter."
+      : "No cards in this project yet.";
+  } else if (filterActive()) {
+    shapeEl.innerHTML = `Showing <strong>${ctx.cards.length}</strong> of ${all.length} cards`
+      + ` — ${ctx.wi.length} observation${ctx.wi.length !== 1 ? "s" : ""}, `
+      + `${ctx.wif.length} idea${ctx.wif.length !== 1 ? "s" : ""}, across `
+      + `${ctx.tags.length} theme${ctx.tags.length !== 1 ? "s" : ""}.`;
+  } else {
+    const nAuthors = Object.keys(ctx.authorCounts).length;
+    shapeEl.innerHTML = `<strong>${ctx.wi.length}</strong> observation${ctx.wi.length !== 1 ? "s" : ""}, `
+      + `<strong>${ctx.wif.length}</strong> idea${ctx.wif.length !== 1 ? "s" : ""}, `
+      + `across <strong>${ctx.tags.length}</strong> theme${ctx.tags.length !== 1 ? "s" : ""}, `
+      + `by <strong>${nAuthors}</strong> contributor${nAuthors !== 1 ? "s" : ""}.`;
+  }
+}
+
+// ── Annotation activity ─────────────────────────────────────────────────────────
+function renderAnnotationActivity(ctx) {
   const el = document.getElementById("annotation-activity");
-  if (!cardActivity.length) return; // keep the "no annotations" placeholder
+  if (!ctx.cardActivity.length) {
+    el.innerHTML = `<p class="outlier-empty">No annotations on the cards in view. Reactions and comments added in the card view appear here.</p>`;
+    return;
+  }
+  const maxTotal = ctx.cardActivity[0].total;
+  const top = ctx.cardActivity.slice(0, 20);
 
-  const maxTotal = cardActivity[0].total;
-  const top = cardActivity.slice(0, 20);
+  const r = { interesting: 0, "follow-thread": 0, "low-hanging-fruit": 0, comments: 0 };
+  ctx.cardActivity.forEach(d => {
+    r.interesting += d.interesting; r["follow-thread"] += d.followThread;
+    r["low-hanging-fruit"] += d.lowHangingFruit; r.comments += d.comments;
+  });
 
-  // Reaction type legend + totals
   const legend = `
     <div class="annot-legend">
-      <span class="annot-legend__item annot-legend__item--interesting">Interesting (${reactionCounts["interesting"]})</span>
-      <span class="annot-legend__item annot-legend__item--follow">Follow thread (${reactionCounts["follow-thread"]})</span>
-      <span class="annot-legend__item annot-legend__item--fruit">Low hanging fruit (${reactionCounts["low-hanging-fruit"]})</span>
-      <span class="annot-legend__item annot-legend__item--comment">Comments (${totalComments})</span>
+      <span class="annot-legend__item annot-legend__item--interesting">Interesting (${r.interesting})</span>
+      <span class="annot-legend__item annot-legend__item--follow">Follow thread (${r["follow-thread"]})</span>
+      <span class="annot-legend__item annot-legend__item--fruit">Low hanging fruit (${r["low-hanging-fruit"]})</span>
+      <span class="annot-legend__item annot-legend__item--comment">Comments (${r.comments})</span>
     </div>`;
 
-  // Stacked bar chart
-  const bars = top.map(d => {
+  el.innerHTML = legend + `<div class="annot-bars"></div>`;
+  const barsEl = el.querySelector(".annot-bars");
+
+  top.forEach(d => {
     const pct = v => ((v / maxTotal) * 100).toFixed(1);
     const typeLabel = d.card.type === "what-if" ? "WIF" : "WI";
     const typeClass = d.card.type === "what-if" ? "wif" : "wi";
-    return `
-      <div class="annot-bar-row" title="${escHtml(d.card.title)}">
-        <a class="annot-bar-label" href="card.html?id=${d.card.id}&project=${projectId}">
-          <span class="annot-bar-badge annot-bar-badge--${typeClass}">${typeLabel}</span>
-          <span class="annot-bar-title">${escHtml(d.card.title)}</span>
-        </a>
-        <div class="annot-bar-track">
-          ${d.interesting     ? `<div class="annot-bar-seg annot-bar-seg--interesting"    style="width:${pct(d.interesting)}%"    title="Interesting: ${d.interesting}"></div>` : ""}
-          ${d.followThread    ? `<div class="annot-bar-seg annot-bar-seg--follow"         style="width:${pct(d.followThread)}%"    title="Follow thread: ${d.followThread}"></div>` : ""}
-          ${d.lowHangingFruit ? `<div class="annot-bar-seg annot-bar-seg--fruit"          style="width:${pct(d.lowHangingFruit)}%" title="Low hanging fruit: ${d.lowHangingFruit}"></div>` : ""}
-          ${d.comments        ? `<div class="annot-bar-seg annot-bar-seg--comment"        style="width:${pct(d.comments)}%"        title="Comments: ${d.comments}"></div>` : ""}
-          <span class="annot-bar-total">${d.total}</span>
-        </div>
+    const row = document.createElement("div");
+    row.className = "annot-bar-row";
+    row.innerHTML = `
+      <span class="annot-bar-label">
+        <span class="annot-bar-badge annot-bar-badge--${typeClass}">${typeLabel}</span>
+        <span class="annot-bar-title">${escHtml(d.card.title)}</span>
+      </span>
+      <div class="annot-bar-track">
+        ${d.interesting     ? `<div class="annot-bar-seg annot-bar-seg--interesting" style="width:${pct(d.interesting)}%"></div>` : ""}
+        ${d.followThread    ? `<div class="annot-bar-seg annot-bar-seg--follow"      style="width:${pct(d.followThread)}%"></div>` : ""}
+        ${d.lowHangingFruit ? `<div class="annot-bar-seg annot-bar-seg--fruit"       style="width:${pct(d.lowHangingFruit)}%"></div>` : ""}
+        ${d.comments        ? `<div class="annot-bar-seg annot-bar-seg--comment"     style="width:${pct(d.comments)}%"></div>` : ""}
+        <span class="annot-bar-total">${d.total}</span>
       </div>`;
-  }).join("");
-
-  el.innerHTML = legend + `<div class="annot-bars">${bars}</div>`;
+    bindMark(row, d.card);
+    barsEl.appendChild(row);
+  });
 }
 
-// ── 1. Tag frequency chart ─────────────────────────────────────────────────────
-function renderTagChart() {
+// ── Themes (tag frequency) ───────────────────────────────────────────────────────
+function renderTagChart(ctx) {
   const container = document.getElementById("tag-chart");
-  const top = tagStats.slice(0, 24);
+  const top = ctx.tagStats.slice(0, 24);
+  if (!top.length) {
+    container.innerHTML = `<p class="outlier-empty">No themes in view.</p>`;
+    return;
+  }
   const maxVal = Math.max(...top.map(d => Math.max(d.wi, d.wif)), 1);
 
   container.innerHTML = `
     <div class="tag-chart-legend">
       <span class="tag-chart-legend__item tag-chart-legend__item--wi">What is?</span>
       <span class="tag-chart-legend__item tag-chart-legend__item--wif">What if?</span>
-    </div>
-    ${top.map(d => {
+    </div>` +
+    top.map(d => {
       const wiPct  = (d.wi  / maxVal * 100).toFixed(1);
       const wifPct = (d.wif / maxVal * 100).toFixed(1);
+      const active = filter.tags.has(d.tag) ? " tag-bar-row--active" : "";
       return `
-        <div class="tag-bar-row">
+        <button class="tag-bar-row${active}" data-tag="${escHtml(d.tag)}">
           <span class="tag-bar-label" title="${escHtml(d.tag)}">${escHtml(d.tag)}</span>
           <div class="tag-bar-tracks">
             <div class="tag-bar-track">
@@ -143,496 +322,207 @@ function renderTagChart() {
               <span class="tag-bar-num">${d.wif}</span>
             </div>
           </div>
-        </div>`;
-    }).join("")}
-  `;
+        </button>`;
+    }).join("");
+
+  container.querySelectorAll("[data-tag]").forEach(btn => {
+    btn.addEventListener("click", () => { toggleSet(filter.tags, btn.dataset.tag); renderAll(); });
+  });
 }
 
-// ── 2. Coverage map ───────────────────────────────────────────────────────────
-function renderCoverageMap() {
-  const el   = document.getElementById("coverage-map");
-  const W    = el.offsetWidth || 560;
-  const DOT  = 6;
-  const GAP  = 3;
-  const ROW  = DOT + GAP;
-  const PAD  = 20;
-  const H    = Math.max(wi.length, wif.length) * ROW + PAD * 2;
-  const lx   = 60;
-  const rx   = W - 60;
+// ── Connections (coverage map) ───────────────────────────────────────────────────
+function renderCoverageMap(ctx) {
+  const el = document.getElementById("coverage-map");
+  el.innerHTML = "";
+  const { wi, wif, linkedWiIds } = ctx;
 
-  const wiY  = i => PAD + i * ROW + DOT / 2;
-  const wifY = i => PAD + i * ROW + DOT / 2;
+  if (!wi.length || !wif.length) {
+    el.innerHTML = `<p class="outlier-empty">Need both What is? and What if? cards in view to draw connections.</p>`;
+    return;
+  }
 
-  // Bezier paths for links
+  const W = el.offsetWidth || 560;
+  const DOT = 6, GAP = 3, ROW = DOT + GAP, PAD = 20;
+  const H = Math.max(wi.length, wif.length) * ROW + PAD * 2;
+  const lx = 60, rx = W - 60;
+  const yOf = i => PAD + i * ROW + DOT / 2;
   const mx = (lx + rx) / 2;
-  let paths = "";
+
+  const svgNS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(svgNS, "svg");
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.setAttribute("width", W);
+  svg.setAttribute("height", H);
+  svg.style.width = "100%";
+  svg.style.overflow = "visible";
+
+  // Link paths
   wif.forEach((card, wifI) => {
     (card.linkedInsightIds || []).forEach(wiId => {
       const wiI = wi.findIndex(c => c.id === wiId);
       if (wiI === -1) return;
-      paths += `<path d="M${lx + DOT/2},${wiY(wiI)} C${mx},${wiY(wiI)} ${mx},${wifY(wifI)} ${rx - DOT/2},${wifY(wifI)}"
-        fill="none" stroke="rgba(11,107,0,0.35)" stroke-width="1.5"/>`;
+      const path = document.createElementNS(svgNS, "path");
+      path.setAttribute("d", `M${lx + DOT/2},${yOf(wiI)} C${mx},${yOf(wiI)} ${mx},${yOf(wifI)} ${rx - DOT/2},${yOf(wifI)}`);
+      path.setAttribute("fill", "none");
+      path.setAttribute("stroke", "rgba(11,107,0,0.30)");
+      path.setAttribute("stroke-width", "1.5");
+      svg.appendChild(path);
     });
   });
-
-  // WI dots
-  const wiDots = wi.map((card, i) => {
-    const linked = linkedWiIds.has(card.id);
-    return `<circle cx="${lx}" cy="${wiY(i)}" r="${DOT/2}"
-      fill="${linked ? "var(--color-riso-green)" : "#ddd"}"
-      title="${escHtml(card.title)}">
-      <title>${escHtml(card.title)}</title>
-    </circle>`;
-  }).join("");
-
-  // WIF dots
-  const wifDots = wif.map((card, i) => {
-    const hasLinks = (card.linkedInsightIds || []).length > 0;
-    return `<circle cx="${rx}" cy="${wifY(i)}" r="${DOT/2}"
-      fill="${hasLinks ? "var(--color-riso-pink)" : "#ddd"}"
-      title="${escHtml(card.title)}">
-      <title>${escHtml(card.title)}</title>
-    </circle>`;
-  }).join("");
 
   // Column labels
-  const labels = `
-    <text x="${lx}" y="12" text-anchor="middle" font-size="9" letter-spacing="0.05em" fill="#999" font-family="monospace">WHAT IS?</text>
-    <text x="${rx}" y="12" text-anchor="middle" font-size="9" letter-spacing="0.05em" fill="#999" font-family="monospace">WHAT IF?</text>
-  `;
+  [["WHAT IS?", lx], ["WHAT IF?", rx]].forEach(([txt, x]) => {
+    const t = document.createElementNS(svgNS, "text");
+    t.setAttribute("x", x); t.setAttribute("y", 12);
+    t.setAttribute("text-anchor", "middle"); t.setAttribute("font-size", "9");
+    t.setAttribute("letter-spacing", "0.05em"); t.setAttribute("fill", "#999");
+    t.setAttribute("font-family", "monospace"); t.textContent = txt;
+    svg.appendChild(t);
+  });
 
-  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" style="width:100%;overflow:visible">
-    ${labels}${paths}${wiDots}${wifDots}
-  </svg>`;
+  // Dots
+  const dot = (card, x, i, linked, linkedColor) => {
+    const c = document.createElementNS(svgNS, "circle");
+    c.setAttribute("cx", x); c.setAttribute("cy", yOf(i)); c.setAttribute("r", DOT / 2);
+    c.setAttribute("fill", linked ? linkedColor : "#d8d8d8");
+    bindMark(c, card);
+    svg.appendChild(c);
+  };
+  wi.forEach((card, i)  => dot(card, lx, i, linkedWiIds.has(card.id), "var(--color-riso-green)"));
+  wif.forEach((card, i) => dot(card, rx, i, (card.linkedInsightIds || []).length > 0, "var(--color-riso-pink)"));
+
+  el.appendChild(svg);
 }
 
-// ── 3. Timeline ───────────────────────────────────────────────────────────────
-function renderTimeline() {
-  const el = document.getElementById("timeline");
-  const W  = el.offsetWidth || 800;
-  const H  = 140;
-  const PX = 56;  // horizontal padding
-  const CY = H / 2;
-  const DOT = 8;
-
-  const dates = all.map(c => parseDate(c.date)).filter(d => !isNaN(d) && d > 0);
-  if (dates.length === 0) { el.textContent = "No date data available."; return; }
-
-  const minD  = Math.min(...dates);
-  const maxD  = Math.max(...dates);
-  const range = maxD - minD || 1;
-
-  const xOf = card => {
-    const d = parseDate(card.date);
-    return PX + ((d - minD) / range) * (W - PX * 2);
-  };
-
-  // Jitter to prevent exact stacking
-  const jitter = () => (Math.random() - 0.5) * 6;
-
-  const wiDots = wi.map(card => {
-    const x = xOf(card); const y = CY - 22 + jitter();
-    return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${DOT/2}"
-      fill="var(--color-riso-green)" opacity="0.75" style="cursor:default">
-      <title>${escHtml(card.title)} — ${escHtml(card.date)}</title>
-    </circle>`;
-  }).join("");
-
-  const wifDots = wif.map(card => {
-    const x = xOf(card); const y = CY + 22 + jitter();
-    return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${DOT/2}"
-      fill="var(--color-riso-pink)" opacity="0.75" style="cursor:default">
-      <title>${escHtml(card.title)} — ${escHtml(card.date)}</title>
-    </circle>`;
-  }).join("");
-
-  // Axis
-  const axis = `<line x1="${PX}" y1="${CY}" x2="${W - PX}" y2="${CY}"
-    stroke="#e0e0e0" stroke-width="1"/>`;
-
-  // Date labels
-  const fmtDate = ts => {
-    const d = new Date(ts);
-    return d.toLocaleDateString("no", { month: "short", year: "2-digit" });
-  };
-
-  const axisLabels = `
-    <text x="${PX}" y="${H - 6}" font-size="9" fill="#bbb" font-family="monospace">${fmtDate(minD)}</text>
-    <text x="${W - PX}" y="${H - 6}" font-size="9" fill="#bbb" font-family="monospace" text-anchor="end">${fmtDate(maxD)}</text>
-    <text x="${PX - 8}" y="${CY - 18}" font-size="9" fill="var(--color-riso-green)" font-family="monospace" text-anchor="end">WI</text>
-    <text x="${PX - 8}" y="${CY + 22}" font-size="9" fill="var(--color-riso-pink)" font-family="monospace" text-anchor="end">WIF</text>
-  `;
-
-  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" style="width:100%">
-    ${axis}${axisLabels}${wiDots}${wifDots}
-  </svg>`;
-}
-
-// ── 4. Affinity groups ────────────────────────────────────────────────────────
-function renderAffinityGroups() {
+// ── Affinity groups ───────────────────────────────────────────────────────────────
+function renderAffinityGroups(ctx) {
   const container = document.getElementById("affinity-groups");
-  const topTags   = tagStats.filter(d => d.total > 0).slice(0, 16);
-
-  container.innerHTML = topTags.map(({ tag }) => {
-    const tc      = tagColor(tag);
-    const tagWi  = wi.filter(c => c.tags.includes(tag));
-    const tagWif = wif.filter(c => c.tags.includes(tag));
-
-    const chips = (cards, type) => cards.map(c =>
-      `<a class="affinity-chip affinity-chip--${type}"
-          href="card.html?id=${c.id}&project=${projectId}"
-          title="${escHtml(c.title)}">${escHtml(c.title)}</a>`
-    ).join("");
-
-    return `
-      <div class="affinity-group">
-        <div class="affinity-group__header" style="--tag-bg:${tc.bg};--tag-color:${tc.text}">
-          <span class="affinity-group__name">${escHtml(tag)}</span>
-          <span class="affinity-group__count">${tagWi.length + tagWif.length}</span>
-        </div>
-        <div class="affinity-group__cards">
-          ${chips(tagWi, "wi")}
-          ${chips(tagWif, "wif")}
-        </div>
-      </div>`;
-  }).join("");
-}
-
-// ── 6. Connection matrix ──────────────────────────────────────────────────────
-function renderConnectionMatrix() {
-  const el = document.getElementById("connection-matrix");
-  if (!wif.length || !wi.length) {
-    el.innerHTML = `<p class="outlier-empty">Need both What is? and What if? cards to draw the matrix.</p>`;
+  const top = ctx.tagStats.filter(d => d.total > 0).slice(0, 16);
+  container.innerHTML = "";
+  if (!top.length) {
+    container.innerHTML = `<p class="outlier-empty">No themes in view.</p>`;
     return;
   }
 
-  const MAX = 20;
-  const rows = wi.slice(0, MAX);
-  const cols = wif.slice(0, MAX);
-  const CELL = 22;
-  const LABEL_W = 160;
-  const LABEL_H = 100;
-  const W = LABEL_W + cols.length * CELL;
-  const H = LABEL_H + rows.length * CELL;
+  top.forEach(({ tag }) => {
+    const tc = tagColor(tag);
+    const tagCards = ctx.cards.filter(c => (c.tags || []).includes(tag));
+    const tagWi  = tagCards.filter(c => c.type === "what-is");
+    const tagWif = tagCards.filter(c => c.type === "what-if");
 
-  const svgNS = "http://www.w3.org/2000/svg";
-  const svg = document.createElementNS(svgNS, "svg");
-  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-  svg.setAttribute("width", "100%");
-  svg.style.maxHeight = "520px";
-  svg.style.overflow = "visible";
-  svg.style.fontFamily = "var(--font-mono)";
-  svg.style.fontSize = "9px";
+    const group = document.createElement("div");
+    group.className = "affinity-group";
+    const active = filter.tags.has(tag) ? " affinity-group__header--active" : "";
+    group.innerHTML = `
+      <button class="affinity-group__header${active}" data-tag="${escHtml(tag)}" style="--tag-bg:${tc.bg};--tag-color:${tc.text}">
+        <span class="affinity-group__name">${escHtml(tag)}</span>
+        <span class="affinity-group__count">${tagCards.length}</span>
+      </button>
+      <div class="affinity-group__cards"></div>`;
 
-  // Column headers (What if? titles — rotated)
-  cols.forEach((card, ci) => {
-    const g = document.createElementNS(svgNS, "g");
-    g.setAttribute("transform", `translate(${LABEL_W + ci * CELL + CELL / 2}, ${LABEL_H - 4})`);
-    const text = document.createElementNS(svgNS, "text");
-    text.setAttribute("transform", "rotate(-55)");
-    text.setAttribute("text-anchor", "end");
-    text.setAttribute("fill", "var(--color-muted)");
-    text.textContent = card.title.length > 20 ? card.title.slice(0, 18) + "…" : card.title;
-    const title = document.createElementNS(svgNS, "title");
-    title.textContent = card.title;
-    g.appendChild(title);
-    g.appendChild(text);
-    svg.appendChild(g);
-  });
-
-  // Row headers + cells
-  rows.forEach((wiCard, ri) => {
-    const y = LABEL_H + ri * CELL;
-
-    // Row label
-    const text = document.createElementNS(svgNS, "text");
-    text.setAttribute("x", LABEL_W - 8);
-    text.setAttribute("y", y + CELL / 2 + 3);
-    text.setAttribute("text-anchor", "end");
-    text.setAttribute("fill", "var(--color-muted)");
-    text.textContent = wiCard.title.length > 22 ? wiCard.title.slice(0, 20) + "…" : wiCard.title;
-    const rowTitle = document.createElementNS(svgNS, "title");
-    rowTitle.textContent = wiCard.title;
-    text.appendChild(rowTitle);
-    svg.appendChild(text);
-
-    // Stripe for readability
-    if (ri % 2 === 0) {
-      const rect = document.createElementNS(svgNS, "rect");
-      rect.setAttribute("x", LABEL_W);
-      rect.setAttribute("y", y);
-      rect.setAttribute("width", cols.length * CELL);
-      rect.setAttribute("height", CELL);
-      rect.setAttribute("fill", "rgba(0,0,0,0.025)");
-      svg.appendChild(rect);
-    }
-
-    // Cells
-    cols.forEach((wifCard, ci) => {
-      const x = LABEL_W + ci * CELL;
-      const linked = (wifCard.linkedInsightIds || []).includes(wiCard.id);
-
-      const cellRect = document.createElementNS(svgNS, "rect");
-      cellRect.setAttribute("x", x + 2);
-      cellRect.setAttribute("y", y + 2);
-      cellRect.setAttribute("width", CELL - 4);
-      cellRect.setAttribute("height", CELL - 4);
-      cellRect.setAttribute("rx", 2);
-      cellRect.setAttribute("fill", linked ? "var(--color-riso-green)" : "transparent");
-      cellRect.setAttribute("stroke", "rgba(0,0,0,0.08)");
-      cellRect.setAttribute("stroke-width", "0.5");
-      cellRect.style.cursor = linked ? "pointer" : "default";
-      if (linked) {
-        const t = document.createElementNS(svgNS, "title");
-        t.textContent = `${wiCard.title} → ${wifCard.title}`;
-        cellRect.appendChild(t);
-        cellRect.addEventListener("click", () => {
-          window.location.href = `card.html?id=${wifCard.id}&project=${projectId}`;
-        });
-      }
-      svg.appendChild(cellRect);
+    group.querySelector(".affinity-group__header").addEventListener("click", () => {
+      toggleSet(filter.tags, tag); renderAll();
     });
+
+    const cardsWrap = group.querySelector(".affinity-group__cards");
+    [...tagWi, ...tagWif].forEach(c => {
+      const chip = document.createElement("span");
+      chip.className = `affinity-chip affinity-chip--${c.type === "what-if" ? "wif" : "wi"}`;
+      chip.textContent = c.title;
+      bindMark(chip, c);
+      cardsWrap.appendChild(chip);
+    });
+    container.appendChild(group);
   });
-
-  el.appendChild(svg);
-
-  if (wi.length > MAX || wif.length > MAX) {
-    const note = document.createElement("p");
-    note.className = "outlier-empty";
-    note.style.marginTop = "8px";
-    note.textContent = `Showing first ${MAX} of each type. ${wi.length} What is? × ${wif.length} What if? total.`;
-    el.appendChild(note);
-  }
 }
 
-// ── 7. Author swim-lane ───────────────────────────────────────────────────────
-function renderSwimLane() {
+// ── Author contributions (count per author) ──────────────────────────────────────
+function renderAuthors(ctx) {
   const el = document.getElementById("swimlane");
-  if (!all.length || allAuthors.length < 2) {
-    el.innerHTML = `<p class="outlier-empty">Need cards from at least two authors to draw swim-lanes.</p>`;
+  const entries = Object.entries(ctx.authorCounts).sort((a, b) => b[1] - a[1]);
+  if (!entries.length) {
+    el.innerHTML = `<p class="outlier-empty">No named authors in view.</p>`;
     return;
   }
-
-  const dates = all.map(c => c.date).filter(Boolean).sort();
-  if (dates.length < 2) {
-    el.innerHTML = `<p class="outlier-empty">Cards need dates to draw swim-lanes.</p>`;
-    return;
-  }
-
-  const minDate = new Date(dates[0]);
-  const maxDate = new Date(dates[dates.length - 1]);
-  const span = Math.max(1, maxDate - minDate);
-
-  const LANE_H = 28;
-  const DOT_R  = 5;
-  const PAD_L  = 120;
-  const PAD_R  = 16;
-  const W      = el.offsetWidth || 480;
-  const DRAW_W = W - PAD_L - PAD_R;
-  const H      = allAuthors.length * LANE_H + 24;
-
-  const svgNS = "http://www.w3.org/2000/svg";
-  const svg = document.createElementNS(svgNS, "svg");
-  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-  svg.setAttribute("width", "100%");
-  svg.style.fontFamily = "var(--font-mono)";
-  svg.style.fontSize = "9px";
-  svg.style.overflow = "visible";
-
-  const colors = [
-    "var(--color-riso-green)",
-    "var(--color-riso-pink)",
-    "var(--color-riso-yellow)",
-    "var(--color-riso-blue)",
-    "var(--color-riso-orange)",
-  ];
-
-  allAuthors.forEach((author, ai) => {
-    const y = 12 + ai * LANE_H;
-    const color = colors[ai % colors.length];
-
-    // Baseline
-    const line = document.createElementNS(svgNS, "line");
-    line.setAttribute("x1", PAD_L);
-    line.setAttribute("x2", PAD_L + DRAW_W);
-    line.setAttribute("y1", y + LANE_H / 2);
-    line.setAttribute("y2", y + LANE_H / 2);
-    line.setAttribute("stroke", "rgba(0,0,0,0.1)");
-    line.setAttribute("stroke-width", "1");
-    svg.appendChild(line);
-
-    // Author label
-    const label = document.createElementNS(svgNS, "text");
-    label.setAttribute("x", PAD_L - 6);
-    label.setAttribute("y", y + LANE_H / 2 + 3);
-    label.setAttribute("text-anchor", "end");
-    label.setAttribute("fill", "var(--color-muted)");
-    label.textContent = author.length > 14 ? author.slice(0, 12) + "…" : author;
-    svg.appendChild(label);
-
-    // Dots for each card
-    all.filter(c => c.author === author && c.date).forEach(card => {
-      const cx = PAD_L + ((new Date(card.date) - minDate) / span) * DRAW_W;
-      const cy = y + LANE_H / 2;
-
-      const circle = document.createElementNS(svgNS, "circle");
-      circle.setAttribute("cx", cx);
-      circle.setAttribute("cy", cy);
-      circle.setAttribute("r", DOT_R);
-      circle.setAttribute("fill", color);
-      circle.setAttribute("stroke", "var(--color-black)");
-      circle.setAttribute("stroke-width", "1");
-      circle.style.cursor = "pointer";
-      const t = document.createElementNS(svgNS, "title");
-      t.textContent = `${card.title} (${card.date})`;
-      circle.appendChild(t);
-      circle.addEventListener("click", () => {
-        window.location.href = `card.html?id=${card.id}&project=${projectId}`;
-      });
-      svg.appendChild(circle);
-    });
+  const max = entries[0][1];
+  el.innerHTML = `<div class="author-bars"></div>`;
+  const wrap = el.querySelector(".author-bars");
+  entries.forEach(([author, count]) => {
+    const row = document.createElement("button");
+    row.className = "author-bar-row" + (filter.authors.has(author) ? " author-bar-row--active" : "");
+    row.innerHTML = `
+      <span class="author-bar-name">${escHtml(author)}</span>
+      <div class="author-bar-track"><div class="author-bar-fill" style="width:${(count / max * 100).toFixed(1)}%"></div></div>
+      <span class="author-bar-count">${count}</span>`;
+    row.addEventListener("click", () => { toggleSet(filter.authors, author); renderAll(); });
+    wrap.appendChild(row);
   });
-
-  // Date axis labels
-  [0, 0.25, 0.5, 0.75, 1].forEach(pct => {
-    const d = new Date(minDate.getTime() + span * pct);
-    const x = PAD_L + pct * DRAW_W;
-    const tick = document.createElementNS(svgNS, "text");
-    tick.setAttribute("x", x);
-    tick.setAttribute("y", H - 2);
-    tick.setAttribute("text-anchor", "middle");
-    tick.setAttribute("fill", "var(--color-muted)");
-    tick.textContent = d.toLocaleDateString("en", { month: "short", year: "2-digit" });
-    svg.appendChild(tick);
-  });
-
-  el.appendChild(svg);
 }
 
-// ── 8. Tag co-occurrence ──────────────────────────────────────────────────────
-function renderTagCooccurrence() {
+// ── Tag co-occurrence ─────────────────────────────────────────────────────────────
+function renderTagCooccurrence(ctx) {
   const el = document.getElementById("cooc-table");
-  if (allTags.length < 2) {
-    el.innerHTML = `<p class="outlier-empty">Need at least two tags to show co-occurrence.</p>`;
+  if (ctx.tags.length < 2) {
+    el.innerHTML = `<p class="outlier-empty">Need at least two themes in view to show co-occurrence.</p>`;
     return;
   }
-
   const pairs = {};
-  all.forEach(card => {
+  ctx.cards.forEach(card => {
     const tags = card.tags || [];
-    for (let i = 0; i < tags.length; i++) {
+    for (let i = 0; i < tags.length; i++)
       for (let j = i + 1; j < tags.length; j++) {
         const key = [tags[i], tags[j]].sort().join(" × ");
         pairs[key] = (pairs[key] || 0) + 1;
       }
-    }
   });
-
   const sorted = Object.entries(pairs).sort((a, b) => b[1] - a[1]).slice(0, 12);
-
   if (!sorted.length) {
-    el.innerHTML = `<p class="outlier-empty">No cards have two or more tags yet.</p>`;
+    el.innerHTML = `<p class="outlier-empty">No cards in view have two or more themes.</p>`;
     return;
   }
-
   const max = sorted[0][1];
   el.innerHTML = sorted.map(([pair, count]) => {
     const pct = Math.round((count / max) * 100);
     return `<div class="cooc-row">
       <span class="cooc-pair">${escHtml(pair)}</span>
-      <div class="cooc-bar-wrap">
-        <div class="cooc-bar" style="width:${pct}%"></div>
-      </div>
+      <div class="cooc-bar-wrap"><div class="cooc-bar" style="width:${pct}%"></div></div>
       <span class="cooc-count">${count}</span>
     </div>`;
   }).join("");
 }
 
-// ── 9. Research health ────────────────────────────────────────────────────────
-function renderHealthGrid() {
-  const el = document.getElementById("health-grid");
+// ── Render everything from the current filter ────────────────────────────────────
+function renderAll() {
+  const visible = getVisible();
+  const ctx = compute(visible);
 
-  const unlinkedWi   = wi.filter(c => !linkedWiIds.has(c.id));
-  const unlinkedWif  = wif.filter(c => (c.linkedInsightIds || []).length === 0);
-  const noTags       = all.filter(c => !c.tags || c.tags.length === 0);
-  const singleAuthorTags = allTags.filter(tag => {
-    const authors = new Set(all.filter(c => c.tags.includes(tag)).map(c => c.author));
-    return authors.size === 1;
-  });
+  hidePreview();
+  renderMasthead(ctx);
+  updateFilterUI();
 
-  function status(count, good, warn) {
-    if (count <= good) return "health-check--ok";
-    if (count <= warn) return "health-check--warn";
-    return "health-check--bad";
-  }
+  const grid = document.getElementById("analysis-grid");
+  const noResults = document.getElementById("analysis-noresults");
+  const empty = visible.length === 0;
+  grid.hidden = empty;
+  noResults.hidden = !empty;
+  if (empty) return;
 
-  function cardList(cards) {
-    if (!cards.length) return `<p class="outlier-empty">None — good!</p>`;
-    return `<div class="outlier-list">` + cards.map(c =>
-      `<a class="outlier-chip" href="card.html?id=${c.id}&project=${projectId}">
-        <span class="outlier-chip__badge outlier-chip__badge--${c.type === "what-if" ? "wif" : "wi"}">
-          ${c.type === "what-if" ? "WIF" : "WI"}
-        </span>${escHtml(c.title)}</a>`
-    ).join("") + `</div>`;
-  }
-
-  el.innerHTML = `
-    <div class="health-check ${status(unlinkedWi.length, 0, 3)}">
-      <div class="health-check__head">
-        <span class="health-check__title">Unaddressed observations</span>
-        <span class="health-check__count">${unlinkedWi.length}</span>
-      </div>
-      <p class="health-check__desc">What is? with no What if? idea linked.</p>
-      ${cardList(unlinkedWi)}
-    </div>
-    <div class="health-check ${status(unlinkedWif.length, 0, 3)}">
-      <div class="health-check__head">
-        <span class="health-check__title">Ungrounded ideas</span>
-        <span class="health-check__count">${unlinkedWif.length}</span>
-      </div>
-      <p class="health-check__desc">What if? cards with no observation linked.</p>
-      ${cardList(unlinkedWif)}
-    </div>
-    <div class="health-check ${status(noTags.length, 0, 2)}">
-      <div class="health-check__head">
-        <span class="health-check__title">Cards without tags</span>
-        <span class="health-check__count">${noTags.length}</span>
-      </div>
-      <p class="health-check__desc">May need categorisation.</p>
-      ${cardList(noTags)}
-    </div>
-    <div class="health-check ${status(singleAuthorTags.length, 0, 3)}">
-      <div class="health-check__head">
-        <span class="health-check__title">Single-author themes</span>
-        <span class="health-check__count">${singleAuthorTags.length}</span>
-      </div>
-      <p class="health-check__desc">Tags where only one person has contributed.</p>
-      <div class="outlier-tag-list">${singleAuthorTags.length
-        ? singleAuthorTags.map(t => {
-            const tc = tagColor(t);
-            return `<span class="outlier-tag" style="--tag-bg:${tc.bg};--tag-color:${tc.text}">${escHtml(t)}</span>`;
-          }).join("")
-        : `<p class="outlier-empty">All themes have multiple contributors.</p>`
-      }</div>
-    </div>
-  `;
+  renderAnnotationActivity(ctx);
+  renderTagChart(ctx);
+  renderCoverageMap(ctx);
+  renderAffinityGroups(ctx);
+  renderAuthors(ctx);
+  renderTagCooccurrence(ctx);
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
-renderAnnotationActivity();
-renderTagChart();
-renderCoverageMap();
-renderTimeline();
-renderAffinityGroups();
-renderConnectionMatrix();
-renderSwimLane();
-renderTagCooccurrence();
-renderHealthGrid();
+buildFilterControls();
+renderAll();
 
+let resizeTimer;
 window.addEventListener("resize", () => {
-  renderCoverageMap();
-  renderTimeline();
-  renderSwimLane();
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => { if (!getVisible().length) return; renderCoverageMap(compute(getVisible())); }, 150);
 });
 
 })(); // end async IIFE

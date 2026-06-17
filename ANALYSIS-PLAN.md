@@ -129,13 +129,18 @@ All seven respond to the shared filter; all card marks open the card.
 
 ---
 
-## Open questions for you
+## Decisions (2026-06-17)
 
-1. **Treemap vs. keep bars** for the themes overview (Mode B) — go visual, or stay with the bars you have?
-2. **Axis workbench (G):** start with data-derived axes only, or is manual placement ("we decide the axis and drag cards") important enough to build the storage for now?
-3. **Affinity (H):** is tag-overlap clustering enough for this pass, or do you want to plan the manual drag-to-cluster board as its own mode?
-4. **Creative-mode hooks** (the "no ideas on this theme yet → spark one" buttons): wire them now as part of analysis, or stub them until creative mode (§C.7) is settled?
-5. **Scope of this pass:** restructure + interactivity backbone only (Phase 1), or push into the new overviews (Phase 2) in the same pass?
+Building on branch `analysis-redesign`.
+
+1. **Scope:** start with **Phase 1 — restructure + interactivity backbone** (cut timeline/matrix/health; shared filter context + brushing/linking + details-on-demand; re-point existing panels).
+2. **Themes (Mode B):** **treemap overview + bars as drill-down** — build in Phase 2.
+3. **Axis workbench (Mode G):** **plan manual placement too** (team-defined axes + drag-to-place) — needs a per-card axis-value store; design the data-model change in Phase 3.
+4. Affinity (Mode H) and creative-mode hooks (Mode E) — revisit when those phases land.
+
+### Still open (revisit at the relevant phase)
+- Affinity: tag-overlap now vs. plan the manual drag-to-cluster board as its own mode.
+- Creative-mode hooks: wire during analysis or stub until §C.7.
 
 ---
 

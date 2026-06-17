@@ -2464,6 +2464,165 @@ body.print-page {
   overflow: hidden;
 }
 
+/* ── Analysis Phase 1: masthead + shared filter + interactivity ─────────────── */
+.analysis-masthead {
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  margin-bottom: 20px;
+}
+.analysis-masthead .stat-row { border-bottom: 1px solid var(--color-border); }
+
+/* Clickable type stat tiles */
+button.stat-tile {
+  font-family: inherit;
+  background: var(--color-white);
+  border-top: none;
+  border-bottom: none;
+  border-left: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+button.stat-tile:hover { background: var(--color-surface); }
+
+.analysis-shape {
+  margin: 0;
+  padding: 12px 20px;
+  font-size: var(--text-sm);
+  color: var(--color-ink);
+  line-height: 1.5;
+}
+.analysis-shape strong { font-weight: 900; }
+
+/* Filter bar tag chips (reuses .filter-bar / .filter-btn from the gallery) */
+#analysis-filter { margin-bottom: 24px; }
+
+.filter-btn--tag {
+  border-color: var(--tag-bg, var(--color-black));
+}
+.filter-btn--tag-active {
+  background: var(--tag-bg, var(--color-black));
+  color: var(--tag-color, var(--color-white));
+}
+.filter-empty {
+  font-size: 11px;
+  color: var(--color-muted);
+  font-style: italic;
+  align-self: center;
+}
+
+/* No-results state */
+.analysis-noresults {
+  padding: 40px 0;
+  text-align: center;
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+}
+.link-btn {
+  font: inherit;
+  font-size: inherit;
+  background: none;
+  border: none;
+  color: var(--color-riso-green);
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* Author contributions — count bars */
+.author-bars { display: flex; flex-direction: column; gap: 8px; }
+.author-bar-row {
+  display: grid;
+  grid-template-columns: 120px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  font-family: inherit;
+  background: none;
+  border: none;
+  padding: 4px 6px;
+  cursor: pointer;
+  text-align: left;
+  border-radius: 2px;
+  transition: background 0.12s;
+}
+.author-bar-row:hover { background: var(--color-surface); }
+.author-bar-row--active { background: rgba(11,107,0,0.10); }
+.author-bar-name {
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.author-bar-track { height: 12px; background: var(--color-surface); }
+.author-bar-fill {
+  height: 100%;
+  background: var(--color-riso-blue);
+  min-width: 2px;
+  transition: width 0.3s ease;
+}
+.author-bar-count { font-size: 10px; color: var(--color-muted); }
+
+/* Details-on-demand preview popover */
+.analysis-preview {
+  position: fixed;
+  z-index: 1000;
+  max-width: 280px;
+  background: var(--color-black);
+  color: var(--color-white);
+  border: 1px solid var(--color-black);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  pointer-events: none;
+  box-shadow: 4px 4px 0 rgba(0,0,0,0.25);
+}
+.analysis-preview__badge {
+  align-self: flex-start;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 6px;
+}
+.analysis-preview__badge--wi  { background: var(--color-riso-green); color: var(--color-white); }
+.analysis-preview__badge--wif { background: var(--color-riso-pink);  color: var(--color-white); }
+.analysis-preview__title { font-size: 13px; font-weight: 700; line-height: 1.3; }
+.analysis-preview__author { font-size: 10px; opacity: 0.7; }
+.analysis-preview__tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.analysis-preview__tag {
+  font-size: 9px;
+  background: rgba(255,255,255,0.18);
+  padding: 1px 5px;
+}
+.analysis-preview__annot { font-size: 10px; opacity: 0.8; }
+
+/* Clickable theme rows (tag chart) + affinity headers */
+button.tag-bar-row {
+  font-family: inherit;
+  background: none;
+  border: none;
+  width: 100%;
+  cursor: pointer;
+  padding: 3px 4px;
+  border-radius: 2px;
+  transition: background 0.12s;
+}
+button.tag-bar-row:hover { background: var(--color-surface); }
+.tag-bar-row--active { background: rgba(11,107,0,0.10); }
+
+button.affinity-group__header {
+  font-family: inherit;
+  width: 100%;
+  border: none;
+  cursor: pointer;
+}
+.affinity-group__header--active { outline: 2px solid var(--color-black); outline-offset: -2px; }
+
+/* Annotation activity row — whole row clickable now */
+.annot-bar-row { cursor: pointer; }
+.annot-bar-label { text-decoration: none; color: inherit; }
+
 /* Annotation activity */
 .annotation-activity {
   display: flex;
