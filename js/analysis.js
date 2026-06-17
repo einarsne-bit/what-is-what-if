@@ -64,6 +64,26 @@ const AXES = {
 let axisX = "recency";
 let axisY = "annotations";
 
+// An axis selection is either a measure key (in AXES) or "tag:<theme>" for
+// membership of a specific theme (1 = carries it, 0 = doesn't) — the 2×2 mode.
+function axisDef(sel) {
+  if (sel && sel.startsWith("tag:")) {
+    const name = sel.slice(4);
+    return { key: sel, label: name, isTheme: true, min: 0, max: 1,
+             value: c => ((c.tags || []).includes(name) ? 1 : 0) };
+  }
+  const a = AXES[sel] || AXES.annotations;
+  return { key: sel, label: a.label, isTheme: false, value: a.value, fmt: a.fmt };
+}
+
+// Deterministic jitter in [-1, 1] from a card id + axis key (stable across renders).
+function jitterFor(id, key) {
+  const s = id + "|" + key;
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return ((h % 1000) / 1000) * 2 - 1;
+}
+
 function filterActive() {
   return filter.type !== "all" || filter.tags.size || filter.authors.size
       || filter.annotated || filter.drafts;
@@ -541,12 +561,18 @@ function renderBreadth(ctx) {
 
 // ── Axis workbench (scatter on two chosen dimensions) ────────────────────────────
 function buildAxisControls() {
-  const optsHtml = sel => Object.entries(AXES)
-    .map(([k, a]) => `<option value="${k}"${k === sel ? " selected" : ""}>${a.label}</option>`).join("");
+  const measures = Object.entries(AXES)
+    .map(([k, a]) => `<option value="${k}">${a.label}</option>`).join("");
+  const themes = allTags
+    .map(t => `<option value="tag:${escHtml(t)}">${escHtml(t)}</option>`).join("");
+  const groups =
+    `<optgroup label="Measures">${measures}</optgroup>` +
+    (allTags.length ? `<optgroup label="Themes (carries it?)">${themes}</optgroup>` : "");
+
   const xSel = document.getElementById("ax-x");
   const ySel = document.getElementById("ax-y");
-  xSel.innerHTML = optsHtml(axisX);
-  ySel.innerHTML = optsHtml(axisY);
+  xSel.innerHTML = groups; ySel.innerHTML = groups;
+  xSel.value = axisX; ySel.value = axisY;
   xSel.addEventListener("change", () => { axisX = xSel.value; renderAxisScatter(compute(getVisible())); });
   ySel.addEventListener("change", () => { axisY = ySel.value; renderAxisScatter(compute(getVisible())); });
 }
@@ -560,19 +586,25 @@ function renderAxisScatter(ctx) {
     return;
   }
 
-  const ax = AXES[axisX], ay = AXES[axisY];
-  const xs = cards.map(c => ax.value(c));
-  const ys = cards.map(c => ay.value(c));
-  let xMin = Math.min(...xs), xMax = Math.max(...xs);
-  let yMin = Math.min(...ys), yMax = Math.max(...ys);
-  if (xMin === xMax) { xMin -= 1; xMax += 1; }
-  if (yMin === yMax) { yMin -= 1; yMax += 1; }
+  const ax = axisDef(axisX), ay = axisDef(axisY);
+  const range = (def, vals) => {
+    if (def.isTheme) return [0, 1];
+    let lo = Math.min(...vals), hi = Math.max(...vals);
+    if (lo === hi) { lo -= 1; hi += 1; }
+    return [lo, hi];
+  };
+  const [xMin, xMax] = range(ax, cards.map(c => ax.value(c)));
+  const [yMin, yMax] = range(ay, cards.map(c => ay.value(c)));
 
   const W = el.clientWidth || 600, H = 360;
   const m = { top: 16, right: 18, bottom: 40, left: 56 };
   const plotW = W - m.left - m.right, plotH = H - m.top - m.bottom;
   const xScale = v => m.left + ((v - xMin) / (xMax - xMin)) * plotW;
   const yScale = v => m.top + plotH - ((v - yMin) / (yMax - yMin)) * plotH;
+
+  // Jitter amplitude (px) for binary theme axes, so points spread within a corner
+  const xJit = ax.isTheme ? Math.abs(xScale(1) - xScale(0)) * 0.16 : 0;
+  const yJit = ay.isTheme ? Math.abs(yScale(1) - yScale(0)) * 0.16 : 0;
 
   const svgNS = "http://www.w3.org/2000/svg";
   const svg = document.createElementNS(svgNS, "svg");
@@ -581,29 +613,36 @@ function renderAxisScatter(ctx) {
   svg.setAttribute("height", H);
   svg.style.overflow = "visible";
 
-  // Gridlines + ticks (3 per axis: min, mid, max)
-  const ticks = (min, max) => [min, (min + max) / 2, max];
   let frame = "";
-  ticks(xMin, xMax).forEach(v => {
+  // X ticks/labels
+  const xTicks = ax.isTheme ? [[0, "no"], [1, ax.label]] : [xMin, (xMin + xMax) / 2, xMax].map(v => [v, ax.fmt(v)]);
+  xTicks.forEach(([v, lbl]) => {
     const x = xScale(v);
     frame += `<line x1="${x}" y1="${m.top}" x2="${x}" y2="${m.top + plotH}" stroke="rgba(0,0,0,0.06)" stroke-width="1"/>`;
-    frame += `<text x="${x}" y="${m.top + plotH + 16}" text-anchor="middle" font-size="9" fill="#999" font-family="monospace">${escHtml(String(ax.fmt(v)))}</text>`;
+    frame += `<text x="${x}" y="${m.top + plotH + 16}" text-anchor="middle" font-size="9" fill="#999" font-family="monospace">${escHtml(String(lbl))}</text>`;
   });
-  ticks(yMin, yMax).forEach(v => {
+  // Y ticks/labels
+  const yTicks = ay.isTheme ? [[0, "no"], [1, ay.label]] : [yMin, (yMin + yMax) / 2, yMax].map(v => [v, ay.fmt(v)]);
+  yTicks.forEach(([v, lbl]) => {
     const y = yScale(v);
     frame += `<line x1="${m.left}" y1="${y}" x2="${m.left + plotW}" y2="${y}" stroke="rgba(0,0,0,0.06)" stroke-width="1"/>`;
-    frame += `<text x="${m.left - 8}" y="${y + 3}" text-anchor="end" font-size="9" fill="#999" font-family="monospace">${escHtml(String(ay.fmt(v)))}</text>`;
+    frame += `<text x="${m.left - 8}" y="${y + 3}" text-anchor="end" font-size="9" fill="#999" font-family="monospace">${escHtml(String(lbl))}</text>`;
   });
+  // Quadrant dividers when an axis is a theme (membership midline at 0.5)
+  if (ax.isTheme) frame += `<line x1="${xScale(0.5)}" y1="${m.top}" x2="${xScale(0.5)}" y2="${m.top + plotH}" stroke="rgba(0,0,0,0.18)" stroke-width="1" stroke-dasharray="3 3"/>`;
+  if (ay.isTheme) frame += `<line x1="${m.left}" y1="${yScale(0.5)}" x2="${m.left + plotW}" y2="${yScale(0.5)}" stroke="rgba(0,0,0,0.18)" stroke-width="1" stroke-dasharray="3 3"/>`;
   // Axis titles
   frame += `<text x="${m.left + plotW / 2}" y="${H - 4}" text-anchor="middle" font-size="10" font-weight="700" fill="var(--color-ink)" font-family="monospace" letter-spacing="0.04em">${escHtml(ax.label.toUpperCase())}</text>`;
   frame += `<text transform="translate(13,${m.top + plotH / 2}) rotate(-90)" text-anchor="middle" font-size="10" font-weight="700" fill="var(--color-ink)" font-family="monospace" letter-spacing="0.04em">${escHtml(ay.label.toUpperCase())}</text>`;
   svg.innerHTML = frame;
 
-  // Dots — drawn WI then WIF so pink reads on top
+  // Dots — WI first so WIF (pink) reads on top
   const draw = card => {
+    const cx = xScale(ax.value(card)) + (xJit ? jitterFor(card.id, ax.key) * xJit : 0);
+    const cy = yScale(ay.value(card)) + (yJit ? jitterFor(card.id, "y" + ay.key) * yJit : 0);
     const c = document.createElementNS(svgNS, "circle");
-    c.setAttribute("cx", xScale(ax.value(card)).toFixed(1));
-    c.setAttribute("cy", yScale(ay.value(card)).toFixed(1));
+    c.setAttribute("cx", cx.toFixed(1));
+    c.setAttribute("cy", cy.toFixed(1));
     c.setAttribute("r", 5);
     c.setAttribute("fill", card.type === "what-if" ? "var(--color-riso-pink)" : "var(--color-riso-green)");
     c.setAttribute("fill-opacity", "0.75");
@@ -807,6 +846,14 @@ function renderAll() {
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
+// Default the workbench to the two most-used themes → an immediate 2×2.
+(() => {
+  const freq = {};
+  all.forEach(c => (c.tags || []).forEach(t => { freq[t] = (freq[t] || 0) + 1; }));
+  const top = Object.keys(freq).sort((a, b) => freq[b] - freq[a]);
+  if (top.length >= 2) { axisX = `tag:${top[0]}`; axisY = `tag:${top[1]}`; }
+})();
+
 buildFilterControls();
 buildAxisControls();
 renderAll();
