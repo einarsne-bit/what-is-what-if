@@ -140,7 +140,7 @@
 **Build (branch `analysis-redesign`):**
 - [x] **Phase 1 — restructure + interactivity backbone.** Cut timeline/matrix/health. Added a shared filter context (type · themes · creators · annotated · drafts) that drives every panel (brushing-by-filtering); details-on-demand hover preview on all card marks; clickable masthead with a "shape" sentence; reframed Connections panel (neutral unlinked state); Author contributions → count bars. Panels re-point off the visible set; empty/no-results states added.
 - [x] Phase 2 — **themes treemap** (squarified, click-to-filter, bars as drill-down) · **breadth & gaps panel** (insights/ideas breadth + theme coverage gaps, with creative-mode nudge) · **annotation consensus/spread** (agreement vs. mixed-signal classification + summary)
-- [~] Phase 3 — **axis workbench 3a** ✅ (selectable axes: measures — annotations · connections · recency · body length · # themes — OR a **theme on each axis for a 2×2 quadrant** surfacing cross-theme bridges; jittered, filter-aware, click-to-open) · [ ] 3b manual placement (needs a per-card axis-value column) · [ ] tag-overlap affinity
+- [~] Phase 3 — **axis workbench 3a** ✅ (selectable axes: measures OR a **theme on each axis for a 2×2 quadrant** with quadrant labels/counts + bridge emphasis; jittered, filter-aware) · **tag-overlap affinity** ✅ (clusters cards sharing ≥2 themes via connected components, multi-theme cluster signatures) · [ ] 3b manual axis placement (needs a per-card axis-value column — schema step)
 
 **Still open (revisit at the relevant phase):** affinity tag-overlap vs. manual board · creative-mode hooks (wire vs. stub until §C.7)
 

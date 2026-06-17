@@ -759,38 +759,74 @@ function renderCoverageMap(ctx) {
   el.appendChild(svg);
 }
 
-// ── Affinity groups ───────────────────────────────────────────────────────────────
+// ── Affinity groups (clusters by shared-tag overlap) ─────────────────────────────
+// Cards are linked when they share ≥ minShared tags; connected components form
+// clusters that can span several themes (not one bucket per tag).
+function clusterByTagOverlap(cards, minShared = 2) {
+  const tagged = cards.filter(c => (c.tags || []).length);
+  const parent = tagged.map((_, i) => i);
+  const find = i => { while (parent[i] !== i) { parent[i] = parent[parent[i]]; i = parent[i]; } return i; };
+  const union = (a, b) => { const ra = find(a), rb = find(b); if (ra !== rb) parent[ra] = rb; };
+  const sets = tagged.map(c => new Set(c.tags));
+
+  for (let i = 0; i < tagged.length; i++) {
+    for (let j = i + 1; j < tagged.length; j++) {
+      let shared = 0;
+      for (const t of sets[i]) { if (sets[j].has(t) && ++shared >= minShared) break; }
+      if (shared >= minShared) union(i, j);
+    }
+  }
+  const groups = {};
+  tagged.forEach((c, i) => { (groups[find(i)] ||= []).push(c); });
+  return Object.values(groups);
+}
+
 function renderAffinityGroups(ctx) {
   const container = document.getElementById("affinity-groups");
-  const top = ctx.tagStats.filter(d => d.total > 0).slice(0, 16);
   container.innerHTML = "";
-  if (!top.length) {
-    container.innerHTML = `<p class="outlier-empty">No themes in view.</p>`;
+  if (!ctx.cards.some(c => (c.tags || []).length)) {
+    container.innerHTML = `<p class="outlier-empty">No tagged cards in view.</p>`;
     return;
   }
 
-  top.forEach(({ tag }) => {
-    const tc = tagColor(tag);
-    const tagCards = ctx.cards.filter(c => (c.tags || []).includes(tag));
-    const tagWi  = tagCards.filter(c => c.type === "what-is");
-    const tagWif = tagCards.filter(c => c.type === "what-if");
+  const clusters = clusterByTagOverlap(ctx.cards, 2)
+    .sort((a, b) => b.length - a.length);
+  const multi = clusters.filter(c => c.length >= 2);
+  const loose = clusters.filter(c => c.length === 1).map(c => c[0]);
+
+  if (!multi.length) {
+    container.innerHTML = `<p class="outlier-empty">No cards share two or more themes yet — nothing clusters at this threshold.</p>`;
+    return;
+  }
+
+  multi.slice(0, 12).forEach(members => {
+    // Cluster signature = the tags most shared across its members (top 3)
+    const freq = {};
+    members.forEach(c => (c.tags || []).forEach(t => { freq[t] = (freq[t] || 0) + 1; }));
+    const topTags = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 3).map(e => e[0]);
 
     const group = document.createElement("div");
-    group.className = "affinity-group";
-    const active = filter.tags.has(tag) ? " affinity-group__header--active" : "";
+    group.className = "affinity-group affinity-cluster";
+    const chipsHtml = topTags.map(t => {
+      const tc = tagColor(t);
+      const active = filter.tags.has(t) ? " affinity-cluster__tag--active" : "";
+      return `<button class="affinity-cluster__tag${active}" data-tag="${escHtml(t)}" style="--tag-bg:${tc.bg};--tag-color:${tc.text}">${escHtml(t)}</button>`;
+    }).join("");
+
     group.innerHTML = `
-      <button class="affinity-group__header${active}" data-tag="${escHtml(tag)}" style="--tag-bg:${tc.bg};--tag-color:${tc.text}">
-        <span class="affinity-group__name">${escHtml(tag)}</span>
-        <span class="affinity-group__count">${tagCards.length}</span>
-      </button>
+      <div class="affinity-cluster__header">
+        <div class="affinity-cluster__tags">${chipsHtml}</div>
+        <span class="affinity-group__count">${members.length}</span>
+      </div>
       <div class="affinity-group__cards"></div>`;
 
-    group.querySelector(".affinity-group__header").addEventListener("click", () => {
-      toggleSet(filter.tags, tag); renderAll();
+    group.querySelectorAll("[data-tag]").forEach(btn => {
+      btn.addEventListener("click", () => { toggleSet(filter.tags, btn.dataset.tag); renderAll(); });
     });
 
     const cardsWrap = group.querySelector(".affinity-group__cards");
-    [...tagWi, ...tagWif].forEach(c => {
+    const ordered = [...members.filter(c => c.type === "what-is"), ...members.filter(c => c.type === "what-if")];
+    ordered.forEach(c => {
       const chip = document.createElement("span");
       chip.className = `affinity-chip affinity-chip--${c.type === "what-if" ? "wif" : "wi"}`;
       chip.textContent = c.title;
@@ -799,6 +835,13 @@ function renderAffinityGroups(ctx) {
     });
     container.appendChild(group);
   });
+
+  if (loose.length) {
+    const note = document.createElement("p");
+    note.className = "affinity-loose";
+    note.textContent = `${loose.length} card${loose.length !== 1 ? "s" : ""} don't share two or more themes with others.`;
+    container.appendChild(note);
+  }
 }
 
 // ── Author contributions (count per author) ──────────────────────────────────────

@@ -2855,6 +2855,39 @@ button.affinity-group__header {
   .breadth__cols, .breadth__gaps { grid-template-columns: 1fr; }
 }
 
+/* Affinity clusters (shared-tag overlap) */
+.affinity-cluster__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 9px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+.affinity-cluster__tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.affinity-cluster__tag {
+  font-family: inherit;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border: 1px solid var(--tag-bg, var(--color-black));
+  background: var(--tag-bg, #eee);
+  color: var(--tag-color, #333);
+  cursor: pointer;
+}
+.affinity-cluster__tag--active { outline: 2px solid var(--color-black); outline-offset: 1px; }
+.affinity-cluster .affinity-group__count { font-size: 10px; color: var(--color-muted); padding-top: 2px; }
+.affinity-loose {
+  grid-column: 1 / -1;
+  margin: 4px 0 0;
+  font-size: 11px;
+  color: var(--color-muted);
+  font-style: italic;
+}
+
 /* Themes drill-down (dual bars behind a disclosure) */
 .theme-detail { margin-top: 16px; }
 .theme-detail__summary {
