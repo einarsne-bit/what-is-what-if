@@ -153,16 +153,13 @@
 - [ ] Spacebar-to-shuffle shortcut?
 - [ ] Constraint-tile colour (brief suggested yellow/orange — not green/pink)
 
-### 8. print.html — Print / PDF export
-**Check/fix**
-- [ ] Card-selection grid + select-all
-- [ ] PDF output quality
-- [ ] Progress overlay
+### 8. print.html — Print / PDF export — ✅ pass done (download workflow kept)
+**Decision:** keep the **html2canvas + jsPDF download** (Export PDF → A4-landscape PDF, one card per page). Browser print + `@media print` was rejected — the print dialog (margins / scaling / added headers, per-use config) is too unreliable.
+- [x] Card-selection grid, filters, select-all/deselect, progress overlay — working
+- [x] Layout: 1 card per A4 page
+- [x] **Vertical references text fixed for export** — reimplemented the strip with `transform: rotate(-90deg)` instead of `writing-mode` (html2canvas can't render `writing-mode` but handles rotate). Same look on screen; now exports correctly. *Verify in a test PDF.*
 
-**Decide (significant)**
-- [ ] **Export approach:** R&D strongly favours **browser print + `@media print`** (vector, selectable text, reliable A4) over the current **html2canvas + jsPDF** (raster; R&D warns flex/grid layouts — which the cards use — don't rasterise reliably). Biggest technical/visual decision on the page.
-- [ ] Layout: 1-up A4 landscape vs 4-up grid (roadmap)
-- [ ] Page setup
+*Note: the download is raster (html2canvas) by nature — vector/selectable text would require browser-print, which was rejected. Acceptable trade-off for a reliable one-click download.*
 
 ### 9. about.html — About
 **Check/fix**
@@ -190,6 +187,9 @@
 - **Annotation marker set + icons** (card, §C.3 D2). Current set (interesting / follow-thread / low-hanging-fruit + comment) is functional but visually placeholder; finalise the marker vocabulary and icons in a dedicated workshop-mode pass (BRIEF mentions star / low-hanging-fruit / follow-this-thread).
 - **User-controlled image filter** (create, §C.4 D3). The fixed print-style filter (desaturate + contrast) was removed; add a per-card image-filter control in the create settings (halftone / riso / b&w / contrast) — pairs with the Phase 8 "card image effects" item.
 - **Print-quality image handling** (create, §C.4 D4). Images are base64 data URLs; add downscale/compress on drop, but keep resolution high enough for crisp A4 print output (the catalogue is the end goal). Balance DB size vs print sharpness.
+- **PDF export raster quality** (print, §C.8). html2canvas produces a raster (pixel) PDF — text is not selectable or searchable. JPEG compression at 0.93 may lose sharpness at full A4. If vector/selectable text becomes a requirement, the only path is browser print (which was rejected). Acceptable trade-off for now.
+- **Vertical references text in PDF — verify** (print, §C.8). Replaced `writing-mode: vertical-rl` with `transform: rotate(-90deg)` so html2canvas can capture it. Visually identical on screen. Do a test export to confirm it renders correctly in the output PDF.
+- **PDF export performance on large sets** (print, §C.8). Each card is a sequential html2canvas capture — slow for large selections. For 20+ cards this can take 30–60 s. Consider a progress indicator improvement or batching in a future pass.
 
 ---
 

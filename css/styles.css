@@ -1327,21 +1327,19 @@ body.print-page {
   flex-shrink: 0;
   overflow: hidden;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   padding: var(--space-md) 0;
 }
 
+/* Vertical reference text via rotate (not writing-mode) so it survives the
+   html2canvas → PDF export, which can't render writing-mode but handles rotate. */
 .card__references-text {
   font-size: 11px;
   line-height: 1.4;
   color: var(--color-muted);
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);   /* read bottom-to-top */
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-height: 100%;
+  transform: rotate(-90deg);   /* reads bottom-to-top */
 }
 
 /* ── About page ─────────────────────────────────── */
