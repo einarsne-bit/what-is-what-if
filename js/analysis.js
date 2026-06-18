@@ -7,6 +7,8 @@
 
 (async () => {
 
+appStatus.start();
+
 // ── Project + cards ───────────────────────────────────────────────────────────
 const activeProject = await loadActiveProject();
 const projectId     = activeProject.id;
@@ -951,14 +953,14 @@ function sharedThemeGroups(cards, minCards = 2, limit = 12) {
     const tags = [...new Set(c.tags || [])].sort();
     for (let i = 0; i < tags.length; i++)
       for (let j = i + 1; j < tags.length; j++) {
-        const key = tags[i] + " " + tags[j];
+        const key = tags[i] + "\u0000" + tags[j];
         if (!pairCards.has(key)) pairCards.set(key, []);
         pairCards.get(key).push(c);
       }
   });
 
   const candidates = [...pairCards.entries()]
-    .map(([key, cs]) => { const [a, b] = key.split(" "); return { a, b, cards: cs }; })
+    .map(([key, cs]) => { const [a, b] = key.split("\u0000"); return { a, b, cards: cs }; })
     .filter(g => g.cards.length >= minCards)
     .sort((x, y) => y.cards.length - x.cards.length);
 
@@ -1290,6 +1292,11 @@ buildCrosstabControls();
 renderCompare();      // independent of the shared filter — render once
 renderTagHygiene();   // project-wide tag vocabulary — render once
 renderAll();
+
+appStatus.done();
+if (!dbReachable()) {
+  appStatus.error("Couldn't load the analysis — check your connection and retry.", () => location.reload());
+}
 
 let resizeTimer;
 window.addEventListener("resize", () => {
