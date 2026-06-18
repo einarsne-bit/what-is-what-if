@@ -146,7 +146,9 @@
 
 **Still open (revisit at the relevant phase):** affinity tag-overlap vs. manual board · creative-mode hooks (wire vs. stub until §C.7)
 
-### 7. creative.html — Creative / ideation
+### 7. creative.html — Creative / ideation — 🔬 R&D done (see [CreativeR&D.md](CreativeR&D.md))
+**R&D (2026-06-18):** deep scan of creativity/ideation/speculative-design/workshop literature → [CreativeR&D.md](CreativeR&D.md). Headline: the "combine two What Is?" vs "What Is? + constraint prompt" choice is **two validated techniques** (combinatorial creativity vs constraint-based/provocation), not either/or. **Recommendation:** a **two-mode, no-AI V1** led by the constraint-prompt mode; AI variants parked (Decision #31).
+
 **Check/fix**
 - [ ] Spark modes (Random / By theme / Cross-theme) UI
 - [ ] Card display + scaling
