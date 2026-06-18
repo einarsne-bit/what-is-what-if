@@ -341,84 +341,56 @@ function renderMasthead(ctx) {
   }
 }
 
-// ── Annotation activity ─────────────────────────────────────────────────────────
+// ── Annotation activity — cards grouped per annotation category ──────────────────
 function renderAnnotationActivity(ctx) {
   const el = document.getElementById("annotation-activity");
   if (!ctx.cardActivity.length) {
     el.innerHTML = `<p class="outlier-empty">No annotations on the cards in view. Reactions and comments added in the card view appear here.</p>`;
     return;
   }
-  const maxTotal = ctx.cardActivity[0].total;
-  const top = ctx.cardActivity.slice(0, 20);
 
-  const r = { interesting: 0, "follow-thread": 0, "low-hanging-fruit": 0, comments: 0 };
-  ctx.cardActivity.forEach(d => {
-    r.interesting += d.interesting; r["follow-thread"] += d.followThread;
-    r["low-hanging-fruit"] += d.lowHangingFruit; r.comments += d.comments;
+  const cats = [
+    { cls: "interesting", label: "Interesting",       get: d => d.interesting },
+    { cls: "follow",      label: "Follow this thread", get: d => d.followThread },
+    { cls: "fruit",       label: "Low hanging fruit",  get: d => d.lowHangingFruit },
+    { cls: "comment",     label: "Comments",           get: d => d.comments },
+  ];
+
+  el.innerHTML = "";
+  const wrap = document.createElement("div");
+  wrap.className = "annot-cats";
+
+  cats.forEach(cat => {
+    const list = ctx.cardActivity.filter(d => cat.get(d) > 0).sort((a, b) => cat.get(b) - cat.get(a));
+    const total = ctx.cardActivity.reduce((s, d) => s + cat.get(d), 0);
+
+    const sec = document.createElement("div");
+    sec.className = "annot-cat";
+    sec.innerHTML = `
+      <h3 class="annot-cat__head annot-cat__head--${cat.cls}">
+        <span class="annot-cat__label">${cat.label}</span>
+        <span class="annot-cat__meta">${total} across ${list.length} card${list.length !== 1 ? "s" : ""}</span>
+      </h3>
+      <div class="annot-cat__cards"></div>`;
+    const cardsWrap = sec.querySelector(".annot-cat__cards");
+
+    if (!list.length) {
+      cardsWrap.innerHTML = `<span class="annot-cat__empty">None yet</span>`;
+    } else {
+      list.forEach(d => {
+        const chip = document.createElement("button");
+        chip.className = `annot-cat__chip annot-cat__chip--${d.card.type === "what-if" ? "wif" : "wi"}`;
+        chip.innerHTML =
+          `<span class="annot-cat__chip-title">${escHtml(d.card.title)}</span>` +
+          `<span class="annot-cat__chip-count">${cat.get(d)}</span>`;
+        bindMark(chip, d.card);
+        cardsWrap.appendChild(chip);
+      });
+    }
+    wrap.appendChild(sec);
   });
 
-  // Consensus vs. spread: how concentrated a card's responses are across the
-  // four marker kinds. One kind dominates → agreement; split → mixed signals.
-  const consensus = d => {
-    const parts = [d.interesting, d.followThread, d.lowHangingFruit, d.comments].filter(v => v > 0);
-    if (d.total < 2 || parts.length <= 1) return null;           // too few / single kind
-    const topShare = Math.max(...parts) / d.total;
-    return topShare >= 0.6 ? "agree" : "mixed";
-  };
-
-  const classified = ctx.cardActivity.map(consensus);
-  const nAgree = classified.filter(c => c === "agree").length;
-  const nMixed = classified.filter(c => c === "mixed").length;
-
-  const summary = (nAgree || nMixed)
-    ? `<p class="annot-summary">
-        <span class="annot-summary__dot annot-summary__dot--agree"></span>
-        <strong>${nAgree}</strong> card${nAgree !== 1 ? "s" : ""} drew clear agreement
-        <span class="annot-summary__sep">·</span>
-        <span class="annot-summary__dot annot-summary__dot--mixed"></span>
-        <strong>${nMixed}</strong> drew mixed signals
-      </p>`
-    : "";
-
-  const legend = `
-    <div class="annot-legend">
-      <span class="annot-legend__item annot-legend__item--interesting">Interesting (${r.interesting})</span>
-      <span class="annot-legend__item annot-legend__item--follow">Follow thread (${r["follow-thread"]})</span>
-      <span class="annot-legend__item annot-legend__item--fruit">Low hanging fruit (${r["low-hanging-fruit"]})</span>
-      <span class="annot-legend__item annot-legend__item--comment">Comments (${r.comments})</span>
-    </div>`;
-
-  el.innerHTML = legend + summary + `<div class="annot-bars"></div>`;
-  const barsEl = el.querySelector(".annot-bars");
-
-  top.forEach(d => {
-    const pct = v => ((v / maxTotal) * 100).toFixed(1);
-    const typeLabel = d.card.type === "what-if" ? "WIF" : "WI";
-    const typeClass = d.card.type === "what-if" ? "wif" : "wi";
-    const cons = consensus(d);
-    const consChip = cons
-      ? `<span class="annot-consensus annot-consensus--${cons}" title="${cons === "agree"
-          ? "Responses concentrated on one marker — agreement"
-          : "Responses split across markers — mixed signals"}">${cons === "agree" ? "agreement" : "mixed"}</span>`
-      : "";
-    const row = document.createElement("div");
-    row.className = "annot-bar-row";
-    row.innerHTML = `
-      <span class="annot-bar-label">
-        <span class="annot-bar-badge annot-bar-badge--${typeClass}">${typeLabel}</span>
-        <span class="annot-bar-title">${escHtml(d.card.title)}</span>
-        ${consChip}
-      </span>
-      <div class="annot-bar-track">
-        ${d.interesting     ? `<div class="annot-bar-seg annot-bar-seg--interesting" style="width:${pct(d.interesting)}%"></div>` : ""}
-        ${d.followThread    ? `<div class="annot-bar-seg annot-bar-seg--follow"      style="width:${pct(d.followThread)}%"></div>` : ""}
-        ${d.lowHangingFruit ? `<div class="annot-bar-seg annot-bar-seg--fruit"       style="width:${pct(d.lowHangingFruit)}%"></div>` : ""}
-        ${d.comments        ? `<div class="annot-bar-seg annot-bar-seg--comment"     style="width:${pct(d.comments)}%"></div>` : ""}
-        <span class="annot-bar-total">${d.total}</span>
-      </div>`;
-    bindMark(row, d.card);
-    barsEl.appendChild(row);
-  });
+  el.appendChild(wrap);
 }
 
 // ── Themes treemap (overview) ────────────────────────────────────────────────────

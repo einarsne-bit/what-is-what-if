@@ -3109,6 +3109,61 @@ button.affinity-group__header {
 .annot-legend__item--fruit::before       { background: var(--color-riso-green); }
 .annot-legend__item--comment::before     { background: #bbb; }
 
+/* Annotation activity — cards per category */
+.annot-cats { display: flex; flex-direction: column; gap: 20px; }
+.annot-cat__head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0 0 10px;
+  padding-bottom: 5px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid var(--color-border);
+}
+.annot-cat__head--interesting { border-color: var(--color-riso-blue); }
+.annot-cat__head--follow      { border-color: var(--color-riso-yellow); }
+.annot-cat__head--fruit       { border-color: var(--color-riso-green); }
+.annot-cat__head--comment     { border-color: #bbb; }
+.annot-cat__meta {
+  font-size: 10px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--color-muted);
+}
+.annot-cat__cards { display: flex; flex-wrap: wrap; gap: 6px; }
+.annot-cat__empty { font-size: 11px; color: var(--color-muted); font-style: italic; }
+.annot-cat__chip {
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--color-border);
+  border-left-width: 3px;
+  background: var(--color-white);
+  padding: 3px 4px 3px 8px;
+  cursor: pointer;
+  font-size: 11px;
+  max-width: 280px;
+}
+.annot-cat__chip--wi  { border-left-color: var(--color-riso-green); }
+.annot-cat__chip--wif { border-left-color: var(--color-riso-pink); }
+.annot-cat__chip:hover { background: var(--color-surface); }
+.annot-cat__chip-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.annot-cat__chip-count {
+  flex-shrink: 0;
+  background: var(--color-black);
+  color: var(--color-white);
+  font-size: 9px;
+  font-weight: 700;
+  min-width: 16px;
+  text-align: center;
+  padding: 1px 4px;
+}
+
 .annot-bars {
   display: flex;
   flex-direction: column;
