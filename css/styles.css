@@ -3257,8 +3257,8 @@ button.affinity-group__header {
 
 /* Coverage map */
 .coverage-map {
-  overflow-y: auto;
-  max-height: 520px;
+  width: 100%;
+  min-height: 440px;
 }
 
 /* Timeline */

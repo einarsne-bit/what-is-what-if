@@ -68,6 +68,8 @@ Each mode = a question the team is asking + how it could be built on the current
 **Effort:** Medium. Pairs tightly with D and creative mode.
 
 ### F. Connections (What is? ↔ What if?) — "What's grounded in what?"
+> **Built 2026-06-17/18:** redesigned from the bipartite dot map to a **full-width force-directed network** (Fruchterman–Reingold) of only the linked cards — green = observation, pink = idea, edges = grounding links; dot size = degree; hover a node to light up its links, click to open. Unlinked cards simply aren't shown (neutral, not a flag). Replaces the older coverage-map description below.
+
 **Question:** Which ideas build on which observations — explored, not scored.
 **Build:** Keep the **coverage map** (the bipartite WI-left / WIF-right diagram with link lines) as the connection view — it's the one that reads. Reframe its empty/grey state: unlinked cards are shown neutrally (not "grey = problem"), and unlinked What if? cards get a quiet "spark from an observation?" affordance rather than a red flag. Drop the matrix entirely.
 **Interactive:** hover a card → highlight its links (brushing). Click → open card. Filter by theme → show only that theme's web.

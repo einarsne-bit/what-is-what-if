@@ -83,6 +83,12 @@ function jitterFor(id, key) {
   for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
   return ((h % 1000) / 1000) * 2 - 1;
 }
+// Deterministic [0, 1) from a string — used to seed stable graph layouts.
+function hash01(s) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return (h % 10000) / 10000;
+}
 
 function filterActive() {
   return filter.type !== "all" || filter.tags.size || filter.authors.size
@@ -835,66 +841,130 @@ function renderCompare() {
     </div>`;
 }
 
-// ── Connections (coverage map) ───────────────────────────────────────────────────
+// ── Connections (force-directed network of linked cards) ─────────────────────────
 function renderCoverageMap(ctx) {
   const el = document.getElementById("coverage-map");
   el.innerHTML = "";
-  const { wi, wif, linkedWiIds } = ctx;
+  const { wi, wif } = ctx;
 
-  if (!wi.length || !wif.length) {
-    el.innerHTML = `<p class="outlier-empty">Need both What is? and What if? cards in view to draw connections.</p>`;
+  // Edges = each What if? → the visible What is? it builds on
+  const wiIds = new Set(wi.map(c => c.id));
+  const edges = [];
+  wif.forEach(w => (w.linkedInsightIds || []).forEach(wiId => {
+    if (wiIds.has(wiId)) edges.push({ s: w.id, t: wiId });
+  }));
+
+  if (!edges.length) {
+    el.innerHTML = `<p class="outlier-empty">No connections among the cards in view — ideas and observations aren't linked here. That's fine, ideas can come from anywhere; link them in the card editor or spark ideas in creative mode.</p>`;
     return;
   }
 
-  const W = el.offsetWidth || 560;
-  const DOT = 6, GAP = 3, ROW = DOT + GAP, PAD = 20;
-  const H = Math.max(wi.length, wif.length) * ROW + PAD * 2;
-  const lx = 60, rx = W - 60;
-  const yOf = i => PAD + i * ROW + DOT / 2;
-  const mx = (lx + rx) / 2;
+  // Nodes = only the cards touched by an edge
+  const cardById = new Map([...wi, ...wif].map(c => [c.id, c]));
+  const nodeIds = new Set();
+  edges.forEach(e => { nodeIds.add(e.s); nodeIds.add(e.t); });
+  const nodes = [...nodeIds].map(id => cardById.get(id)).filter(Boolean);
+  const deg = {}; nodes.forEach(n => deg[n.id] = 0);
+  edges.forEach(e => { deg[e.s]++; deg[e.t]++; });
+
+  const W = el.clientWidth || 600, H = 440;
+  const pos = {};
+  nodes.forEach(n => { pos[n.id] = { x: 30 + hash01(n.id + "x") * (W - 60), y: 30 + hash01(n.id + "y") * (H - 60) }; });
+
+  // Fruchterman–Reingold layout (synchronous; deterministic init → stable)
+  const k = Math.sqrt((W * H) / nodes.length) * 0.55;
+  const iters = nodes.length > 120 ? 250 : 350;
+  for (let it = 0; it < iters; it++) {
+    const temp = (W / 8) * (1 - it / iters) + 1;
+    const disp = {};
+    nodes.forEach(n => disp[n.id] = { x: 0, y: 0 });
+    for (let i = 0; i < nodes.length; i++) {
+      const a = pos[nodes[i].id], da = disp[nodes[i].id];
+      for (let j = i + 1; j < nodes.length; j++) {
+        const b = pos[nodes[j].id];
+        let dx = a.x - b.x, dy = a.y - b.y;
+        let dist = Math.hypot(dx, dy) || 0.01;
+        const rep = (k * k) / dist, ux = dx / dist, uy = dy / dist;
+        da.x += ux * rep; da.y += uy * rep;
+        const db = disp[nodes[j].id]; db.x -= ux * rep; db.y -= uy * rep;
+      }
+    }
+    edges.forEach(e => {
+      const a = pos[e.s], b = pos[e.t];
+      let dx = a.x - b.x, dy = a.y - b.y;
+      let dist = Math.hypot(dx, dy) || 0.01;
+      const attr = (dist * dist) / k, ux = dx / dist, uy = dy / dist;
+      disp[e.s].x -= ux * attr; disp[e.s].y -= uy * attr;
+      disp[e.t].x += ux * attr; disp[e.t].y += uy * attr;
+    });
+    nodes.forEach(n => {
+      const p = pos[n.id], d = disp[n.id];
+      d.x += (W / 2 - p.x) * 0.03; d.y += (H / 2 - p.y) * 0.03;   // gravity keeps clusters in view
+      const dl = Math.hypot(d.x, d.y) || 0.01;
+      p.x += (d.x / dl) * Math.min(dl, temp);
+      p.y += (d.y / dl) * Math.min(dl, temp);
+      p.x = Math.max(16, Math.min(W - 16, p.x));
+      p.y = Math.max(16, Math.min(H - 16, p.y));
+    });
+  }
 
   const svgNS = "http://www.w3.org/2000/svg";
   const svg = document.createElementNS(svgNS, "svg");
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-  svg.setAttribute("width", W);
+  svg.setAttribute("width", "100%");
   svg.setAttribute("height", H);
-  svg.style.width = "100%";
   svg.style.overflow = "visible";
 
-  // Link paths
-  wif.forEach((card, wifI) => {
-    (card.linkedInsightIds || []).forEach(wiId => {
-      const wiI = wi.findIndex(c => c.id === wiId);
-      if (wiI === -1) return;
-      const path = document.createElementNS(svgNS, "path");
-      path.setAttribute("d", `M${lx + DOT/2},${yOf(wiI)} C${mx},${yOf(wiI)} ${mx},${yOf(wifI)} ${rx - DOT/2},${yOf(wifI)}`);
-      path.setAttribute("fill", "none");
-      path.setAttribute("stroke", "rgba(11,107,0,0.30)");
-      path.setAttribute("stroke-width", "1.5");
-      svg.appendChild(path);
-    });
+  // Edges
+  const edgeEls = edges.map(e => {
+    const a = pos[e.s], b = pos[e.t];
+    const line = document.createElementNS(svgNS, "line");
+    line.setAttribute("x1", a.x.toFixed(1)); line.setAttribute("y1", a.y.toFixed(1));
+    line.setAttribute("x2", b.x.toFixed(1)); line.setAttribute("y2", b.y.toFixed(1));
+    line.setAttribute("stroke", "rgba(11,107,0,0.28)");
+    line.setAttribute("stroke-width", "1.2");
+    line.dataset.s = e.s; line.dataset.t = e.t;
+    svg.appendChild(line);
+    return line;
+  });
+  const resetEdges = () => edgeEls.forEach(le => {
+    le.setAttribute("stroke", "rgba(11,107,0,0.28)");
+    le.setAttribute("stroke-width", "1.2");
   });
 
-  // Column labels
-  [["WHAT IS?", lx], ["WHAT IF?", rx]].forEach(([txt, x]) => {
-    const t = document.createElementNS(svgNS, "text");
-    t.setAttribute("x", x); t.setAttribute("y", 12);
-    t.setAttribute("text-anchor", "middle"); t.setAttribute("font-size", "9");
-    t.setAttribute("letter-spacing", "0.05em"); t.setAttribute("fill", "#999");
-    t.setAttribute("font-family", "monospace"); t.textContent = txt;
-    svg.appendChild(t);
-  });
-
-  // Dots
-  const dot = (card, x, i, linked, linkedColor) => {
+  // Nodes (size by degree; green = observation, pink = idea)
+  nodes.forEach(n => {
+    const p = pos[n.id];
+    const r = 5 + Math.min(deg[n.id], 6) * 0.9;
     const c = document.createElementNS(svgNS, "circle");
-    c.setAttribute("cx", x); c.setAttribute("cy", yOf(i)); c.setAttribute("r", DOT / 2);
-    c.setAttribute("fill", linked ? linkedColor : "#d8d8d8");
-    bindMark(c, card);
+    c.setAttribute("cx", p.x.toFixed(1)); c.setAttribute("cy", p.y.toFixed(1));
+    c.setAttribute("r", r.toFixed(1));
+    c.setAttribute("fill", n.type === "what-if" ? "var(--color-riso-pink)" : "var(--color-riso-green)");
+    c.setAttribute("stroke", "var(--color-black)"); c.setAttribute("stroke-width", "0.5");
+    bindMark(c, n);
+    // Hover a node → light up its links, fade the rest
+    c.addEventListener("mouseenter", () => {
+      edgeEls.forEach(le => {
+        const inc = le.dataset.s === n.id || le.dataset.t === n.id;
+        le.setAttribute("stroke", inc ? "var(--color-black)" : "rgba(11,107,0,0.06)");
+        le.setAttribute("stroke-width", inc ? "2" : "1");
+      });
+    });
+    c.addEventListener("mouseleave", resetEdges);
     svg.appendChild(c);
-  };
-  wi.forEach((card, i)  => dot(card, lx, i, linkedWiIds.has(card.id), "var(--color-riso-green)"));
-  wif.forEach((card, i) => dot(card, rx, i, (card.linkedInsightIds || []).length > 0, "var(--color-riso-pink)"));
+
+    // Label the hubs (degree ≥ 3) so structure is readable without hovering
+    if (deg[n.id] >= 3) {
+      const t = document.createElementNS(svgNS, "text");
+      t.setAttribute("x", (p.x + r + 3).toFixed(1)); t.setAttribute("y", (p.y + 3).toFixed(1));
+      t.setAttribute("font-size", "9"); t.setAttribute("fill", "var(--color-ink)");
+      t.setAttribute("font-family", "var(--font-mono)");
+      t.style.pointerEvents = "none";
+      const title = n.title || "";
+      t.textContent = title.length > 22 ? title.slice(0, 20) + "…" : title;
+      svg.appendChild(t);
+    }
+  });
 
   el.appendChild(svg);
 }
