@@ -34,115 +34,166 @@
 
     <div class="page-wrapper">
 
-      <!-- Summary stats -->
-      <div class="stat-row">
-        <div class="stat-tile">
-          <span class="stat-tile__value" id="stat-total">—</span>
-          <span class="stat-tile__label">Total cards</span>
+      <!-- Masthead: dataset overview -->
+      <div class="analysis-masthead">
+        <div class="stat-row">
+          <button class="stat-tile" id="stat-total-tile" data-type="all">
+            <span class="stat-tile__value" id="stat-total">—</span>
+            <span class="stat-tile__label">Cards</span>
+          </button>
+          <button class="stat-tile stat-tile--wi" id="stat-wi-tile" data-type="what-is">
+            <span class="stat-tile__value" id="stat-wi">—</span>
+            <span class="stat-tile__label">What is?</span>
+          </button>
+          <button class="stat-tile stat-tile--wif" id="stat-wif-tile" data-type="what-if">
+            <span class="stat-tile__value" id="stat-wif">—</span>
+            <span class="stat-tile__label">What if?</span>
+          </button>
+          <div class="stat-tile stat-tile--separator"></div>
+          <div class="stat-tile">
+            <span class="stat-tile__value" id="stat-tags">—</span>
+            <span class="stat-tile__label">Themes</span>
+          </div>
+          <div class="stat-tile">
+            <span class="stat-tile__value" id="stat-authors">—</span>
+            <span class="stat-tile__label">Authors</span>
+          </div>
+          <div class="stat-tile">
+            <span class="stat-tile__value" id="stat-annotated">—</span>
+            <span class="stat-tile__label">Annotated</span>
+          </div>
+          <div class="stat-tile">
+            <span class="stat-tile__value" id="stat-drafts">—</span>
+            <span class="stat-tile__label">Drafts</span>
+          </div>
         </div>
-        <div class="stat-tile stat-tile--wi">
-          <span class="stat-tile__value" id="stat-wi">—</span>
-          <span class="stat-tile__label">What is?</span>
+        <p class="analysis-shape" id="analysis-shape"></p>
+      </div>
+
+      <!-- Shared filter context — every panel below responds to this -->
+      <div class="filter-bar" id="analysis-filter">
+        <div class="filter-bar__row">
+          <span class="filter-bar__group-label">Type</span>
+          <div id="af-type">
+            <button class="filter-btn filter-btn--active" data-type="all">ALL</button>
+            <button class="filter-btn" data-type="what-is">WHAT IS?</button>
+            <button class="filter-btn" data-type="what-if">WHAT IF?</button>
+          </div>
+          <span class="filter-bar__group-label filter-bar__group-label--gap">Show</span>
+          <div id="af-toggles">
+            <button class="filter-btn" data-toggle="annotated">Annotated</button>
+            <button class="filter-btn" data-toggle="drafts">Drafts</button>
+          </div>
+          <button class="filter-btn af-reset" id="af-reset" hidden>↺ Reset filters</button>
         </div>
-        <div class="stat-tile stat-tile--wif">
-          <span class="stat-tile__value" id="stat-wif">—</span>
-          <span class="stat-tile__label">What if?</span>
+        <div class="filter-bar__row">
+          <span class="filter-bar__group-label">Creator</span>
+          <div class="filter-bar__authors" id="af-authors"></div>
         </div>
-        <div class="stat-tile">
-          <span class="stat-tile__value" id="stat-coverage">—</span>
-          <span class="stat-tile__label">Observations with ideas</span>
-        </div>
-        <div class="stat-tile">
-          <span class="stat-tile__value" id="stat-tags">—</span>
-          <span class="stat-tile__label">Tags in use</span>
-        </div>
-        <div class="stat-tile">
-          <span class="stat-tile__value" id="stat-authors">—</span>
-          <span class="stat-tile__label">Authors</span>
-        </div>
-        <div class="stat-tile stat-tile--separator"></div>
-        <div class="stat-tile">
-          <span class="stat-tile__value" id="stat-reactions">—</span>
-          <span class="stat-tile__label">Reactions</span>
-        </div>
-        <div class="stat-tile">
-          <span class="stat-tile__value" id="stat-comments">—</span>
-          <span class="stat-tile__label">Comments</span>
-        </div>
-        <div class="stat-tile">
-          <span class="stat-tile__value" id="stat-commenters">—</span>
-          <span class="stat-tile__label">Commenters</span>
+        <div class="filter-bar__row">
+          <span class="filter-bar__group-label">Theme</span>
+          <div class="filter-bar__tags" id="af-tags"></div>
         </div>
       </div>
 
-      <div class="analysis-grid">
+      <!-- Saved views — pin the current filter to revisit it (per-browser) -->
+      <div class="saved-views" id="saved-views"></div>
 
-        <!-- Annotation activity — full width, first -->
+      <!-- Shown when the active filter matches no cards -->
+      <p class="analysis-noresults" id="analysis-noresults" hidden>
+        No cards match the current filter. <button class="link-btn" id="af-reset-inline">Reset filters</button>
+      </p>
+
+      <div class="analysis-grid" id="analysis-grid">
+
+        <!-- Annotation activity — top -->
         <section class="analysis-panel analysis-panel--full" id="panel-annotations">
           <header class="analysis-panel__header">
             <h2 class="analysis-panel__title">Annotation activity</h2>
-            <p class="analysis-panel__desc">Cards ranked by total engagement — reactions and comments. Hover a bar to see the card title.</p>
+            <p class="analysis-panel__desc">Cards grouped by the kind of response they drew — one section per annotation category. The number on each card is how many of that marker it received; click a card to open it.</p>
           </header>
           <div class="annotation-activity" id="annotation-activity">
             <p class="outlier-empty">No annotations yet. Reactions and comments added in the card view will appear here.</p>
           </div>
         </section>
 
-        <!-- Tag frequency -->
-        <section class="analysis-panel analysis-panel--half">
-          <header class="analysis-panel__header">
-            <h2 class="analysis-panel__title">Tag frequency</h2>
-            <p class="analysis-panel__desc">Top tags across both card types. Green = What is?, pink = What if?</p>
-          </header>
-          <div class="tag-chart" id="tag-chart"></div>
-        </section>
-
-        <!-- Coverage map -->
-        <section class="analysis-panel analysis-panel--half">
-          <header class="analysis-panel__header">
-            <h2 class="analysis-panel__title">Coverage map</h2>
-            <p class="analysis-panel__desc">Lines show What if? ideas linked to What is? observations. Grey dots = unlinked.</p>
-          </header>
-          <div class="coverage-map" id="coverage-map"></div>
-        </section>
-
-        <!-- Timeline -->
+        <!-- Themes — treemap overview, bars as drill-down -->
         <section class="analysis-panel analysis-panel--full">
           <header class="analysis-panel__header">
-            <h2 class="analysis-panel__title">Timeline</h2>
-            <p class="analysis-panel__desc">Card creation over time. What is? above the line, What if? below.</p>
+            <h2 class="analysis-panel__title">Themes</h2>
+            <p class="analysis-panel__desc">Each block is a theme; size = how many cards carry it. The green/pink split shows What is? vs. What if?. Click a block to filter the whole dashboard.</p>
           </header>
-          <div class="timeline-wrap" id="timeline"></div>
+          <div class="theme-treemap" id="theme-treemap"></div>
+          <details class="theme-detail">
+            <summary class="theme-detail__summary">Show theme breakdown (What is? / What if?)</summary>
+            <div class="tag-chart" id="tag-chart"></div>
+          </details>
+        </section>
+
+        <!-- Breadth & gaps — how wide the insights and ideas spread -->
+        <section class="analysis-panel analysis-panel--full">
+          <header class="analysis-panel__header">
+            <h2 class="analysis-panel__title">Breadth &amp; gaps</h2>
+            <p class="analysis-panel__desc">How wide-ranging the observations and ideas are across themes — and where there's room to explore. Gaps are openings, not problems.</p>
+          </header>
+          <div class="breadth" id="breadth"></div>
+        </section>
+
+        <!-- Compare — two subsets side by side (independent of the filter) -->
+        <section class="analysis-panel analysis-panel--full">
+          <header class="analysis-panel__header">
+            <h2 class="analysis-panel__title">Compare</h2>
+            <p class="analysis-panel__desc">Set two sides — by type, theme, author, or status — and compare them across the whole project. Independent of the filter above.</p>
+          </header>
+          <div class="compare-controls">
+            <label class="axis-control">A <select id="cmp-a" class="axis-select"></select></label>
+            <span class="compare-vs">vs</span>
+            <label class="axis-control">B <select id="cmp-b" class="axis-select"></select></label>
+          </div>
+          <div class="compare" id="compare"></div>
+        </section>
+
+        <!-- Axis workbench — place cards along two chosen dimensions -->
+        <section class="analysis-panel analysis-panel--full">
+          <header class="analysis-panel__header">
+            <h2 class="analysis-panel__title">Axis workbench</h2>
+            <p class="analysis-panel__desc">Place cards along two dimensions you choose — measures, or a theme on each axis for a 2×2 (cards in the far corner carry both themes — the bridges). Each dot is a card; hover for details, click to open. Green = What is?, pink = What if?.</p>
+          </header>
+          <div class="axis-controls">
+            <label class="axis-control">Y axis
+              <select id="ax-y" class="axis-select"></select>
+            </label>
+            <label class="axis-control">X axis
+              <select id="ax-x" class="axis-select"></select>
+            </label>
+            <span class="axis-legend">
+              <span class="axis-legend__dot axis-legend__dot--wi"></span>What is?
+              <span class="axis-legend__dot axis-legend__dot--wif"></span>What if?
+            </span>
+          </div>
+          <div class="axis-plot" id="axis-plot"></div>
         </section>
 
         <!-- Affinity groups -->
         <section class="analysis-panel analysis-panel--full">
           <header class="analysis-panel__header">
             <h2 class="analysis-panel__title">Affinity groups</h2>
-            <p class="analysis-panel__desc">Cards clustered by shared tags. Click any card chip to open it.</p>
+            <p class="analysis-panel__desc">Starts as one group per theme. Click a theme to drill into its affinities — theme pairs the cards share, where every card provably carries both. Click a card to open it.</p>
           </header>
           <div class="affinity-groups" id="affinity-groups"></div>
         </section>
 
-        <!-- Connection matrix -->
+        <!-- Connections — full-width network -->
         <section class="analysis-panel analysis-panel--full">
           <header class="analysis-panel__header">
-            <h2 class="analysis-panel__title">Connection matrix</h2>
-            <p class="analysis-panel__desc">Which What is? observations have sparked which What if? ideas. Each dot marks a link. Hover for titles.</p>
+            <h2 class="analysis-panel__title">Connections</h2>
+            <p class="analysis-panel__desc">A network of the linked cards — green = What is? observation, pink = What if? idea; an edge is a grounding link. Bigger dots are linked to more cards; hover a node to light up its links, click to open. Only linked cards appear — unlinked ones simply aren't shown, which is fine.</p>
           </header>
-          <div class="connection-matrix" id="connection-matrix"></div>
+          <div class="coverage-map" id="coverage-map"></div>
         </section>
 
-        <!-- Author swim-lane + Tag co-occurrence -->
-        <section class="analysis-panel analysis-panel--half">
-          <header class="analysis-panel__header">
-            <h2 class="analysis-panel__title">Author contributions</h2>
-            <p class="analysis-panel__desc">Card creation over time, one lane per author.</p>
-          </header>
-          <div class="swimlane-wrap" id="swimlane"></div>
-        </section>
-
-        <section class="analysis-panel analysis-panel--half">
+        <!-- Tag co-occurrence -->
+        <section class="analysis-panel analysis-panel--full">
           <header class="analysis-panel__header">
             <h2 class="analysis-panel__title">Tag co-occurrence</h2>
             <p class="analysis-panel__desc">Tag pairs that appear together most often — potential theme clusters.</p>
@@ -150,16 +201,44 @@
           <div class="cooc-table" id="cooc-table"></div>
         </section>
 
-        <!-- Research health diagnostic -->
+        <!-- Theme cross-tab — themes by author / type -->
         <section class="analysis-panel analysis-panel--full">
           <header class="analysis-panel__header">
-            <h2 class="analysis-panel__title">Research health</h2>
-            <p class="analysis-panel__desc">A diagnostic scan of the project: gaps, orphans, and areas for attention.</p>
+            <h2 class="analysis-panel__title">Theme cross-tab</h2>
+            <p class="analysis-panel__desc">How themes break down by author or by card type. Darker = more cards. Click a theme or a column header to filter.</p>
           </header>
-          <div class="health-grid" id="health-grid"></div>
+          <div class="crosstab-controls" id="crosstab-controls">
+            <button class="filter-btn filter-btn--active" data-cross="author">Theme × Author</button>
+            <button class="filter-btn" data-cross="type">Theme × Type</button>
+          </div>
+          <div class="crosstab" id="crosstab"></div>
+        </section>
+
+        <!-- Tag hygiene — near-duplicate themes (project-wide) -->
+        <section class="analysis-panel analysis-panel--full">
+          <header class="analysis-panel__header">
+            <h2 class="analysis-panel__title">Tag hygiene</h2>
+            <p class="analysis-panel__desc">Themes that look like the same idea spelled differently (case, spacing, plural, or a typo). Across the whole project.</p>
+          </header>
+          <div class="hygiene" id="hygiene"></div>
+        </section>
+
+        <!-- Author contributions — bottom -->
+        <section class="analysis-panel analysis-panel--full">
+          <header class="analysis-panel__header">
+            <h2 class="analysis-panel__title">Author contributions</h2>
+            <p class="analysis-panel__desc">How many cards each contributor has made. Click a name to filter.</p>
+          </header>
+          <div class="swimlane-wrap" id="swimlane"></div>
         </section>
 
       </div>
+
+      <!-- Work-in-progress flag -->
+      <p class="analysis-wip">
+        <span class="analysis-wip__tag">UX pass</span>
+        This dashboard is being redesigned — panels and interactions are work in progress.
+      </p>
 
     </div>
 

@@ -68,6 +68,8 @@ Each mode = a question the team is asking + how it could be built on the current
 **Effort:** Medium. Pairs tightly with D and creative mode.
 
 ### F. Connections (What is? ↔ What if?) — "What's grounded in what?"
+> **Built 2026-06-17/18:** redesigned from the bipartite dot map to a **full-width force-directed network** (Fruchterman–Reingold) of only the linked cards — green = observation, pink = idea, edges = grounding links; dot size = degree; hover a node to light up its links, click to open. Unlinked cards simply aren't shown (neutral, not a flag). Replaces the older coverage-map description below.
+
 **Question:** Which ideas build on which observations — explored, not scored.
 **Build:** Keep the **coverage map** (the bipartite WI-left / WIF-right diagram with link lines) as the connection view — it's the one that reads. Reframe its empty/grey state: unlinked cards are shown neutrally (not "grey = problem"), and unlinked What if? cards get a quiet "spark from an observation?" affordance rather than a red flag. Drop the matrix entirely.
 **Interactive:** hover a card → highlight its links (brushing). Click → open card. Filter by theme → show only that theme's web.
@@ -125,17 +127,60 @@ All seven respond to the shared filter; all card marks open the card.
 - **Phase 1 — Restructure + interactivity backbone.** Cut timeline/matrix/health. Stand up the shared filter context + brushing/linking + details-on-demand. Re-point existing panels (stats, tag bars, coverage map, annotation activity) into it. *Highest leverage, mostly reuse.*
 - **Phase 2 — New overviews.** Themes treemap (B), breadth panels (D+E) with creative-mode hooks, annotation consensus/spread (C).
 - **Phase 3 — The novel panels.** Axis workbench (G, data-axes first), tag-overlap affinity (H#1).
-- **Later / V2 (data-model or AI).** Manual axis values (G), embedding-based affinity (H#3), manual KJ board (H#4), session-aware annotation views (ANALYTICS-RESEARCH.md Tier-3).
+- **Later / V2 (data-model).** Manual axis values (G), manual KJ board (H#4), session-aware annotation views (ANALYTICS-RESEARCH.md Tier-3). *Embedding-based affinity (H#3) is AI — on hold.*
 
 ---
 
-## Open questions for you
+## Decisions (2026-06-17)
 
-1. **Treemap vs. keep bars** for the themes overview (Mode B) — go visual, or stay with the bars you have?
-2. **Axis workbench (G):** start with data-derived axes only, or is manual placement ("we decide the axis and drag cards") important enough to build the storage for now?
-3. **Affinity (H):** is tag-overlap clustering enough for this pass, or do you want to plan the manual drag-to-cluster board as its own mode?
-4. **Creative-mode hooks** (the "no ideas on this theme yet → spark one" buttons): wire them now as part of analysis, or stub them until creative mode (§C.7) is settled?
-5. **Scope of this pass:** restructure + interactivity backbone only (Phase 1), or push into the new overviews (Phase 2) in the same pass?
+Building on branch `analysis-redesign`.
+
+1. **Scope:** start with **Phase 1 — restructure + interactivity backbone** (cut timeline/matrix/health; shared filter context + brushing/linking + details-on-demand; re-point existing panels).
+2. **Themes (Mode B):** **treemap overview + bars as drill-down** — build in Phase 2.
+3. **Axis workbench (Mode G):** **plan manual placement too** (team-defined axes + drag-to-place) — needs a per-card axis-value store; design the data-model change in Phase 3.
+4. Affinity (Mode H) and creative-mode hooks (Mode E) — revisit when those phases land.
+
+### Still open (revisit at the relevant phase)
+- Affinity: tag-overlap now vs. plan the manual drag-to-cluster board as its own mode.
+- Creative-mode hooks: wire during analysis or stub until §C.7.
+
+---
+
+## Expansion research (2026-06-17)
+
+*Online scan of where qualitative-analysis tooling is heading (UX-research repositories, AI-assisted thematic analysis, and the visual-analytics / sensemaking literature), filtered through this tool's principles: **not another Miro**, method-specific, low-threshold for citizens, grounded speculation, and anonymous-by-design annotations.* Phases 1–3 are built; the items below are candidates for what comes **after**.
+
+> **⛔ AI functionality is ON HOLD (project decision, 2026-06-17).** All Anthropic-API / embeddings / LLM features below are parked until further notice. Pursue the **non-AI** candidates only (Tier 1, and the non-embeddings parts of Tier 3). AI items are kept here for the record, marked *(on hold)*.
+
+### What the field is doing now
+- **AI-assisted coding & theme extraction is the headline shift.** Dovetail, NVivo, ATLAS.ti, MAXQDA, Speak now auto-transcribe, auto-tag, cluster themes, extract highlights, and summarise — pitched as cutting manual coding time, with the human kept in the loop ("AI suggests, you decide").
+- **Semantic search & embeddings** turn a card collection into a meaning-indexed store you can query by concept, not keyword; metadata enrichment before embedding sharply improves retrieval.
+- **Mixed-methods context**: MAXQDA/Dedoose add code-frequency charts, cross-tabs, and agreement scores — quantitative texture over qualitative material.
+- **Visual-analytics sensemaking**: the foraging → synthesis loop, **spatial workspaces** for externalising hypotheses, human-guided (interactive) topic modelling, and the **data / navigation / knowledge** three-view framework.
+
+### Expansion candidates, tiered for this tool
+
+**Tier 1 — front-end, no new deps, high fit (buildable like Phases 1–3)**
+- **Comparison mode** ✅ *(built 2026-06-17)* — "Compare" panel: two sides chosen by type / theme / author / status, shown side by side (cards + WI/WIF split, distinct themes, annotations, connections, authors, top themes), each metric with A/B bars. Operates across the whole project, independent of the shared filter.
+- **Cross-tab heatmap** ✅ *(built 2026-06-17)* — "Theme cross-tab" panel: themes × author or themes × type, shaded by count; row/column headers click to filter. Mixed-methods coverage/contribution (not card-to-card links).
+- **Saved views / pinned insights** ✅ *(built 2026-06-17)* — "Saved views" bar: pin the current filter state (auto-named from the active filter) and recall or delete it later. Stored per-browser in localStorage. Seeds the catalogue (Journey 6) and the "knowledge view" of the sensemaking framework.
+- **Tag canonicalisation (non-AI)** ✅ *(built 2026-06-17)* — "Tag hygiene" panel: groups near-duplicate themes via case/space/plural normalisation + edit-distance ≤1, with spelling + card counts and a rename hint. Surfaces only (merge stays a card-editor action). Big hygiene payoff (ANALYTICS-RESEARCH.md Tier-2 #5).
+
+**Tier 2 — ON HOLD (needs the Anthropic API) — parked per the AI-hold decision**
+- *(on hold)* **Auto-synthesis / narrative draft** — generate a project summary: dominant themes, tensions, grounded vs. speculative ideas, gaps. A *draft* the team edits, not a verdict.
+- *(on hold)* **"Ask your project"** (RAG over cards) — natural-language questions answered with citations to specific cards.
+- *(on hold)* **AI theme suggestions** — propose candidate themes/merges from card text; never auto-commit.
+- *(Sentiment/entity extraction is common elsewhere but a weak fit regardless — citizen annotations are deliberately anonymous and small-N; avoid re-identification.)*
+
+**Tier 3 — needs a data-model change (AI parts on hold)**
+- **Spatial synthesis canvas** *(non-AI — eligible)* — a free 2D board to drag cards into clusters and name them (digital KJ/affinity). The sensemaking literature's "spatial workspace"; pairs with the axis-workbench **manual placement (3b)** already planned. Needs per-card/position storage.
+- *(on hold)* **Semantic clustering (embeddings)** — affinity by *meaning* rather than shared tags. Needs an embedding step + vector storage (AI).
+- **Cross-project synthesis** *(non-AI — eligible)* — themes/patterns across several projects (repository-scale). Larger; revisit when there are many projects.
+
+### Recommended next three (non-AI) — ✅ all built (2026-06-17), plus tag hygiene
+All four Tier-1 items are now built: **Comparison mode**, **Cross-tab heatmap**, **Saved views**, and **Tag hygiene**.
+
+Next up (non-AI, need a data-model change): **3b manual axis placement** / the **spatial synthesis canvas**. The AI Tier-2 items stay parked until the AI-hold is lifted.
 
 ---
 
@@ -152,8 +197,20 @@ All seven respond to the shared filter; all card marks open the card.
 - [Brushing and linking (overview)](https://en.wikipedia.org/wiki/Brushing_and_linking)
 - [Dashboard Design Patterns (arXiv 2205.00757)](https://arxiv.org/pdf/2205.00757)
 
+*Expansion research — qualitative-analysis tooling & AI-assisted synthesis*
+- [User Interviews — UX Research Tools Map 2026](https://www.userinterviews.com/ux-research-tools-map)
+- [Conveo — AI tools for thematic analysis (2026)](https://conveo.ai/insights/ai-tools-for-thematic-analysis)
+- [Speak AI — Best qualitative data analysis software (AI-powered)](https://speakai.co/the-best-qualitative-data-analysis-software/)
+- [UserBit — UX research analytics dashboard / qualitative analysis](https://userbit.com/content/solutions/research-analysis)
+
+*Expansion research — visual-analytics sensemaking & embeddings*
+- [Interactive Visual Analytics for Sensemaking with Big Text (ScienceDirect)](https://www.sciencedirect.com/science/article/abs/pii/S2214579618302995)
+- [VisPile — visual analytics over documents with LLMs + knowledge graphs (arXiv 2510.09605)](https://arxiv.org/pdf/2510.09605)
+- [Atlan — What are embeddings in AI? Search & RAG (2026)](https://atlan.com/know/what-are-embeddings-ai-search/)
+- [TechTarget — Embedding models for semantic search: a guide](https://www.techtarget.com/searchenterpriseai/tip/Embedding-models-for-semantic-search-A-guide)
+
 *(Saturation, repositories, workshop consensus sources carried in ANALYTICS-RESEARCH.md.)*
 
 ---
 
-*Last updated: 2026-06-17 — created from the §C.6 analysis directives. Reframes ANALYTICS-RESEARCH.md from diagnostics toward overview/exploration; records the timeline/matrix/health cuts and the "missing connections = nudge, not flag" principle.*
+*Last updated: 2026-06-17 — **AI functionality put on hold (project decision)**; expansion Tier-2 (AI) and embeddings clustering parked, recommended next three are now non-AI. Earlier today: added the Expansion research section; created from the §C.6 analysis directives; reframes ANALYTICS-RESEARCH.md from diagnostics toward overview/exploration; records the timeline/matrix/health cuts and the "missing connections = nudge, not flag" principle.*

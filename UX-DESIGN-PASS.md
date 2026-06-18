@@ -137,12 +137,14 @@
 
 **Modes to build (researched in ANALYSIS-PLAN.md):** dataset overview · themes overview · annotations overview · breadth of insights · breadth of ideas · connections (exploratory) · **axis diagram (new)** · affinity groups (tag-overlap clustering) · **dashboard-wide interactivity** (shared filter + brushing/linking + details-on-demand)
 
-**Open (awaiting direction — see plan §"Open questions"):**
-- [ ] Themes: treemap vs. keep bars
-- [ ] Axis workbench: data-derived axes only, or manual placement + storage
-- [ ] Affinity: tag-overlap now, or plan the manual drag-to-cluster board
-- [ ] Creative-mode hooks: wire now or stub until §C.7
-- [ ] Scope of this pass: Phase 1 (restructure + interactivity) only, or push into Phase 2 overviews
+**Build (branch `analysis-redesign`):**
+- [x] **Phase 1 — restructure + interactivity backbone.** Cut timeline/matrix/health. Added a shared filter context (type · themes · creators · annotated · drafts) that drives every panel (brushing-by-filtering); details-on-demand hover preview on all card marks; clickable masthead with a "shape" sentence; reframed Connections panel (neutral unlinked state); Author contributions → count bars. Panels re-point off the visible set; empty/no-results states added.
+- [x] Phase 2 — **themes treemap** (squarified, click-to-filter, bars as drill-down) · **breadth & gaps panel** (insights/ideas breadth + theme coverage gaps, with creative-mode nudge) · **annotation panel = cards per category** (one headline per marker — Interesting / Follow this thread / Low hanging fruit / Comments — listing cards with per-marker counts; superseded the earlier consensus/spread view)
+- [~] Phase 3 — **axis workbench 3a** ✅ (selectable axes: measures OR a **theme on each axis for a 2×2 quadrant** with quadrant labels/counts + bridge emphasis; jittered, filter-aware) · **affinity (two-level)** ✅ (default: one group per theme; click a theme → drills into affinity theme-pair groups where every card provably carries both; reuses the shared filter, so it narrows the whole dashboard too) · [ ] 3b manual axis placement (needs a per-card axis-value column — schema step)
+
+*Affinity note: `sharedThemeGroups` builds pair keys with a `\u0000` (NUL) separator — multi-word-tag safe. (Was a raw NUL byte in source; normalised to a visible `\u0000` escape during the branch review.)*
+
+**Still open (revisit at the relevant phase):** affinity tag-overlap vs. manual board · creative-mode hooks (wire vs. stub until §C.7)
 
 ### 7. creative.html — Creative / ideation
 **Check/fix**
