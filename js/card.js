@@ -188,35 +188,45 @@ function showToast(msg) {
     const item = document.createElement("div");
     item.className = "reaction-item";
     item.innerHTML = `
-      <button class="reaction-btn" data-tag="${tag}">
+      <button class="reaction-btn" data-tag="${tag}" title="Add one — press again to add more">
         <span class="reaction-btn__label">${escHtml(label)}</span>
         <span class="reaction-btn__count" id="rc-${tag}"></span>
       </button>
+      <button class="reaction-remove" data-remove="${tag}" aria-label="Remove one ${escHtml(label)}" title="Remove one">−</button>
     `;
+
+    // Add one each press — reactions stack so several people can mark the
+    // same card (works on a shared workshop device too).
     item.querySelector(".reaction-btn").addEventListener("click", async () => {
-      const existing = annotations.find(
-        a => a.type === "reaction" && a.tag === tag && a.session_id === sessionId
-      );
-      if (existing) {
-        await deleteAnnotation(existing.id);
-        annotations = annotations.filter(a => a.id !== existing.id);
-      } else {
-        const ann = {
-          id:         crypto.randomUUID(),
-          card_id:    cardId,
-          project_id: projectId,
-          session_id: sessionId,
-          type:       "reaction",
-          tag,
-          author:     userName || "",
-          body:       null,
-          date:       todayFormatted(),
-        };
-        await upsertAnnotation(ann);
-        annotations.push(ann);
-      }
+      const ann = {
+        id:         crypto.randomUUID(),
+        card_id:    cardId,
+        project_id: projectId,
+        session_id: sessionId,
+        type:       "reaction",
+        tag,
+        author:     userName || "",
+        body:       null,
+        date:       todayFormatted(),
+      };
+      annotations.push(ann);            // optimistic
       renderAnnotations();
+      try { await upsertAnnotation(ann); }
+      catch { annotations = annotations.filter(a => a.id !== ann.id); renderAnnotations(); }
     });
+
+    // Remove one — prefer this session's, else the most recent of that tag.
+    item.querySelector(".reaction-remove").addEventListener("click", async () => {
+      const ofTag = annotations.filter(a => a.type === "reaction" && a.tag === tag);
+      if (!ofTag.length) return;
+      const mine = ofTag.filter(a => a.session_id === sessionId);
+      const target = (mine.length ? mine : ofTag).at(-1);
+      annotations = annotations.filter(a => a.id !== target.id);   // optimistic
+      renderAnnotations();
+      try { await deleteAnnotation(target.id); }
+      catch { annotations.push(target); renderAnnotations(); }
+    });
+
     reactionsListEl.appendChild(item);
   });
 
@@ -265,6 +275,8 @@ function showToast(msg) {
       reactionsListEl.querySelector(`.reaction-btn[data-tag="${tag}"]`)
         .classList.toggle("reaction-btn--active",
           tagReactions.some(r => r.session_id === sessionId));
+      const rm = reactionsListEl.querySelector(`.reaction-remove[data-remove="${tag}"]`);
+      if (rm) rm.disabled = tagReactions.length === 0;
     });
 
     const comments       = annotations.filter(a => a.type === "comment");

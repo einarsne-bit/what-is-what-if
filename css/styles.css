@@ -1981,9 +1981,27 @@ body.print-page {
 
 .reaction-item {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 6px;
 }
+
+.reaction-remove {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+  width: 30px;
+  border: var(--border-width) solid var(--color-black);
+  background: var(--color-white);
+  color: var(--color-black);
+  cursor: pointer;
+  box-shadow: var(--btn-shadow);
+  transition: background 0.1s;
+}
+.reaction-remove:hover:not([disabled]) { background: var(--color-riso-pink); color: var(--color-white); }
+.reaction-remove:active { transform: translate(2px, 2px); box-shadow: none; }
+.reaction-remove[disabled] { opacity: 0.3; cursor: not-allowed; box-shadow: none; }
 
 .reaction-btn {
   font-family: var(--font-mono);

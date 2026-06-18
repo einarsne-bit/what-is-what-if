@@ -135,6 +135,7 @@ WHATS/
 | 28 | PDF export method | **html2canvas + jsPDF download** (A4-landscape, one card per page). Browser print + `@media print` was implemented then **rejected** — the print dialog (margins/scaling/added headers) was too unreliable. Reverses #11. Trade-off: raster output (text not selectable). | Phase 8 |
 | 29 | Draft cards | **`draft` boolean column** + "Mark as draft" action and DRAFT marker; Drafts sort view in the gallery. | Phase 8 |
 | 30 | About header | **Full shared project header** (matches gallery), wired via `js/about.js` to the active project. | Phase 8 |
+| 32 | Reactions stack | **Reactions accumulate** — each press adds another (no per-session toggle), so several people (incl. on one shared device) can mark the same card "interesting" / "low hanging fruit" etc.; a − button removes one. Each reaction is a row, so counts flow straight into the Analysis annotation panel. Refines #19. | Phase 8 |
 | 31 | AI functionality | **On hold (2026-06-17).** No Anthropic-API / embeddings / LLM features for now — incl. creative-mode V2 (AI prompts), analysis auto-synthesis / "ask your project" / AI theme suggestions / embeddings clustering. Pursue non-AI options only until lifted. | Phase 8 |
 
 ---
