@@ -21,105 +21,145 @@
   const emptyEl = document.getElementById("book-empty");
   const countEl = document.getElementById("cat-count");
 
-  const PER_PAGE = 12;          // 3 columns × 4 rows
+  let density = "3x4";                          // "3x4" (12/page) | "2x3" (6/page)
+  const perPage = () => (density === "2x3" ? 6 : 12);
 
-  // ── Organise by theme ───────────────────────────────────────────────────────
-  // Each card is filed under one primary theme (its first tag, alphabetically),
-  // so it appears once. Untagged cards go to a final section.
+  // Drafts are excluded from the catalogue
+  const live = cards.filter(c => !c.draft);
+
+  // Each card's primary theme = its first tag (alphabetical); used to order
+  // cards within a type so themes cluster in the continuous grid.
   const primaryTheme = c => {
     const tags = [...new Set(c.tags || [])].sort();
     return tags.length ? tags[0] : "Untagged";
   };
 
-  function buildSections() {
-    const byTheme = {};
-    cards.forEach(c => { (byTheme[primaryTheme(c)] ||= []).push(c); });
-    // sort each theme's cards: What is? before What if?, then title
-    Object.values(byTheme).forEach(list => list.sort((a, b) =>
-      a.type === b.type ? (a.title || "").localeCompare(b.title || "") : (a.type === "what-is" ? -1 : 1)));
-    // theme order: by card count desc, then alphabetical; Untagged last
-    return Object.keys(byTheme)
-      .sort((a, b) => {
-        if (a === "Untagged") return 1;
-        if (b === "Untagged") return -1;
-        return byTheme[b].length - byTheme[a].length || a.localeCompare(b);
-      })
-      .map(theme => ({ theme, cards: byTheme[theme] }));
-  }
-
-  // ── Build the book preview ──────────────────────────────────────────────────
   function chunk(arr, n) {
     const out = [];
     for (let i = 0; i < arr.length; i += n) out.push(arr.slice(i, i + n));
     return out;
   }
 
-  function renderBook() {
-    bookEl.querySelectorAll(".book-page").forEach(p => p.remove());
+  const TYPES = [
+    { type: "what-is", label: "What is?", cls: "wi" },
+    { type: "what-if", label: "What if?", cls: "wif" },
+  ];
 
-    if (!cards.length) { emptyEl.hidden = false; countEl.textContent = ""; return; }
-    emptyEl.hidden = true;
+  // Page list: cover → for each type with cards: a divider page, then continuous
+  // theme-ordered grid pages.
+  function buildPages() {
+    const pages = [{ kind: "cover" }];
+    TYPES.forEach(t => {
+      const list = live.filter(c => c.type === t.type).sort((a, b) => {
+        const ta = primaryTheme(a), tb = primaryTheme(b);
+        return ta === tb ? (a.title || "").localeCompare(b.title || "") : ta.localeCompare(tb);
+      });
+      if (!list.length) return;
+      pages.push({ kind: "divider", t, count: list.length });
+      chunk(list, perPage()).forEach(group => pages.push({ kind: "grid", t, cards: group }));
+    });
+    return pages;
+  }
 
-    const sections = buildSections();
-
-    // Cover page
-    const cover = document.createElement("div");
-    cover.className = "book-page book-page--cover";
+  function coverPage() {
+    const page = document.createElement("div");
+    page.className = "book-page book-page--cover";
     const credit = [
       activeProject.projectBy ? `By ${escHtml(activeProject.projectBy)}` : "",
       activeProject.projectDate ? escHtml(activeProject.projectDate) : "",
       activeProject.collaborators ? `With ${escHtml(activeProject.collaborators)}` : "",
     ].filter(Boolean).join("  ·  ");
-    cover.innerHTML = `
-      <div class="book-cover__top">
-        <span class="book-cover__kicker">What is? / What if? — Catalogue</span>
-      </div>
+    const themes = new Set(live.flatMap(c => c.tags || [])).size;
+    page.innerHTML = `
+      <div class="book-cover__top"><span class="book-cover__kicker">What is? / What if? — Catalogue</span></div>
       <div class="book-cover__mid">
         <h1 class="book-cover__title">${escHtml(activeProject.name || "Untitled project")}</h1>
         ${activeProject.description ? `<p class="book-cover__desc">${escHtml(activeProject.description)}</p>` : ""}
       </div>
       <div class="book-cover__foot">
         ${credit ? `<p class="book-cover__credit">${credit}</p>` : ""}
-        <p class="book-cover__meta">${cards.length} card${cards.length !== 1 ? "s" : ""} · ${sections.length} theme${sections.length !== 1 ? "s" : ""}</p>
+        <p class="book-cover__meta">${live.length} card${live.length !== 1 ? "s" : ""} · ${themes} theme${themes !== 1 ? "s" : ""}</p>
       </div>`;
-    bookEl.appendChild(cover);
+    return page;
+  }
 
-    // Theme sections → one or more 3×4 grid pages each
-    let pageNo = 1;
-    sections.forEach(section => {
-      chunk(section.cards, PER_PAGE).forEach((group, gi) => {
-        pageNo++;
-        const page = document.createElement("div");
-        page.className = "book-page";
-        const tc = section.theme === "Untagged" ? { bg: "#ddd", text: "#333" } : tagColor(section.theme);
-        page.innerHTML = `
-          <div class="book-page__head">
-            <span class="book-page__theme" style="--tag-bg:${tc.bg};--tag-color:${tc.text}">${escHtml(section.theme)}</span>
-            ${gi > 0 ? `<span class="book-page__cont">continued</span>` : `<span class="book-page__n">${section.cards.length} card${section.cards.length !== 1 ? "s" : ""}</span>`}
-          </div>
-          <div class="book-grid"></div>
-          <div class="book-page__foot"><span>${escHtml(activeProject.name || "")}</span><span class="book-page__pageno"></span></div>`;
-        const grid = page.querySelector(".book-grid");
-        group.forEach(card => {
-          const cell = document.createElement("div");
-          cell.className = "book-cell";
-          cell.appendChild(renderCard(card));
-          grid.appendChild(cell);
-        });
-        bookEl.appendChild(page);
-      });
+  function dividerPage(p) {
+    const page = document.createElement("div");
+    page.className = `book-page book-page--divider book-page--divider-${p.t.cls}`;
+    page.innerHTML = `
+      <div class="book-divider__inner">
+        <span class="book-divider__kicker">Section</span>
+        <h2 class="book-divider__title">${escHtml(p.t.label)}</h2>
+        <span class="book-divider__count">${p.count} card${p.count !== 1 ? "s" : ""}</span>
+      </div>
+      <div class="book-page__foot"><span>${escHtml(activeProject.name || "")}</span><span class="book-page__pageno"></span></div>`;
+    return page;
+  }
+
+  function gridPage(p) {
+    const page = document.createElement("div");
+    page.className = `book-page book-page--grid book-grid--${density}`;
+    page.innerHTML = `
+      <div class="book-page__head">
+        <span class="book-page__theme book-page__theme--${p.t.cls}">${escHtml(p.t.label)}</span>
+      </div>
+      <div class="book-grid book-grid--${density}"></div>
+      <div class="book-page__foot"><span>${escHtml(activeProject.name || "")}</span><span class="book-page__pageno"></span></div>`;
+    const grid = page.querySelector(".book-grid");
+    p.cards.forEach(card => {
+      const theme = primaryTheme(card);
+      const tc = theme === "Untagged" ? { bg: "#ddd", text: "#333" } : tagColor(theme);
+      const cell = document.createElement("div");
+      cell.className = "book-cell";
+      const cardBox = document.createElement("div");
+      cardBox.className = "book-cell__card";
+      cardBox.appendChild(renderCard(card));
+      const cap = document.createElement("div");
+      cap.className = "book-cell__cap";
+      cap.innerHTML =
+        `<span class="book-cell__title">${escHtml(card.title || "Untitled")}</span>` +
+        `<span class="book-cell__theme" style="--tag-bg:${tc.bg};--tag-color:${tc.text}">${escHtml(theme)}</span>`;
+      cell.append(cardBox, cap);
+      grid.appendChild(cell);
+    });
+    return page;
+  }
+
+  function renderBook() {
+    bookEl.querySelectorAll(".book-page").forEach(p => p.remove());
+    if (!live.length) {
+      emptyEl.hidden = false;
+      emptyEl.textContent = cards.length ? "Only draft cards in this project — nothing to catalogue yet." : "No cards in this project yet.";
+      countEl.textContent = "";
+      return;
+    }
+    emptyEl.hidden = true;
+
+    buildPages().forEach(p => {
+      if (p.kind === "cover")        bookEl.appendChild(coverPage());
+      else if (p.kind === "divider") bookEl.appendChild(dividerPage(p));
+      else                           bookEl.appendChild(gridPage(p));
     });
 
-    // Page numbers (cover = unnumbered)
-    const numbered = bookEl.querySelectorAll(".book-page:not(.book-page--cover) .book-page__pageno");
-    numbered.forEach((el, i) => { el.textContent = i + 1; });
+    bookEl.querySelectorAll(".book-page:not(.book-page--cover) .book-page__pageno")
+      .forEach((el, i) => { el.textContent = i + 1; });
 
-    countEl.textContent = `${cards.length} cards · ${bookEl.querySelectorAll(".book-page").length} pages`;
+    countEl.textContent = `${live.length} cards · ${bookEl.querySelectorAll(".book-page").length} pages`;
 
     requestAnimationFrame(() => {
       bookEl.querySelectorAll(".book-cell .card-wrapper").forEach(scaleCard);
     });
   }
+
+  // Density toggle
+  document.querySelectorAll("#density-btns [data-density]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("#density-btns [data-density]").forEach(b => b.classList.remove("filter-btn--active"));
+      btn.classList.add("filter-btn--active");
+      density = btn.dataset.density;
+      renderBook();
+    });
+  });
 
   // ── Export the book as a portrait-A4 PDF ─────────────────────────────────────
   const progressEl = document.getElementById("pdf-progress");
