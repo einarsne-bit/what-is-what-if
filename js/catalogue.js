@@ -21,14 +21,16 @@
   const emptyEl = document.getElementById("book-empty");
   const countEl = document.getElementById("cat-count");
 
-  let density = "3x4";                          // "3x4" (12/page) | "2x3" (6/page)
-  const perPage = () => (density === "2x3" ? 6 : 12);
+  const COLS = 2;                  // 2×3 grid (≈6 cards per page)
+  const CARD_ROW_H = 256;          // estimated px height of a card row (2-up)
+  const HEADER_H   = 54;           // estimated px height of a theme headline row
+  const BUDGET     = 945;          // usable page height for the grid flow
 
   // Drafts are excluded from the catalogue
   const live = cards.filter(c => !c.draft);
 
-  // Each card's primary theme = its first tag (alphabetical); used to order
-  // cards within a type so themes cluster in the continuous grid.
+  // Each card's primary theme = its first tag (alphabetical); orders cards
+  // within a type so themes cluster, and labels the in-flow theme headlines.
   const primaryTheme = c => {
     const tags = [...new Set(c.tags || [])].sort();
     return tags.length ? tags[0] : "Untagged";
@@ -45,8 +47,41 @@
     { type: "what-if", label: "What if?", cls: "wif" },
   ];
 
-  // Page list: cover → for each type with cards: a divider page, then continuous
-  // theme-ordered grid pages.
+  // Lay a type's cards into pages: theme headline (dividing line) then that
+  // theme's card-rows, flowing continuously; pack rows into pages by height.
+  // A theme that spills onto the next page repeats its headline as "(cont.)".
+  function layoutType(list) {
+    const byTheme = {};
+    list.forEach(c => { (byTheme[primaryTheme(c)] ||= []).push(c); });
+    const order = Object.keys(byTheme).sort((a, b) =>
+      a === "Untagged" ? 1 : b === "Untagged" ? -1 : (byTheme[b].length - byTheme[a].length || a.localeCompare(b)));
+
+    const rows = [];   // { kind:"header", theme } | { kind:"cards", theme, cards }
+    order.forEach(theme => {
+      rows.push({ kind: "header", theme });
+      chunk(byTheme[theme], COLS).forEach(cs => rows.push({ kind: "cards", theme, cards: cs }));
+    });
+
+    const pages = [];
+    let cur = [], h = 0;
+    rows.forEach(r => {
+      const rh = r.kind === "header" ? HEADER_H : CARD_ROW_H;
+      // don't strand a headline at the very bottom — keep it with a card row
+      const need = r.kind === "header" ? HEADER_H + CARD_ROW_H : rh;
+      if (cur.length && h + need > BUDGET) { pages.push(cur); cur = []; h = 0; }
+      cur.push(r); h += rh;
+    });
+    if (cur.length) pages.push(cur);
+
+    // Repeat the theme headline at the top of a page that opens mid-theme
+    pages.forEach((pg, i) => {
+      if (i > 0 && pg[0].kind === "cards") {
+        pg.unshift({ kind: "header", theme: pg[0].theme, cont: true });
+      }
+    });
+    return pages;
+  }
+
   function buildPages() {
     const pages = [{ kind: "cover" }];
     TYPES.forEach(t => {
@@ -56,7 +91,7 @@
       });
       if (!list.length) return;
       pages.push({ kind: "divider", t, count: list.length });
-      chunk(list, perPage()).forEach(group => pages.push({ kind: "grid", t, cards: group }));
+      layoutType(list).forEach(rows => pages.push({ kind: "grid", t, rows }));
     });
     return pages;
   }
@@ -70,14 +105,19 @@
       activeProject.collaborators ? `With ${escHtml(activeProject.collaborators)}` : "",
     ].filter(Boolean).join("  ·  ");
     const themes = new Set(live.flatMap(c => c.tags || [])).size;
+    // Title / description / credit are editable in place (edits are captured in
+    // the export; they are not saved back to the project).
     page.innerHTML = `
-      <div class="book-cover__top"><span class="book-cover__kicker">What is? / What if? — Catalogue</span></div>
+      <div class="book-cover__top">
+        <span class="book-cover__kicker">What is? / What if? — Catalogue</span>
+        <span class="book-cover__editnote">cover text is editable</span>
+      </div>
       <div class="book-cover__mid">
-        <h1 class="book-cover__title">${escHtml(activeProject.name || "Untitled project")}</h1>
-        ${activeProject.description ? `<p class="book-cover__desc">${escHtml(activeProject.description)}</p>` : ""}
+        <h1 class="book-cover__title" contenteditable="true" spellcheck="false">${escHtml(activeProject.name || "Untitled project")}</h1>
+        <p class="book-cover__desc" contenteditable="true" spellcheck="false" data-placeholder="Add a description…">${escHtml(activeProject.description || "")}</p>
       </div>
       <div class="book-cover__foot">
-        ${credit ? `<p class="book-cover__credit">${credit}</p>` : ""}
+        <p class="book-cover__credit" contenteditable="true" spellcheck="false" data-placeholder="Add credits…">${credit}</p>
         <p class="book-cover__meta">${live.length} card${live.length !== 1 ? "s" : ""} · ${themes} theme${themes !== 1 ? "s" : ""}</p>
       </div>`;
     return page;
@@ -98,29 +138,29 @@
 
   function gridPage(p) {
     const page = document.createElement("div");
-    page.className = `book-page book-page--grid book-grid--${density}`;
+    page.className = "book-page book-page--grid";
     page.innerHTML = `
       <div class="book-page__head">
         <span class="book-page__theme book-page__theme--${p.t.cls}">${escHtml(p.t.label)}</span>
       </div>
-      <div class="book-grid book-grid--${density}"></div>
+      <div class="book-grid"></div>
       <div class="book-page__foot"><span>${escHtml(activeProject.name || "")}</span><span class="book-page__pageno"></span></div>`;
     const grid = page.querySelector(".book-grid");
-    p.cards.forEach(card => {
-      const theme = primaryTheme(card);
-      const tc = theme === "Untagged" ? { bg: "#ddd", text: "#333" } : tagColor(theme);
-      const cell = document.createElement("div");
-      cell.className = "book-cell";
-      const cardBox = document.createElement("div");
-      cardBox.className = "book-cell__card";
-      cardBox.appendChild(renderCard(card));
-      const cap = document.createElement("div");
-      cap.className = "book-cell__cap";
-      cap.innerHTML =
-        `<span class="book-cell__title">${escHtml(card.title || "Untitled")}</span>` +
-        `<span class="book-cell__theme" style="--tag-bg:${tc.bg};--tag-color:${tc.text}">${escHtml(theme)}</span>`;
-      cell.append(cardBox, cap);
-      grid.appendChild(cell);
+    p.rows.forEach(r => {
+      if (r.kind === "header") {
+        const head = document.createElement("div");
+        head.className = "book-theme-head";
+        head.innerHTML = `<span class="book-theme-head__name">${escHtml(r.theme)}</span>` +
+          (r.cont ? `<span class="book-theme-head__cont">cont.</span>` : "");
+        grid.appendChild(head);
+      } else {
+        r.cards.forEach(card => {
+          const cell = document.createElement("div");
+          cell.className = "book-cell";
+          cell.appendChild(renderCard(card));
+          grid.appendChild(cell);
+        });
+      }
     });
     return page;
   }
@@ -151,16 +191,6 @@
     });
   }
 
-  // Density toggle
-  document.querySelectorAll("#density-btns [data-density]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      document.querySelectorAll("#density-btns [data-density]").forEach(b => b.classList.remove("filter-btn--active"));
-      btn.classList.add("filter-btn--active");
-      density = btn.dataset.density;
-      renderBook();
-    });
-  });
-
   // ── Export the book as a portrait-A4 PDF ─────────────────────────────────────
   const progressEl = document.getElementById("pdf-progress");
   const labelEl    = document.getElementById("pdf-progress-label");
@@ -187,6 +217,8 @@
 
     const savedBodyBg = document.body.style.backgroundImage;
     document.body.style.backgroundImage = "none";
+    document.activeElement?.blur();           // drop any contenteditable caret
+    document.body.classList.add("exporting"); // hide on-screen-only cover hints
 
     try {
       const pdf = new JsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
@@ -223,6 +255,7 @@
       barEl.style.width = "100%";
     } finally {
       document.body.style.backgroundImage = savedBodyBg;
+      document.body.classList.remove("exporting");
     }
   });
 
