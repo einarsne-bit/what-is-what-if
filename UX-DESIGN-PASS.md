@@ -146,8 +146,9 @@
 
 **Still open (revisit at the relevant phase):** affinity tag-overlap vs. manual board · creative-mode hooks (wire vs. stub until §C.7)
 
-### 7. creative.html — Creative / ideation — 🔬 R&D done (see [CreativeR&D.md](CreativeR&D.md))
-**R&D (2026-06-18):** deep scan of creativity/ideation/speculative-design/workshop literature → [CreativeR&D.md](CreativeR&D.md). Headline: the "combine two What Is?" vs "What Is? + constraint prompt" choice is **two validated techniques** (combinatorial creativity vs constraint-based/provocation), not either/or. **Recommendation:** a **two-mode, no-AI V1** led by the constraint-prompt mode; AI variants parked (Decision #31).
+### 7. creative.html — Creative / ideation — 🔧 V1 built on branch `creative-redesign` (R&D: [CreativeR&D.md](CreativeR&D.md))
+**R&D (2026-06-18):** deep scan of creativity/ideation/speculative-design/workshop literature → [CreativeR&D.md](CreativeR&D.md). The "combine two" vs "constraint prompt" choice is **two validated techniques**, not either/or.
+**V1 built (2026-06-19), no-AI:** reframed as a **creative-session dashboard** with four techniques — **Constraint · Provocation · Random word · Combine two** — plus a Focus (theme) filter, shuffle (+spacebar), lock-either-side, a session counter, and a "Turn into a What if?" hand-off that pre-links the observation(s) and seeds the prompt into the new card's body (`seed=` param in create.js). Prompt library (~21 constraints / ~16 provocations / ~40 nouns) drafted in `js/creative.js`. Constraint tile = riso-orange. AI variants parked (Decision #31).
 
 **Check/fix**
 - [ ] Spark modes (Random / By theme / Cross-theme) UI
