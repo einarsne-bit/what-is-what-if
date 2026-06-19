@@ -201,8 +201,9 @@
 - **Vertical references text in PDF — verify** (print, §C.8). Replaced `writing-mode: vertical-rl` with `transform: rotate(-90deg)` so html2canvas can capture it. Visually identical on screen. Do a test export to confirm it renders correctly in the output PDF.
 - **PDF export performance on large sets** (print, §C.8). Each card is a sequential html2canvas capture — slow for large selections. For 20+ cards this can take 30–60 s. Consider a progress indicator improvement or batching in a future pass.
 - **About credit links / partner logos** (about, §C.9). About copy is refreshed; still to add real credit links / partner logos (AHO / Design for Society and Technology) when available.
+- **Creative mode — follow up in a later phase** (creative, §C.7). V1 dashboard ships (branch `creative-redesign`): four techniques (Constraint / Provocation / Random word / Combine two), shuffle/lock/spacebar, Focus filter, session counter, prompt-seeded hand-off. "Works well for now." Deferred to a later phase: refine prompt-tile vs. card visual balance; curate/expand the prompt library (incl. project-specific prompts); seed a starter line in combine mode; consider session save/recall; **V2 AI variants stay parked (Decision #31)**. Grounding + ideas in [CreativeR&D.md](CreativeR&D.md).
 
 ---
 
-*Last updated: 2026-06-17 — §C.9 About pass done (full shared header via js/about.js, credit copy updated to AHO research group, placeholder links removed); print §C.8 closed with quality follow-ups logged. Created 2026-06-10 from the current codebase + the 2026-06-09 full-site code review. Record decisions as they're made in ROADMAP.md.*
+*Last updated: 2026-06-19 — Creative §C.7 V1 built on branch `creative-redesign` (session dashboard, four techniques); flagged for a later-phase follow-up. Earlier: §C.9 About pass; print §C.8 closed. Created 2026-06-10 from the current codebase + the 2026-06-09 full-site code review. Record decisions as they're made in ROADMAP.md.*
 *Companion files: BRIEF.md, R&D.md, ROADMAP.md, ANALYTICS-RESEARCH.md*

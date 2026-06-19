@@ -153,3 +153,4 @@ Reframed (your steer): **Creative mode is a dashboard for a creative session** w
 ---
 
 *Created 2026-06-18 — deep R&D scan for Creative mode (§C.7 of UX-DESIGN-PASS). Frames the combine-vs-constraint direction as two validated techniques; recommends a two-mode no-AI V1 led by constraint prompts. AI variants parked under Decision #31.*
+*Updated 2026-06-19 — V1 session-dashboard built on branch `creative-redesign` (four techniques). "Works well for now" — **flagged for a later-phase follow-up** (see §6 "Still open" + UX-DESIGN-PASS Follow ups): prompt-tile/card visual balance, prompt-library curation, combine-mode seed, session save/recall. V2 AI parked.*
