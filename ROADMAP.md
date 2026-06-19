@@ -11,11 +11,11 @@
 | | |
 |---|---|
 | **Active phase** | Phase 8 — UX/UI & Visual Design Pass (page-by-page, tracked in [UX-DESIGN-PASS.md](UX-DESIGN-PASS.md)) |
-| **Last session** | **UX pass continued, all pushed to `main` (Netlify live).** Supabase `text_boxes` + `draft` columns added. Draft cards, text-box redesign, clickable in-card links, author dropdown. **Print** kept as html2canvas + jsPDF PDF download (browser-print rejected); vertical references text fixed for export. **About** page reworked — full shared project header (js/about.js), refreshed copy, credit linked to AHO + Design for Society and Technology Medium. |
-| **Immediate next** | Continue the UX pass — **analysis.html (§C.6)** and **creative.html (§C.7)** are the remaining pages. Creative carries an open design-direction decision (combine What Is? cards vs. one card + constraint prompt). |
+| **Last session** | **Analysis dashboard rebuilt + merged to `main` (Netlify live).** Reframed to overview/exploration/interactivity: shared filter + brushing + hover previews; themes treemap; breadth & gaps; axis workbench (2×2 + bridges); two-level affinity; force-directed Connections network; theme cross-tab; tag hygiene; per-category annotation overview; Compare; Saved views. Reactions now **stack** (multi-user). **Creative mode V1** built on branch `creative-redesign` (not merged) — session dashboard, four techniques. AI parked (Decision #31). |
+| **Immediate next** | Decide whether to **merge `creative-redesign`** to `main` (deploys Creative V1). UX page-by-page pass is then complete; Creative has a logged later-phase follow-up (prompt curation, tile/card balance). |
 | **Supabase project** | `https://bnqmmdymxfcptfxgvxzm.supabase.co` — EU West (Frankfurt) |
-| **sessionStorage keys** | `whats-active-project`, `whats-access-{projectId}`, `whats-seeded` |
-| **localStorage keys** | `whats-session-id`, `whats-user-name` (annotation identity only — all card/project data now in Supabase) |
+| **sessionStorage keys** | `whats-active-project`, `whats-access-{projectId}`, `whats-seeded`, `whats-creative-sparks-{id}`, `whats-creative-ideas-{id}` |
+| **localStorage keys** | `whats-session-id`, `whats-user-name` (annotation identity); `whats-analysis-views-{id}` (saved analysis views). All card/project data is in Supabase. |
 | **Dev environment** | VS Code + Live Server + Claude extension |
 
 ---
@@ -63,8 +63,8 @@ WHATS/
 │   ├── create.js           ← card creation/edit logic
 │   ├── create-project.js   ← project creation logic
 │   ├── landing.js          ← landing page logic (project grid, password modal)
-│   ├── analysis.js         ← analysis dashboard logic (all visualisations)
-│   ├── creative.js         ← creative spark view logic
+│   ├── analysis.js         ← analysis dashboard logic (filter + all panels)
+│   ├── creative.js         ← creative-session dashboard (techniques + prompt library)
 │   ├── print.js            ← PDF export (html2canvas + jsPDF, one card per A4 page)
 │   └── about.js            ← wires the shared project header on the About page
 ├── assets/
@@ -72,6 +72,11 @@ WHATS/
 ├── ROADMAP.md
 ├── BRIEF.md
 ├── R&D.md
+├── UX-DESIGN-PASS.md       ← page-by-page UX pass checklist + follow-ups
+├── ANALYTICS-RESEARCH.md   ← analytics feature research (diagnostics era)
+├── ANALYSIS-PLAN.md        ← analysis redesign plan + expansion research
+├── CreativeR&D.md          ← creative-mode research foundations + build decisions
+├── TESTING.md              ← test scheme (T1–T14) + browser checklist + run log
 └── suggestions.md
 ```
 
@@ -137,6 +142,8 @@ WHATS/
 | 30 | About header | **Full shared project header** (matches gallery), wired via `js/about.js` to the active project. | Phase 8 |
 | 32 | Reactions stack | **Reactions accumulate** — each press adds another (no per-session toggle), so several people (incl. on one shared device) can mark the same card "interesting" / "low hanging fruit" etc.; a − button removes one. Each reaction is a row, so counts flow straight into the Analysis annotation panel. Refines #19. | Phase 8 |
 | 31 | AI functionality | **On hold (2026-06-17).** No Anthropic-API / embeddings / LLM features for now — incl. creative-mode V2 (AI prompts), analysis auto-synthesis / "ask your project" / AI theme suggestions / embeddings clustering. Pursue non-AI options only until lifted. | Phase 8 |
+| 33 | Analysis dashboard | **Rebuilt as an exploration surface** (not diagnostics): one shared filter drives every panel (brushing) + hover previews; cut timeline/matrix/health; treemap, breadth & gaps, axis 2×2, two-level affinity, force-directed Connections, cross-tab, tag hygiene, per-category annotations, Compare, Saved views. Missing WI↔WIF links are a *nudge*, not a flag. Plan: [ANALYSIS-PLAN.md](ANALYSIS-PLAN.md). | Phase 8 |
+| 34 | Creative mode direction | **Session dashboard with several no-AI techniques** (not one): Constraint · Provocation · Random word · Combine two — combinatorial + constraint-based + provocation, grounded in [CreativeR&D.md](CreativeR&D.md). Resolves the combine-vs-constraint question as "both, as modes." V1 on branch `creative-redesign`; later-phase follow-up logged. | Phase 8 |
 
 ---
 
@@ -283,10 +290,11 @@ Without this, collaborators on different devices have no way to share cards. JSO
 
 Candidate features (prioritise in Phase 8 based on real usage feedback):
 
-### Visual design pass (deferred from Phase D) — in progress via UX-DESIGN-PASS.md
+### Visual design pass (deferred from Phase D) — UX-DESIGN-PASS.md (all pages done; Creative V1 on a branch)
 - [x] Full typography pass — self-hosted IBM Plex Mono + Sans, six-level scale
 - [x] Landing page design — redesigned (hero, method panels, project tiles)
-- [ ] Analysis page design — currently functional but plain (page §C.6 of the UX pass)
+- [x] Analysis page design — **rebuilt as an exploration dashboard** (Decision #33; ANALYSIS-PLAN.md), merged to `main`
+- [x] Creative page — **V1 session dashboard, four techniques** (Decision #34; CreativeR&D.md), on branch `creative-redesign`; later-phase follow-up logged
 - [x] Expand Risograph tag colour palette — now 12 muted tones
 - [ ] Card image effects: halftone, riso-look, b&w, contrast treatments
 - [ ] References strip legibility pass
@@ -343,7 +351,7 @@ A standalone view — separate nav link — for generative ideation. Not a galle
 - [x] **[High] Password modal a11y** — focus trap, Escape-to-close, focus return added (landing.js).
 - [x] **[High] aria-labels on icon-only controls** — card prev/next arrows now SVG with `aria-label`; `···` trigger has `aria-expanded`.
 - [x] **[High] Fix remaining contrast failures** — warn count → `#8A6D00`; `.about-link` → riso-green + underline; What If? new-card button → white on pink.
-- [ ] **[Medium] Surface failed writes** — failed deletes redirect as if successful (`card.js:124`), and reactions/comments render optimistically before the write resolves; show error + revert on failure.
+- [~] **[Medium] Surface failed writes** — reaction add/remove now optimistic **with revert on failure** (card.js). Still open: failed deletes redirect as if successful; comments render optimistically without revert.
 - [x] **[Medium] Double-submit guards** — added on project create (`create-project.js`). *(reaction/comment posting still open.)*
 
 ### Code quality (lower priority, from review)
@@ -354,4 +362,4 @@ A standalone view — separate nav link — for generative ideation. Not a galle
 
 ---
 
-*Last updated: 2026-06-17 — UX/UI design pass: landing, gallery, card, create, create-project, print, about all done and pushed to `main` (Netlify live). Supabase `text_boxes` + `draft` columns added. Decisions #28–30 added (PDF-download method, draft cards, About shared header). Remaining UX pages: analysis (§C.6) + creative (§C.7).*
+*Last updated: 2026-06-19 — Analysis dashboard rebuilt + merged to `main` (Decision #33; reactions stack, #32; AI on hold, #31). Creative mode V1 built on branch `creative-redesign` (Decision #34) — session dashboard, four no-AI techniques; later-phase follow-up logged. UX page-by-page pass complete across all pages. Test run 2026-06-19 logged in TESTING.md (PASS). Next: decide whether to merge Creative V1 to `main`.*

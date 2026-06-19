@@ -93,13 +93,22 @@ Design notes from the evidence:
 
 ---
 
-## 6. Open questions for you
+## 6. Build decisions (2026-06-19) — V1 on branch `creative-redesign`
 
-1. **One mode or two?** Ship V1 with just the constraint-prompt mode, or both (constraint-prompt + combine-two-observations)?
-2. **Prompt library scope:** ~40–60 curated prompts now? Want to author/curate the list yourself, or have me draft a starter set grounded in the families above?
-3. **Constraint-tile colour:** confirm yellow/orange (brief) vs. another off-palette colour.
-4. **Spacebar-to-shuffle** and **lock-a-side** — include in V1?
-5. **Relationship to the existing `creative.html`** Random/Theme/Cross-theme modes — keep, remap to the two techniques, or rework?
+Reframed (your steer): **Creative mode is a dashboard for a creative session** with **several techniques** available, not one or two. Built V1:
+
+1. **Four techniques** in a mode switcher: **Constraint · Provocation · Random word · Combine two** (the old Random/Theme/Cross-theme combine-only modes are superseded; "combine two" + the Focus filter cover them).
+2. **Prompt library drafted** (starter set, in `js/creative.js`): ~21 constraints, ~16 provocations, ~40 nouns, each tagged by family. Edit freely.
+3. **Constraint/prompt tile colour = riso-orange** (off-palette vs green/pink), per the brief.
+4. **Shuffle (+ spacebar)** and **lock either side** included; lock one card and re-roll the other.
+5. **Focus** dropdown limits the observation pool to a theme, across all techniques.
+6. **Session counter** ("N sparks · M ideas this session") gives the dashboard feel (sessionStorage).
+7. **Hand-off:** "Turn into a What if?" pre-links the observation(s) and **seeds the prompt into the new card's body** (new `seed=` param in `create.js`).
+
+### Still open / to refine
+- Tile sizing vs. the scaled observation card (visual balance) — eyeball on real data.
+- Whether to also seed a starter line in **combine** mode.
+- Prompt wording + project-specific prompts (curate together).
 
 ---
 
@@ -144,3 +153,4 @@ Design notes from the evidence:
 ---
 
 *Created 2026-06-18 — deep R&D scan for Creative mode (§C.7 of UX-DESIGN-PASS). Frames the combine-vs-constraint direction as two validated techniques; recommends a two-mode no-AI V1 led by constraint prompts. AI variants parked under Decision #31.*
+*Updated 2026-06-19 — V1 session-dashboard built on branch `creative-redesign` (four techniques). "Works well for now" — **flagged for a later-phase follow-up** (see §6 "Still open" + UX-DESIGN-PASS Follow ups): prompt-tile/card visual balance, prompt-library curation, combine-mode seed, session save/recall. V2 AI parked.*

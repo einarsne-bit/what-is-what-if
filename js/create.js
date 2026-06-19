@@ -482,6 +482,13 @@ document.getElementById("btn-add-textbox").addEventListener("click", () => {
     updateLinkSectionVisibility();
   }
 
+  // Seed the body from a Creative-mode prompt (new cards only)
+  const _seedParam = _params.get("seed");
+  if (_seedParam && !editId) {
+    editBody.textContent = _seedParam;
+    markDirty();
+  }
+
   // ── Save (Publish / Mark as draft) ────────────────────────────────────────────
   const publishBtn = document.getElementById("btn-publish");
   const draftBtn   = document.getElementById("btn-draft");

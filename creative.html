@@ -31,47 +31,45 @@
 
     <div class="page-wrapper">
 
-      <!-- Mode bar -->
+      <!-- Session dashboard bar -->
       <div class="creative-bar">
-        <div class="creative-bar__left">
-          <span class="creative-bar__label">Spark mode</span>
+        <div class="creative-bar__group">
+          <span class="creative-bar__label">Technique</span>
           <div class="creative-bar__modes" id="mode-btns">
-            <button class="filter-btn filter-btn--active" data-mode="random">Random</button>
-            <button class="filter-btn" data-mode="theme">By theme</button>
-            <button class="filter-btn" data-mode="cross">Cross-theme</button>
+            <button class="filter-btn filter-btn--active" data-mode="constraint">Constraint</button>
+            <button class="filter-btn" data-mode="provoke">Provocation</button>
+            <button class="filter-btn" data-mode="random-word">Random word</button>
+            <button class="filter-btn" data-mode="combine">Combine two</button>
           </div>
         </div>
-        <div class="creative-bar__right">
-          <button class="spark-reshuffle" id="btn-reshuffle">↺ Reshuffle</button>
+        <div class="creative-bar__group">
+          <span class="creative-bar__label">Focus</span>
+          <select id="theme-focus" class="creative-focus" aria-label="Limit observations to a theme"></select>
+        </div>
+        <div class="creative-bar__group creative-bar__group--right">
+          <span class="creative-session" id="session-stat"></span>
         </div>
       </div>
 
-      <!-- Theme selectors (shown in theme/cross-theme modes) -->
-      <div class="creative-theme-row" id="theme-row" hidden>
-        <div class="creative-theme-col" id="theme-col-a">
-          <span class="creative-theme-col__label" id="theme-label-a">Theme A</span>
-          <div class="creative-theme-col__tags" id="theme-tags-a"></div>
-        </div>
-        <div class="creative-theme-col creative-theme-col--b" id="theme-col-b" hidden>
-          <span class="creative-theme-col__label" id="theme-label-b">Theme B</span>
-          <div class="creative-theme-col__tags" id="theme-tags-b"></div>
-        </div>
-      </div>
+      <!-- What this technique does -->
+      <p class="creative-status" id="creative-status"></p>
 
-      <!-- Status line -->
-      <div class="creative-status" id="creative-status">
-        Select observations — then generate a What if? idea.
-      </div>
-
-      <!-- Card spark stage -->
+      <!-- Spark stage: observation + prompt / second observation -->
       <div class="spark-stage" id="spark-stage">
-        <p class="spark-empty" id="spark-empty">No observations found in this project yet.</p>
+        <p class="spark-empty" id="spark-empty" hidden>No What is? observations in this project yet.</p>
       </div>
 
-      <!-- Generate CTA -->
+      <!-- Controls -->
+      <div class="spark-controls" id="spark-controls" hidden>
+        <button class="spark-lock" id="btn-lock-left" aria-pressed="false">Lock observation</button>
+        <button class="spark-shuffle" id="btn-shuffle">↺ Shuffle <span class="spark-shuffle__key">Space</span></button>
+        <button class="spark-lock" id="btn-lock-right" aria-pressed="false">Lock prompt</button>
+      </div>
+
+      <!-- CTA -->
       <div class="creative-cta">
-        <a href="#" class="btn-generate" id="btn-generate" hidden>Generate What if? →</a>
-        <p class="creative-cta__hint">The selected observations will be pre-linked to your new card.</p>
+        <a href="#" class="btn-generate" id="btn-generate" hidden>Turn into a What if? →</a>
+        <p class="creative-cta__hint">Your observation is pre-linked to the new card, and the prompt seeds its body.</p>
       </div>
 
     </div>
