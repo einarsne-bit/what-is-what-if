@@ -146,6 +146,9 @@
       <div class="book-grid"></div>
       <div class="book-page__foot"><span>${escHtml(activeProject.name || "")}</span><span class="book-page__pageno"></span></div>`;
     const grid = page.querySelector(".book-grid");
+    // Modular fields: theme headlines hug their content (auto); card rows share
+    // the remaining page height equally (1fr) → even vertical rhythm, page filled.
+    grid.style.gridTemplateRows = p.rows.map(r => r.kind === "header" ? "auto" : "1fr").join(" ");
     p.rows.forEach(r => {
       if (r.kind === "header") {
         const head = document.createElement("div");

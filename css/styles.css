@@ -662,23 +662,22 @@ body.print-page {
   flex: 1;
   display: grid;
   grid-template-columns: repeat(2, 1fr);   /* 2×3 layout */
-  grid-auto-rows: min-content;
-  align-content: start;
-  gap: 14px 16px;
+  /* grid-template-rows set per page in JS: auto for theme headlines, 1fr for
+     card rows, so card rows divide the page height evenly (modular fields). */
+  gap: 24px;                                /* 8-pt module gutter */
   min-height: 0;
 }
 
 /* In-flow theme headline + dividing line (spans the full grid width) */
 .book-theme-head {
   grid-column: 1 / -1;
+  align-self: end;
   display: flex;
   align-items: baseline;
   gap: 10px;
-  margin-top: 4px;
   padding-bottom: 6px;
   border-bottom: 2px solid var(--color-black);
 }
-.book-theme-head:first-child { margin-top: 0; }
 .book-theme-head__name {
   font-family: var(--font-mono);
   font-size: 15px;
