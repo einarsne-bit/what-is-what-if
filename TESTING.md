@@ -41,6 +41,9 @@ node --check js/create.js
 node --check js/create-project.js
 node --check js/landing.js
 node --check js/analysis.js
+node --check js/creative.js
+node --check js/about.js
+node --check js/db.js
 ```
 **Pass:** All exit 0 with no output.  
 **Fail:** Any syntax error reported.
@@ -83,6 +86,8 @@ For each page, every `getElementById("x")` and `querySelector("#x")` in the page
 | `create.html` | `js/create.js` |
 | `create-project.html` | `js/create-project.js` |
 | `analysis.html` | `js/analysis.js` |
+| `creative.html` | `js/creative.js` |
+| `about.html` | `js/about.js` |
 
 ```bash
 # Extract IDs defined in HTML:
@@ -319,6 +324,19 @@ After each test session, Claude will flag which of these are highest priority ba
 - [ ] Card chip links in affinity/outlier panels go to correct card
 - [ ] Resizing window re-renders coverage map and timeline
 
+### B9 — Creative mode (session dashboard, branch `creative-redesign`)
+- [ ] Page loads; first spark shows an observation card + an orange prompt tile
+- [ ] Four techniques switch correctly: Constraint, Provocation, Random word, Combine two
+- [ ] Combine two shows two observation cards (favours distant pairings)
+- [ ] Random word shows a big noun tile
+- [ ] Shuffle button re-rolls; **Spacebar** also shuffles (but not while typing in a field)
+- [ ] Lock observation: shuffle keeps the card, re-rolls the prompt; Lock prompt: opposite
+- [ ] Focus dropdown limits observations to a theme (empty state if none tagged)
+- [ ] Session counter increments on shuffle (sparks) and on hand-off (ideas)
+- [ ] "Turn into a What if?" opens create.html with the observation pre-linked AND the prompt seeded into the body
+- [ ] Empty state when the project has no What is? cards
+- [ ] Card scaling looks right next to the prompt tile; reasonable on resize / narrow widths
+
 ### B7 — Print
 - [ ] Gallery print mode: halftone background removed, each card on its own A4 page
 - [ ] Card view print popup: card fills A4 landscape, no chrome
@@ -363,6 +381,23 @@ Severity levels:
 ## 5. Test Log
 
 *(Entries appear here after each run — newest first.)*
+
+---
+### Test Run — 2026-06-19
+**Triggered by:** Creative mode V1 (branch `creative-redesign`) + "run a test"
+**Checks run:** T1–T14 automated (now incl. creative.js, about.js, db.js) | B-items manual by Einar
+**Overall result:** PASS — no critical/high issues
+
+| ID | Severity | File | Issue | Status |
+|----|----------|------|-------|--------|
+| 001 | Low | js/print.js | Two `alert()` fallbacks ("No cards selected", "PDF libraries still loading") — user-facing, pre-existing | Open (accepted) |
+| 002 | Info | js/db.js, app.js, landing.js | `console.error`/`console.warn` — intentional DB-error + sample-seed logging | OK |
+| 003 | Info | TESTING.md | T1/T4 didn't list creative.js, about.js, db.js — added this run | Fixed |
+
+**Detail:** T1 syntax 9/9 (incl. creative.js). T4 ID consistency OK for all 8 page↔JS pairs incl. creative.html↔creative.js. T5 no missing `project=`/bare index links. T6 no unescaped user content into HTML (creative tiles use `escHtml`; cards via `renderCard`; grep hits were URL params / booleans). T7 no passwords in storage. T8 only `whats-session-id` + `whats-user-name` in localStorage (creative counters use sessionStorage; analysis saved-views use a dynamic `whats-analysis-views-{id}` key). T9 all `JSON.parse` guarded. T11 empty states present (creative hides controls when no What is?).
+
+**Browser items flagged for manual check:** **B9 (Creative mode — new)** is top priority; also **B4** (reactions now *stack* — add multiple, − removes one) and **B6** (Analysis redesigned, now on `main`).
+**Notes:** Run on branch `creative-redesign`. Creative V1 is sound statically; needs a live pass (B9), especially prompt-tile vs. scaled-card visual balance and the seeded hand-off to create.html.
 
 ---
 ### Test Run — 2026-06-06
