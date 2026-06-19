@@ -309,7 +309,7 @@ Candidate features (prioritise in Phase 8 based on real usage feedback):
 - [ ] Annotation heatmap — most-reacted cards surfaced at top of Analysis
 
 ### Advanced features
-- [ ] Catalogue export — print-all popup (one card per A4 page) or 4-up grid layout
+- [~] Catalogue export — **two print modes:** existing 1-card-per-A4 (`print.html`) + new **book/catalogue** (`catalogue.html`): cover page (name/description/credits) → theme sections → portrait-A4 **3×4 grids**, with on-page preview + PDF export. On branch `print-catalogue`.
 - [ ] Duplicate card
 
 ### Creative mode (stimulus shuffle)

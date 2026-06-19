@@ -10,6 +10,7 @@
   document.title = `Print — ${activeProject.name}`;
   document.getElementById("print-project-name").textContent = activeProject.name;
   document.getElementById("print-back").href = `gallery.html?project=${projectId}`;
+  document.getElementById("catalogue-link").href = `catalogue.html?project=${projectId}`;
 
   let activeFilter = params.get("type") || "all";
   const selected   = new Set(); // card IDs currently selected for export

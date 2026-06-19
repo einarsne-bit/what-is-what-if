@@ -3,25 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Print — What is? / What if?</title>
+    <title>Catalogue — What is? / What if?</title>
     <link rel="stylesheet" href="css/styles.css" />
   </head>
-  <body class="print-page">
+  <body class="catalogue-page">
 
     <!-- Controls bar -->
     <div class="print-controls" id="print-controls">
-      <a class="print-controls__back" id="print-back" href="#">← Back</a>
-      <span class="print-controls__project" id="print-project-name"></span>
-      <a class="print-controls__mode" id="catalogue-link" href="#">Book / catalogue →</a>
-      <div class="print-controls__filters">
-        <button class="filter-btn filter-btn--active" data-filter="all">All</button>
-        <button class="filter-btn" data-filter="what-is">What is?</button>
-        <button class="filter-btn" data-filter="what-if">What if?</button>
-      </div>
-      <button class="print-controls__sel-btn" id="btn-select-all">Select all</button>
-      <button class="print-controls__sel-btn" id="btn-deselect-all">Deselect all</button>
-      <span class="print-controls__count" id="print-count"></span>
-      <button class="btn-print-now" id="btn-export-pdf">Export PDF</button>
+      <a class="print-controls__back" id="cat-back" href="#">← Back</a>
+      <span class="print-controls__project" id="cat-project-name"></span>
+      <a class="print-controls__mode" id="cards-link" href="#">← Cards (1 per page)</a>
+      <span class="print-controls__count" id="cat-count"></span>
+      <button class="btn-print-now" id="btn-export-book">Export book PDF</button>
     </div>
 
     <!-- Progress overlay -->
@@ -35,14 +28,16 @@
       </div>
     </div>
 
-    <!-- Selectable card grid -->
-    <div class="print-cards" id="print-cards"></div>
+    <!-- Book preview (portrait A4 pages: cover + 3×4 grids by theme) -->
+    <div class="book" id="book">
+      <p class="book-empty" id="book-empty" hidden>No cards in this project yet.</p>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <script src="js/data.js"></script>
     <script src="js/db.js"></script>
-    <script src="js/print.js"></script>
+    <script src="js/catalogue.js"></script>
   </body>
 </html>
