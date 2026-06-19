@@ -72,13 +72,6 @@
       cur.push(r); h += rh;
     });
     if (cur.length) pages.push(cur);
-
-    // Repeat the theme headline at the top of a page that opens mid-theme
-    pages.forEach((pg, i) => {
-      if (i > 0 && pg[0].kind === "cards") {
-        pg.unshift({ kind: "header", theme: pg[0].theme, cont: true });
-      }
-    });
     return pages;
   }
 
@@ -153,8 +146,7 @@
       if (r.kind === "header") {
         const head = document.createElement("div");
         head.className = "book-theme-head";
-        head.innerHTML = `<span class="book-theme-head__name">${escHtml(r.theme)}</span>` +
-          (r.cont ? `<span class="book-theme-head__cont">cont.</span>` : "");
+        head.innerHTML = `<span class="book-theme-head__name">${escHtml(r.theme)}</span>`;
         grid.appendChild(head);
       } else {
         r.cards.forEach(card => {
