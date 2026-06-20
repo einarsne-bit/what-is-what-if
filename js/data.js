@@ -1248,19 +1248,17 @@ const SAMPLE_CARDS = [
 ];
 
 // ── Tag colour system ─────────────────────────────────────────────────────────
+// Authentic Risograph inks (hoi! RISOklubb Fargekart). Text colour chosen for
+// legibility on each ink: black on the light/bright inks, white on the darker ones.
 const TAG_COLORS = [
-  { bg: "#F2A7CC", text: "#000000" }, // Soft Rose
-  { bg: "#8EB8E0", text: "#000000" }, // Pale Blue
-  { bg: "#F5DF6E", text: "#000000" }, // Pale Yellow
-  { bg: "#F2A875", text: "#000000" }, // Soft Coral
-  { bg: "#7DC49A", text: "#000000" }, // Sage Green
-  { bg: "#7ABFBF", text: "#000000" }, // Soft Teal
-  { bg: "#C298B5", text: "#000000" }, // Dusty Mauve
-  { bg: "#AACDE8", text: "#000000" }, // Pale Periwinkle
-  { bg: "#EFCC58", text: "#000000" }, // Pale Sunflower
-  { bg: "#EC9098", text: "#000000" }, // Soft Watermelon
-  { bg: "#B898CC", text: "#000000" }, // Soft Lavender
-  { bg: "#9AD8D5", text: "#000000" }, // Pale Aqua
+  { bg: "#FFE800", text: "#000000" }, // Yellow
+  { bg: "#FF48B0", text: "#000000" }, // Fluorescent pink
+  { bg: "#F15060", text: "#000000" }, // Bright red
+  { bg: "#5EC8E5", text: "#000000" }, // Aqua
+  { bg: "#00A95C", text: "#000000" }, // Green
+  { bg: "#FF6C2F", text: "#000000" }, // Orange
+  { bg: "#0078BF", text: "#FFFFFF" }, // Blue
+  { bg: "#00838A", text: "#FFFFFF" }, // Teal
 ];
 
 function tagColor(tag) {

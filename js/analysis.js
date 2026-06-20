@@ -895,14 +895,14 @@ function renderCoverageMap(ctx) {
     const line = document.createElementNS(svgNS, "line");
     line.setAttribute("x1", a.x.toFixed(1)); line.setAttribute("y1", a.y.toFixed(1));
     line.setAttribute("x2", b.x.toFixed(1)); line.setAttribute("y2", b.y.toFixed(1));
-    line.setAttribute("stroke", "rgba(11,107,0,0.28)");
+    line.setAttribute("stroke", "rgba(0,169,92,0.28)");
     line.setAttribute("stroke-width", "1.2");
     line.dataset.s = e.s; line.dataset.t = e.t;
     svg.appendChild(line);
     return line;
   });
   const resetEdges = () => edgeEls.forEach(le => {
-    le.setAttribute("stroke", "rgba(11,107,0,0.28)");
+    le.setAttribute("stroke", "rgba(0,169,92,0.28)");
     le.setAttribute("stroke-width", "1.2");
   });
 
@@ -920,7 +920,7 @@ function renderCoverageMap(ctx) {
     c.addEventListener("mouseenter", () => {
       edgeEls.forEach(le => {
         const inc = le.dataset.s === n.id || le.dataset.t === n.id;
-        le.setAttribute("stroke", inc ? "var(--color-black)" : "rgba(11,107,0,0.06)");
+        le.setAttribute("stroke", inc ? "var(--color-black)" : "rgba(0,169,92,0.06)");
         le.setAttribute("stroke-width", inc ? "2" : "1");
       });
     });
@@ -1175,7 +1175,7 @@ function renderCrosstab(ctx) {
       const v = cellCount(t, co);
       const alpha = v ? (0.12 + 0.78 * (v / max)) : 0;
       const color = alpha > 0.5 ? "#fff" : "var(--color-ink)";
-      html += `<div class="crosstab__cell" style="background:rgba(11,107,0,${alpha.toFixed(2)});color:${color}" title="${escHtml(t)} × ${escHtml(colLabel(co))}: ${v}">${v || ""}</div>`;
+      html += `<div class="crosstab__cell" style="background:rgba(0,169,92,${alpha.toFixed(2)});color:${color}" title="${escHtml(t)} × ${escHtml(colLabel(co))}: ${v}">${v || ""}</div>`;
     });
   });
   html += `</div>`;
