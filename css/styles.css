@@ -1120,10 +1120,13 @@ body.print-page {
   letter-spacing: -0.03em;
   line-height: 1.05;
   margin: 0;
+  display: inline-block;
+  padding: 2px 14px;
+  color: var(--color-black);   /* ink-block chip: black text on the ink */
 }
 
-.mode-heading--wi  { color: var(--color-riso-green); }
-.mode-heading--wif { color: var(--color-riso-pink); }
+.mode-heading--wi  { background: var(--color-riso-green); }
+.mode-heading--wif { background: var(--color-riso-pink); }
 
 /* Draft status badge — sits above the card title */
 .card__draft-badge {
@@ -1310,11 +1313,15 @@ body.print-page {
   letter-spacing: 0.12em;
   text-transform: uppercase;
   justify-self: center;
+  display: inline-block;
+  padding: 3px 10px 3px 13px;   /* extra left to balance the letter-spacing */
+  line-height: 1.1;
+  color: var(--color-black);    /* ink-block chip */
 }
 
 /* Type colour coding on the card header label */
-.card:not(.card--what-if) .card__header-type { color: var(--color-riso-green); }
-.card--what-if .card__header-type            { color: var(--color-riso-pink); }
+.card:not(.card--what-if) .card__header-type { background: var(--color-riso-green); }
+.card--what-if .card__header-type            { background: var(--color-riso-pink); }
 
 
 
