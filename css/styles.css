@@ -34,7 +34,7 @@
 :root {
   --color-black:       #000000;
   --color-white:       #FFFFFF;
-  --color-bg:          #E8E8E8;     /* light grey base for halftone */
+  --color-bg:          #EFEBE2;     /* warm paper base for the riso halftone */
   --color-surface:     #F0F0EE;     /* slightly darker off-white for sidebar/panel fills */
   --color-ink:         #000000;     /* text ink — alias for black */
   --color-dot:         #000000;     /* halftone dot color */
@@ -63,6 +63,13 @@
   /* Darker tints of green/pink for coloured TEXT on white (legibility) */
   --color-riso-green-ink: #0B6B00;
   --color-riso-pink-ink:  #C2416E;
+
+  /* Riso halftone — two offset ink dot grids (blue + pink) for a printed feel */
+  --halftone-img:
+    radial-gradient(circle, rgba(0,120,191,0.14) 1px, transparent 1.5px),
+    radial-gradient(circle, rgba(255,72,176,0.12) 1px, transparent 1.5px);
+  --halftone-size: 11px 11px;
+  --halftone-pos:  0 0, 5.5px 5.5px;
 
   /* Card */
   --card-width:        900px;
@@ -196,12 +203,9 @@ body {
 
   /* Halftone dot pattern — fine, low contrast */
   background-color: var(--color-bg);
-  background-image: radial-gradient(
-    circle,
-    rgba(0,0,0,0.18) 0.75px,
-    transparent 0.75px
-  );
-  background-size: 10px 10px;
+  background-image: var(--halftone-img);
+  background-size: var(--halftone-size);
+  background-position: var(--halftone-pos);
   transition: background-color 0.35s ease;
 }
 
@@ -224,12 +228,9 @@ body.project-page .site-header {
   margin-bottom: 0;
   padding: 0;
   background-color: var(--color-bg);
-  background-image: radial-gradient(
-    circle,
-    rgba(0,0,0,0.18) 0.75px,
-    transparent 0.75px
-  );
-  background-size: 10px 10px;
+  background-image: var(--halftone-img);
+  background-size: var(--halftone-size);
+  background-position: var(--halftone-pos);
 }
 
 
@@ -502,12 +503,9 @@ body.print-page {
   gap: 16px;
   padding: 10px 32px;
   background-color: var(--color-bg);
-  background-image: radial-gradient(
-    circle,
-    rgba(0,0,0,0.18) 0.75px,
-    transparent 0.75px
-  );
-  background-size: 10px 10px;
+  background-image: var(--halftone-img);
+  background-size: var(--halftone-size);
+  background-position: var(--halftone-pos);
   border-bottom: var(--border-width) solid var(--color-black);
 }
 
@@ -1124,8 +1122,8 @@ body.print-page {
   margin: 0;
 }
 
-.mode-heading--wi  { color: var(--color-riso-green-ink); }
-.mode-heading--wif { color: var(--color-riso-pink-ink); }
+.mode-heading--wi  { color: var(--color-riso-green); }
+.mode-heading--wif { color: var(--color-riso-pink); }
 
 /* Draft status badge — sits above the card title */
 .card__draft-badge {
@@ -1315,8 +1313,8 @@ body.print-page {
 }
 
 /* Type colour coding on the card header label */
-.card:not(.card--what-if) .card__header-type { color: var(--color-riso-green-ink); }
-.card--what-if .card__header-type            { color: var(--color-riso-pink-ink); }
+.card:not(.card--what-if) .card__header-type { color: var(--color-riso-green); }
+.card--what-if .card__header-type            { color: var(--color-riso-pink); }
 
 
 
