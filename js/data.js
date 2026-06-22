@@ -42,26 +42,14 @@ function placeholderImg(seed) {
   const s = String(seed);
   let h = 0;
   for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
-  const a  = inks[h % inks.length];                       // field ink
-  const b  = inks[(Math.floor(h / 7) + 3) % inks.length]; // subject ink
-  const cx = 150 + (h % 500), cy = 120 + ((h >> 4) % 300);
-  const paper = "#F4F0E7";
-  // Two offset halftone dot grids on warm paper: a light field + a denser
-  // disc as the "subject". Reads as airy riso halftone, not a solid block.
+  const a = inks[h % inks.length];
+  const b = inks[(Math.floor(h / 7) + 3) % inks.length];
+  const cx = 90 + (h % 620), cy = 70 + ((h >> 4) % 393);
   const svg =
     "<svg xmlns='http://www.w3.org/2000/svg' width='800' height='533'>" +
-      "<defs>" +
-        "<pattern id='f' width='20' height='20' patternUnits='userSpaceOnUse'>" +
-          "<circle cx='5' cy='5' r='2.4' fill='" + a + "'/></pattern>" +
-        "<pattern id='d' width='18' height='18' patternUnits='userSpaceOnUse' patternTransform='translate(9,9)'>" +
-          "<circle cx='4' cy='4' r='3.6' fill='" + b + "'/></pattern>" +
-        "<radialGradient id='m'>" +
-          "<stop offset='0.55' stop-color='white'/><stop offset='1' stop-color='black'/></radialGradient>" +
-        "<mask id='disc'><circle cx='" + cx + "' cy='" + cy + "' r='250' fill='url(#m)'/></mask>" +
-      "</defs>" +
-      "<rect width='800' height='533' fill='" + paper + "'/>" +
-      "<rect width='800' height='533' fill='url(#f)' opacity='0.5'/>" +
-      "<rect width='800' height='533' fill='url(#d)' mask='url(#disc)'/>" +
+    "<rect width='800' height='533' fill='" + a + "'/>" +
+    "<circle cx='" + cx + "' cy='" + cy + "' r='300' fill='" + b + "'/>" +
+    "<rect width='800' height='533' fill='" + a + "' opacity='0.18'/>" +
     "</svg>";
   return "data:image/svg+xml," + encodeURIComponent(svg).replace(/'/g, "%27");
 }
