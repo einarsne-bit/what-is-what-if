@@ -34,7 +34,7 @@
 :root {
   --color-black:       #000000;
   --color-white:       #FFFFFF;
-  --color-bg:          #E8E8E8;     /* light grey base for halftone */
+  --color-bg:          #EFEBE2;     /* warm paper base for the riso halftone */
   --color-surface:     #F0F0EE;     /* slightly darker off-white for sidebar/panel fills */
   --color-ink:         #000000;     /* text ink — alias for black */
   --color-dot:         #000000;     /* halftone dot color */
@@ -51,12 +51,25 @@
   --card-shadow:  6px 6px 0 var(--color-shadow);
   --btn-shadow:   none;
 
-  /* Palette — between GT Mechanik and muted risography */
-  --color-riso-green:  #0B6B00;   /* Forest green — What Is? (unchanged) */
-  --color-riso-pink:   #C2416E;   /* Riso rose — muted warm pink, closer to printed riso */
-  --color-riso-yellow: #E8C01A;   /* Warm golden — was #E8F80D, less acid */
-  --color-riso-blue:   #9EC4E0;   /* Muted sky blue — riso cornflower */
-  --color-riso-orange: #90991A;   /* Olive — unchanged */
+  /* Palette — authentic Risograph inks (hoi! RISOklubb Fargekart) */
+  --color-riso-yellow: #FFE800;   /* Yellow */
+  --color-riso-pink:   #FF48B0;   /* Fluorescent pink — What If? */
+  --color-riso-red:    #F15060;   /* Bright red */
+  --color-riso-orange: #FF6C2F;   /* Orange */
+  --color-riso-aqua:   #5EC8E5;   /* Aqua */
+  --color-riso-blue:   #0078BF;   /* Blue */
+  --color-riso-teal:   #00838A;   /* Teal */
+  --color-riso-green:  #00A95C;   /* Green — What Is? */
+  /* Darker tints of green/pink for coloured TEXT on white (legibility) */
+  --color-riso-green-ink: #0B6B00;
+  --color-riso-pink-ink:  #C2416E;
+
+  /* Riso halftone — two offset ink dot grids (blue + pink) for a printed feel */
+  --halftone-img:
+    radial-gradient(circle, rgba(0,120,191,0.14) 1px, transparent 1.5px),
+    radial-gradient(circle, rgba(255,72,176,0.12) 1px, transparent 1.5px);
+  --halftone-size: 11px 11px;
+  --halftone-pos:  0 0, 5.5px 5.5px;
 
   /* Card */
   --card-width:        900px;
@@ -134,7 +147,7 @@
   gap: 12px;
   padding: 10px 16px;
   background: var(--color-riso-pink);
-  color: var(--color-white);
+  color: var(--color-black);
   font-family: var(--font-mono);
   font-size: var(--text-sm);
   border-bottom: var(--border-width) solid var(--color-black);
@@ -155,7 +168,7 @@
 
 #app-error button:hover {
   background: var(--color-white);
-  color: var(--color-riso-pink);
+  color: var(--color-riso-pink-ink);
 }
 
 /* ── Toast (transient confirmation, e.g. "Link copied") ─────── */
@@ -190,12 +203,9 @@ body {
 
   /* Halftone dot pattern — fine, low contrast */
   background-color: var(--color-bg);
-  background-image: radial-gradient(
-    circle,
-    rgba(0,0,0,0.18) 0.75px,
-    transparent 0.75px
-  );
-  background-size: 10px 10px;
+  background-image: var(--halftone-img);
+  background-size: var(--halftone-size);
+  background-position: var(--halftone-pos);
   transition: background-color 0.35s ease;
 }
 
@@ -218,12 +228,9 @@ body.project-page .site-header {
   margin-bottom: 0;
   padding: 0;
   background-color: var(--color-bg);
-  background-image: radial-gradient(
-    circle,
-    rgba(0,0,0,0.18) 0.75px,
-    transparent 0.75px
-  );
-  background-size: 10px 10px;
+  background-image: var(--halftone-img);
+  background-size: var(--halftone-size);
+  background-position: var(--halftone-pos);
 }
 
 
@@ -386,7 +393,7 @@ body.gallery-page .new-card-bar {
 
 .nav-link--active {
   background: var(--color-riso-green);
-  color: var(--color-white);
+  color: var(--color-black);
   z-index: 1;
 }
 
@@ -496,12 +503,9 @@ body.print-page {
   gap: 16px;
   padding: 10px 32px;
   background-color: var(--color-bg);
-  background-image: radial-gradient(
-    circle,
-    rgba(0,0,0,0.18) 0.75px,
-    transparent 0.75px
-  );
-  background-size: 10px 10px;
+  background-image: var(--halftone-img);
+  background-size: var(--halftone-size);
+  background-position: var(--halftone-pos);
   border-bottom: var(--border-width) solid var(--color-black);
 }
 
@@ -523,10 +527,218 @@ body.print-page {
   white-space: nowrap;
 }
 
+.print-controls__mode {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-decoration: none;
+  color: var(--color-black);
+  border-bottom: 2px solid var(--color-riso-green);
+  padding-bottom: 2px;
+  white-space: nowrap;
+}
+.print-controls__mode:hover { color: var(--color-riso-green-ink); }
+.print-controls__mode-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.03em;
+  color: var(--color-muted);
+  white-space: nowrap;
+}
+
 .print-controls__filters {
   display: flex;
   gap: 0;
   flex: 1;
+}
+
+/* ── Catalogue / book mode ──────────────────────────────────────────────────── */
+.catalogue-page { background: var(--color-bg); }
+
+.book {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  padding: 32px 16px 96px;
+}
+.book-empty {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+  padding: 80px 0;
+}
+
+/* A4 portrait page (794×1123 ≈ 210×297mm at 96dpi) */
+.book-page {
+  width: 794px;
+  height: 1123px;
+  box-sizing: border-box;
+  background: var(--color-white);
+  border: 1px solid var(--color-black);
+  box-shadow: 6px 6px 0 rgba(0,0,0,0.15);
+  padding: 32px 24px 28px;   /* trim side margins so grid cards run larger */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Cover */
+.book-page--cover { justify-content: space-between; }
+.book-cover__top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.book-cover__kicker {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+.book-cover__editnote {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-riso-green-ink);
+}
+
+/* Editable cover fields — affordance on screen only */
+.book-cover__title[contenteditable],
+.book-cover__desc[contenteditable],
+.book-cover__credit[contenteditable] { outline: none; border-radius: 2px; }
+.book-cover__title[contenteditable]:hover,
+.book-cover__desc[contenteditable]:hover,
+.book-cover__credit[contenteditable]:hover { box-shadow: inset 0 -2px 0 rgba(0,0,0,0.18); }
+.book-cover__title[contenteditable]:focus,
+.book-cover__desc[contenteditable]:focus,
+.book-cover__credit[contenteditable]:focus { box-shadow: none; background: var(--color-surface); }
+
+/* Hide on-screen-only hints while exporting to PDF */
+.exporting .book-cover__editnote { display: none; }
+.exporting [contenteditable][data-placeholder]:empty::before { content: ""; }
+.book-cover__mid { margin: auto 0; }
+.book-cover__title {
+  font-size: 64px;
+  font-weight: 900;
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  margin: 0 0 24px;
+}
+.book-cover__desc {
+  font-size: 20px;
+  line-height: 1.5;
+  color: var(--color-ink);
+  max-width: 92%;
+  margin: 0;
+}
+.book-cover__credit { font-size: 15px; color: var(--color-ink); margin: 0 0 6px; }
+.book-cover__meta {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  margin: 0;
+}
+
+/* Section / grid page */
+.book-page__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.book-page__theme {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  color: var(--color-black);
+}
+.book-page__theme--wi  { background: var(--color-riso-green); }
+.book-page__theme--wif { background: var(--color-riso-pink); }
+
+.book-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);   /* 2×3 layout */
+  /* grid-template-rows set per page in JS: auto for theme headlines, 1fr for
+     card rows, so card rows divide the page height evenly (modular fields). */
+  gap: 16px;                                /* 8-pt module gutter */
+  min-height: 0;
+}
+
+/* In-flow theme headline + dividing line (spans the full grid width) */
+.book-theme-head {
+  grid-column: 1 / -1;
+  align-self: end;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--color-black);
+}
+.book-theme-head__name {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.book-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
+}
+/* No hard offset shadow inside the book; cards run edge-to-edge in their cell */
+.book-cell .card-wrapper,
+.book-cell .card-wrapper:has(.card--what-if) {
+  width: 100%;
+  box-shadow: none;
+}
+
+/* Section divider page */
+.book-page--divider { align-items: center; text-align: center; }
+.book-divider__inner { margin: auto; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.book-divider__kicker {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+.book-divider__title {
+  font-size: 88px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  margin: 0;
+  padding: 8px 28px;
+  color: var(--color-black);
+}
+.book-page--divider-wi  .book-divider__title { background: var(--color-riso-green); }
+.book-page--divider-wif .book-divider__title { background: var(--color-riso-pink); }
+.book-divider__count {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.book-page__foot {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--color-muted);
 }
 
 .print-controls__count {
@@ -774,14 +986,14 @@ body.print-page {
 
 .type-btn--what-is.type-btn--active {
   background: var(--color-riso-green);
-  border-color: var(--color-riso-green);
-  color: var(--color-white);
+  border-color: var(--color-riso-green-ink);
+  color: var(--color-black);
   z-index: 1;
 }
 
 .type-btn--what-if.type-btn--active {
   background: var(--color-riso-pink);
-  border-color: var(--color-riso-pink);
+  border-color: var(--color-riso-pink-ink);
   color: var(--color-black);
   z-index: 1;
 }
@@ -908,10 +1120,13 @@ body.print-page {
   letter-spacing: -0.03em;
   line-height: 1.05;
   margin: 0;
+  display: inline-block;
+  padding: 2px 14px;
+  color: var(--color-black);   /* ink-block chip: black text on the ink */
 }
 
-.mode-heading--wi  { color: var(--color-riso-green); }
-.mode-heading--wif { color: var(--color-riso-pink); }
+.mode-heading--wi  { background: var(--color-riso-green); }
+.mode-heading--wif { background: var(--color-riso-pink); }
 
 /* Draft status badge — sits above the card title */
 .card__draft-badge {
@@ -955,21 +1170,22 @@ body.print-page {
 
 .btn-new-card--what-is {
   background: var(--color-riso-green);
-  color: var(--color-white);
+  color: var(--color-black);
 }
 
 .btn-new-card--what-is:hover {
-  background: #0d8500;
+  background: var(--color-riso-green-ink);
   color: var(--color-white);
 }
 
 .btn-new-card--what-if {
   background: var(--color-riso-pink);
-  color: var(--color-white);
+  color: var(--color-black);
 }
 
 .btn-new-card--what-if:hover {
-  background: #D0567E;
+  background: var(--color-riso-pink-ink);
+  color: var(--color-white);
 }
 
 /* ── Cards grid ─────────────────────────────────── */
@@ -1097,11 +1313,15 @@ body.print-page {
   letter-spacing: 0.12em;
   text-transform: uppercase;
   justify-self: center;
+  display: inline-block;
+  padding: 3px 10px 3px 13px;   /* extra left to balance the letter-spacing */
+  line-height: 1.1;
+  color: var(--color-black);    /* ink-block chip */
 }
 
 /* Type colour coding on the card header label */
-.card:not(.card--what-if) .card__header-type { color: var(--color-riso-green); }
-.card--what-if .card__header-type            { color: var(--color-riso-pink); }
+.card:not(.card--what-if) .card__header-type { background: var(--color-riso-green); }
+.card--what-if .card__header-type            { background: var(--color-riso-pink); }
 
 
 
@@ -1403,7 +1623,7 @@ body.print-page {
 }
 
 .about-link {
-  color: var(--color-riso-green);
+  color: var(--color-riso-green-ink);
   font-weight: 700;
   text-decoration: underline;
 }
@@ -1425,7 +1645,7 @@ body.print-page {
   font-weight: 900;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--color-white);
+  color: var(--color-black);
   padding: 10px var(--space-md);
 }
 
@@ -1552,14 +1772,14 @@ body.print-page {
 }
 
 /* Colour-coded card-type toggle — green = What is?, pink = What if? */
-.sidebar__toggle .sidebar-btn[data-type="what-is"] { color: var(--color-riso-green); }
-.sidebar__toggle .sidebar-btn[data-type="what-if"] { color: var(--color-riso-pink); }
+.sidebar__toggle .sidebar-btn[data-type="what-is"] { color: var(--color-riso-green-ink); }
+.sidebar__toggle .sidebar-btn[data-type="what-if"] { color: var(--color-riso-pink-ink); }
 
-.sidebar__toggle .sidebar-btn[data-type="what-is"]:hover { background: rgba(11,107,0,0.12); color: var(--color-riso-green); }
-.sidebar__toggle .sidebar-btn[data-type="what-if"]:hover { background: rgba(194,65,110,0.12); color: var(--color-riso-pink); }
+.sidebar__toggle .sidebar-btn[data-type="what-is"]:hover { background: rgba(0,169,92,0.12); color: var(--color-riso-green-ink); }
+.sidebar__toggle .sidebar-btn[data-type="what-if"]:hover { background: rgba(255,72,176,0.12); color: var(--color-riso-pink-ink); }
 
-.sidebar__toggle .sidebar-btn[data-type="what-is"].sidebar-btn--active { background: var(--color-riso-green); color: var(--color-white); }
-.sidebar__toggle .sidebar-btn[data-type="what-if"].sidebar-btn--active { background: var(--color-riso-pink);  color: var(--color-white); }
+.sidebar__toggle .sidebar-btn[data-type="what-is"].sidebar-btn--active { background: var(--color-riso-green); color: var(--color-black); }
+.sidebar__toggle .sidebar-btn[data-type="what-if"].sidebar-btn--active { background: var(--color-riso-pink);  color: var(--color-black); }
 
 .sidebar__input {
   font-family: var(--font-sans);
@@ -1999,7 +2219,7 @@ body.print-page {
   box-shadow: var(--btn-shadow);
   transition: background 0.1s;
 }
-.reaction-remove:hover:not([disabled]) { background: var(--color-riso-pink); color: var(--color-white); }
+.reaction-remove:hover:not([disabled]) { background: var(--color-riso-pink); color: var(--color-black); }
 .reaction-remove:active { transform: translate(2px, 2px); box-shadow: none; }
 .reaction-remove[disabled] { opacity: 0.3; cursor: not-allowed; box-shadow: none; }
 
@@ -2404,8 +2624,8 @@ body.print-page {
   line-height: 1;
 }
 
-.stat-tile--wi  .stat-tile__value { color: var(--color-riso-green); }
-.stat-tile--wif .stat-tile__value { color: var(--color-riso-pink); }
+.stat-tile--wi  .stat-tile__value { color: var(--color-riso-green-ink); }
+.stat-tile--wif .stat-tile__value { color: var(--color-riso-pink-ink); }
 
 .stat-tile__label {
   font-size: 10px;
@@ -2541,7 +2761,7 @@ button.stat-tile:hover { background: var(--color-surface); }
   font-size: inherit;
   background: none;
   border: none;
-  color: var(--color-riso-green);
+  color: var(--color-riso-green-ink);
   text-decoration: underline;
   cursor: pointer;
   padding: 0;
@@ -2564,7 +2784,7 @@ button.stat-tile:hover { background: var(--color-surface); }
   transition: background 0.12s;
 }
 .author-bar-row:hover { background: var(--color-surface); }
-.author-bar-row--active { background: rgba(11,107,0,0.10); }
+.author-bar-row--active { background: rgba(0,169,92,0.10); }
 .author-bar-name {
   font-size: 11px;
   white-space: nowrap;
@@ -2603,8 +2823,8 @@ button.stat-tile:hover { background: var(--color-surface); }
   letter-spacing: 0.06em;
   padding: 2px 6px;
 }
-.analysis-preview__badge--wi  { background: var(--color-riso-green); color: var(--color-white); }
-.analysis-preview__badge--wif { background: var(--color-riso-pink);  color: var(--color-white); }
+.analysis-preview__badge--wi  { background: var(--color-riso-green); color: var(--color-black); }
+.analysis-preview__badge--wif { background: var(--color-riso-pink);  color: var(--color-black); }
 .analysis-preview__title { font-size: 13px; font-weight: 700; line-height: 1.3; }
 .analysis-preview__author { font-size: 10px; opacity: 0.7; }
 .analysis-preview__tags { display: flex; flex-wrap: wrap; gap: 4px; }
@@ -2627,7 +2847,7 @@ button.tag-bar-row {
   transition: background 0.12s;
 }
 button.tag-bar-row:hover { background: var(--color-surface); }
-.tag-bar-row--active { background: rgba(11,107,0,0.10); }
+.tag-bar-row--active { background: rgba(0,169,92,0.10); }
 
 button.affinity-group__header {
   font-family: inherit;
@@ -2707,7 +2927,7 @@ button.affinity-group__header {
   cursor: pointer;
   color: var(--color-muted);
 }
-.saved-view-chip__del:hover { background: var(--color-riso-pink); color: var(--color-white); }
+.saved-view-chip__del:hover { background: var(--color-riso-pink); color: var(--color-black); }
 
 /* Theme cross-tab */
 .crosstab-controls { display: flex; gap: 0; margin-bottom: 14px; }
@@ -2730,7 +2950,7 @@ button.affinity-group__header {
 .crosstab__colhead { text-align: center; align-self: end; }
 .crosstab__rowhead { text-align: right; }
 .crosstab__colhead:hover,
-.crosstab__rowhead:hover { color: var(--color-riso-green); }
+.crosstab__rowhead:hover { color: var(--color-riso-green-ink); }
 .crosstab__cell {
   min-height: 28px;
   display: flex;
@@ -2913,7 +3133,7 @@ button.affinity-group__header {
   text-transform: uppercase;
   letter-spacing: 0.06em;
   padding: 2px 8px;
-  color: var(--color-white);
+  color: var(--color-black);
   margin-bottom: 8px;
 }
 .breadth__label--wi  { background: var(--color-riso-green); }
@@ -2962,7 +3182,7 @@ button.affinity-group__header {
   border-bottom: 2px solid var(--color-riso-green);
   padding-bottom: 2px;
 }
-.breadth__spark:hover { color: var(--color-riso-green); }
+.breadth__spark:hover { color: var(--color-riso-green-ink); }
 
 @media (max-width: 700px) {
   .breadth__cols, .breadth__gaps { grid-template-columns: 1fr; }
@@ -3048,7 +3268,7 @@ button.affinity-group__header {
 }
 .annot-cat__head--interesting { border-color: var(--color-riso-blue); }
 .annot-cat__head--follow      { border-color: var(--color-riso-yellow); }
-.annot-cat__head--fruit       { border-color: var(--color-riso-green); }
+.annot-cat__head--fruit       { border-color: var(--color-riso-green-ink); }
 .annot-cat__head--comment     { border-color: #bbb; }
 .annot-cat__meta {
   font-size: 10px;
@@ -3072,8 +3292,8 @@ button.affinity-group__header {
   font-size: 11px;
   max-width: 280px;
 }
-.annot-cat__chip--wi  { border-left-color: var(--color-riso-green); }
-.annot-cat__chip--wif { border-left-color: var(--color-riso-pink); }
+.annot-cat__chip--wi  { border-left-color: var(--color-riso-green-ink); }
+.annot-cat__chip--wif { border-left-color: var(--color-riso-pink-ink); }
 .annot-cat__chip:hover { background: var(--color-surface); }
 .annot-cat__chip-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .annot-cat__chip-count {
@@ -3211,8 +3431,8 @@ button.affinity-group__header {
   display: inline-block;
 }
 
-.affinity-chip--wi  { background: rgba(11,107,0,0.12); color: var(--color-ink); }
-.affinity-chip--wif { background: rgba(194,65,110,0.12); color: var(--color-ink); }
+.affinity-chip--wi  { background: rgba(0,169,92,0.12); color: var(--color-ink); }
+.affinity-chip--wif { background: rgba(255,72,176,0.12); color: var(--color-ink); }
 .affinity-chip:hover { opacity: 0.7; }
 
 /* Empty-state text (shared across panels) */
@@ -3416,8 +3636,8 @@ button.affinity-group__header {
   margin: 0 0 8px;
 }
 
-.landing-method--wi   .landing-method__title { color: var(--color-riso-green); }
-.landing-method--wif  .landing-method__title { color: var(--color-riso-pink);  }
+.landing-method--wi   .landing-method__title { color: var(--color-riso-green-ink); }
+.landing-method--wif  .landing-method__title { color: var(--color-riso-pink-ink);  }
 
 .landing-method__desc {
   font-size: 13px;
@@ -3819,7 +4039,7 @@ button.affinity-group__header {
 
 .modal__error {
   font-size: 12px;
-  color: var(--color-riso-pink);
+  color: var(--color-riso-pink-ink);
   margin: 0;
 }
 
@@ -4286,7 +4506,7 @@ button.affinity-group__header {
 .btn-generate {
   display: inline-block;
   background: var(--color-riso-green);
-  color: var(--color-white);
+  color: var(--color-black);
   border: var(--border-width) solid var(--color-black);
   padding: 14px 36px;
   font-family: var(--font-mono);

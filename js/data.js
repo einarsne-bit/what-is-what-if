@@ -1248,19 +1248,25 @@ const SAMPLE_CARDS = [
 ];
 
 // ── Tag colour system ─────────────────────────────────────────────────────────
+// Authentic Risograph inks. Spread across the spectrum for tag variety; text
+// colour chosen for legibility on each ink (black on light/bright, white on dark).
 const TAG_COLORS = [
-  { bg: "#F2A7CC", text: "#000000" }, // Soft Rose
-  { bg: "#8EB8E0", text: "#000000" }, // Pale Blue
-  { bg: "#F5DF6E", text: "#000000" }, // Pale Yellow
-  { bg: "#F2A875", text: "#000000" }, // Soft Coral
-  { bg: "#7DC49A", text: "#000000" }, // Sage Green
-  { bg: "#7ABFBF", text: "#000000" }, // Soft Teal
-  { bg: "#C298B5", text: "#000000" }, // Dusty Mauve
-  { bg: "#AACDE8", text: "#000000" }, // Pale Periwinkle
-  { bg: "#EFCC58", text: "#000000" }, // Pale Sunflower
-  { bg: "#EC9098", text: "#000000" }, // Soft Watermelon
-  { bg: "#B898CC", text: "#000000" }, // Soft Lavender
-  { bg: "#9AD8D5", text: "#000000" }, // Pale Aqua
+  { bg: "#FFE800", text: "#000000" }, // Yellow
+  { bg: "#FFB511", text: "#000000" }, // Sunflower
+  { bg: "#FF6C2F", text: "#000000" }, // Orange
+  { bg: "#FF8E91", text: "#000000" }, // Coral
+  { bg: "#F15060", text: "#000000" }, // Bright red
+  { bg: "#FF48B0", text: "#000000" }, // Fluorescent pink
+  { bg: "#914E72", text: "#FFFFFF" }, // Burgundy
+  { bg: "#765BA7", text: "#FFFFFF" }, // Purple
+  { bg: "#0078BF", text: "#FFFFFF" }, // Blue
+  { bg: "#62A8E5", text: "#000000" }, // Cornflower
+  { bg: "#5EC8E5", text: "#000000" }, // Aqua
+  { bg: "#00838A", text: "#FFFFFF" }, // Teal
+  { bg: "#2D6C6F", text: "#FFFFFF" }, // Lagoon
+  { bg: "#00A95C", text: "#000000" }, // Green
+  { bg: "#67B346", text: "#000000" }, // Kelly green
+  { bg: "#E3ED55", text: "#000000" }, // Light lime
 ];
 
 function tagColor(tag) {
