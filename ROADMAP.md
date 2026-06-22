@@ -11,8 +11,8 @@
 | | |
 |---|---|
 | **Active phase** | Phase 8 — UX/UI & Visual Design Pass (page-by-page, tracked in [UX-DESIGN-PASS.md](UX-DESIGN-PASS.md)) |
-| **Last session** | **Analysis dashboard rebuilt + merged to `main` (Netlify live).** Reframed to overview/exploration/interactivity: shared filter + brushing + hover previews; themes treemap; breadth & gaps; axis workbench (2×2 + bridges); two-level affinity; force-directed Connections network; theme cross-tab; tag hygiene; per-category annotation overview; Compare; Saved views. Reactions now **stack** (multi-user). **Creative mode V1** built on branch `creative-redesign` (not merged) — session dashboard, four techniques. AI parked (Decision #31). |
-| **Immediate next** | Decide whether to **merge `creative-redesign`** to `main` (deploys Creative V1). UX page-by-page pass is then complete; Creative has a logged later-phase follow-up (prompt curation, tile/card balance). |
+| **Last session** | **Creative V1, catalogue, and the Risograph palette all merged to `main` (Netlify live).** Creative session dashboard (4 no-AI techniques). New **book/catalogue** print mode (`catalogue.html`) — editable cover, type dividers, continuous theme-headed 2×3 grid. **Risograph palette** (Decision #35) — authentic inks, 16-ink tags, halftone background, WI/WIF ink-block chips (**parked mid-pass**). Fixed disappearing photos — sample cards now use self-contained placeholder SVGs (no picsum). |
+| **Immediate next** | **Page-by-page UX pass is complete** (all 9 pages). Open Phase-8 threads to pick from: finish the **Risograph palette** refinement (parked), **card type differentiation**, **user-controlled card image effects**, **small UX wins** (duplicate card, filter-bar compress, references legibility), and **[Critical] verify Supabase RLS**. |
 | **Supabase project** | `https://bnqmmdymxfcptfxgvxzm.supabase.co` — EU West (Frankfurt) |
 | **sessionStorage keys** | `whats-active-project`, `whats-access-{projectId}`, `whats-seeded`, `whats-creative-sparks-{id}`, `whats-creative-ideas-{id}` |
 | **localStorage keys** | `whats-session-id`, `whats-user-name` (annotation identity); `whats-analysis-views-{id}` (saved analysis views). All card/project data is in Supabase. |
@@ -295,22 +295,22 @@ Candidate features (prioritise in Phase 8 based on real usage feedback):
 - [x] Full typography pass — self-hosted IBM Plex Mono + Sans, six-level scale
 - [x] Landing page design — redesigned (hero, method panels, project tiles)
 - [x] Analysis page design — **rebuilt as an exploration dashboard** (Decision #33; ANALYSIS-PLAN.md), merged to `main`
-- [x] Creative page — **V1 session dashboard, four techniques** (Decision #34; CreativeR&D.md), on branch `creative-redesign`; later-phase follow-up logged
-- [x] Expand Risograph tag colour palette — now 12 muted tones
-- [ ] Card image effects: halftone, riso-look, b&w, contrast treatments
+- [x] Creative page — **V1 session dashboard, four techniques** (Decision #34; CreativeR&D.md), merged to `main`; later-phase follow-up logged
+- [~] Risograph palette — moved to **authentic Riso inks** + 16-ink tag palette + halftone background + WI/WIF ink-block chips (Decision #35). Merged, **parked mid-pass for a refinement round**.
+- [ ] **User-controlled card image effects**: per-card halftone / riso / b&w / contrast filter in the editor (the fixed print filter was removed; this is the opt-in version)
 - [ ] References strip legibility pass
-- [x] Card surface + page background settled — white cards, light-grey halftone background (Decision #26)
+- [x] Card surface + background — white cards; background now a **two-ink riso halftone on warm paper** (Decision #35, revisits #26)
 - [ ] **What is? / What if? card differentiation** — parked for the next design iteration (Follow ups)
-- [ ] **DRAFT marker placement on the card template** — a working black "DRAFT" tag (top-right) ships in v000.4; revisit where/how it sits on the card in the differentiation pass
+- [ ] **DRAFT marker placement on the card template** — a working black "DRAFT" tag (top-right) ships; revisit where/how it sits on the card in the differentiation pass
 
-### Analysis v2
-- [ ] Tag co-occurrence matrix (n×n grid, pure HTML table)
-- [ ] Author × tag contribution matrix
-- [ ] Interactive zoom on coverage map
-- [ ] Annotation heatmap — most-reacted cards surfaced at top of Analysis
+### Analysis v2 — largely delivered by the redesign (Decision #33)
+- [x] Author × tag contribution matrix → **theme cross-tab** panel
+- [x] Annotation heatmap → **per-category annotation overview**
+- [x] Tag co-occurrence → kept as the co-occurrence panel
+- [x] Coverage map → **force-directed Connections network** (hover-to-highlight; interactive-zoom no longer needed)
 
 ### Advanced features
-- [~] Catalogue export — **two print modes:** existing 1-card-per-A4 (`print.html`) + new **book/catalogue** (`catalogue.html`): cover page (name/description/credits) → theme sections → portrait-A4 **3×4 grids**, with on-page preview + PDF export. On branch `print-catalogue`.
+- [x] Catalogue export — **two print modes shipped:** 1-card-per-A4 (`print.html`) + **book/catalogue** (`catalogue.html`): editable cover, What is?/What if? section dividers, continuous theme-headed **2×3** grid filling the page, on-page preview + portrait-A4 PDF export. Merged to `main`.
 - [ ] Duplicate card
 
 ### Creative mode (stimulus shuffle)
@@ -363,4 +363,4 @@ A standalone view — separate nav link — for generative ideation. Not a galle
 
 ---
 
-*Last updated: 2026-06-19 — Analysis dashboard rebuilt + merged to `main` (Decision #33; reactions stack, #32; AI on hold, #31). Creative mode V1 built on branch `creative-redesign` (Decision #34) — session dashboard, four no-AI techniques; later-phase follow-up logged. UX page-by-page pass complete across all pages. Test run 2026-06-19 logged in TESTING.md (PASS). Next: decide whether to merge Creative V1 to `main`.*
+*Last updated: 2026-06-22 — Creative V1, catalogue/book mode, and the Risograph palette (Decision #35, parked) all merged to `main`; sample images now self-contained placeholders (no picsum). **Page-by-page UX pass complete (9/9 pages).** Phase 8 now = polish/advanced backlog: palette refinement (parked), card type differentiation, user-controlled image effects, small UX wins (duplicate card, filter-bar, references), and the security backlog ([Critical] verify RLS). Decisions #31–35 logged.*
