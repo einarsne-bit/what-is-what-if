@@ -35,7 +35,7 @@
   --color-black:       #000000;
   --color-white:       #FFFFFF;
   --color-bg:          #EFEBE2;     /* warm paper base for the riso halftone */
-  --color-surface:     #F0F0EE;     /* slightly darker off-white for sidebar/panel fills */
+  --color-surface:     #ECE6D9;     /* warm paper panel fill — harmonises with the halftone bg */
   --color-ink:         #000000;     /* text ink — alias for black */
   --color-dot:         #000000;     /* halftone dot color */
   --color-card-bg:     #FFFFFF;
@@ -3546,7 +3546,9 @@ button.affinity-group__header {
 }
 
 .landing-hero__wi {
-  color: var(--color-riso-green);
+  background: var(--color-riso-green);
+  color: var(--color-black);
+  padding: 0 20px;
 }
 
 .landing-hero__slash {
@@ -3559,7 +3561,9 @@ button.affinity-group__header {
 }
 
 .landing-hero__wif {
-  color: var(--color-riso-pink);
+  background: var(--color-riso-pink);
+  color: var(--color-black);
+  padding: 0 20px;
 }
 
 .landing-hero__desc-col {
@@ -3633,11 +3637,14 @@ button.affinity-group__header {
   font-size: var(--text-lg);
   font-weight: 900;
   letter-spacing: -0.03em;
-  margin: 0 0 8px;
+  margin: 0 0 10px;
+  display: inline-block;
+  padding: 1px 12px;
+  color: var(--color-black);   /* ink-block chip (matches the gallery WI/WIF labels) */
 }
 
-.landing-method--wi   .landing-method__title { color: var(--color-riso-green-ink); }
-.landing-method--wif  .landing-method__title { color: var(--color-riso-pink-ink);  }
+.landing-method--wi   .landing-method__title { background: var(--color-riso-green); }
+.landing-method--wif  .landing-method__title { background: var(--color-riso-pink);  }
 
 .landing-method__desc {
   font-size: 13px;

@@ -11,8 +11,8 @@
 | | |
 |---|---|
 | **Active phase** | Phase 8 — UX/UI & Visual Design Pass (page-by-page, tracked in [UX-DESIGN-PASS.md](UX-DESIGN-PASS.md)) |
-| **Last session** | **Creative V1, catalogue, and the Risograph palette all merged to `main` (Netlify live).** Creative session dashboard (4 no-AI techniques). New **book/catalogue** print mode (`catalogue.html`) — editable cover, type dividers, continuous theme-headed 2×3 grid. **Risograph palette** (Decision #35) — authentic inks, 16-ink tags, halftone background, WI/WIF ink-block chips (**parked mid-pass**). Fixed disappearing photos — sample cards now use self-contained placeholder SVGs (no picsum). |
-| **Immediate next** | **Page-by-page UX pass is complete** (all 9 pages). Open Phase-8 threads to pick from: finish the **Risograph palette** refinement (parked), **card type differentiation**, **user-controlled card image effects**, **small UX wins** (duplicate card, filter-bar compress, references legibility), and **[Critical] verify Supabase RLS**. |
+| **Last session** | **Palette refinement merged to `main` as stable version (Decision #36).** Method-panel titles and landing hero "What is? / What if?" converted to ink-block chips; panel surface warmed to `#ECE6D9`. Remaining palette items (halftone intensity, analysis stat numbers, references legibility) parked for a later pass. |
+| **Immediate next** | **[Critical] Verify Supabase RLS** — confirm policies don't expose passwords to anon reads (security backlog). Then: card type differentiation, small UX wins (duplicate card, filter-bar compress, references legibility), mobile read-only pass. |
 | **Supabase project** | `https://bnqmmdymxfcptfxgvxzm.supabase.co` — EU West (Frankfurt) |
 | **sessionStorage keys** | `whats-active-project`, `whats-access-{projectId}`, `whats-seeded`, `whats-creative-sparks-{id}`, `whats-creative-ideas-{id}` |
 | **localStorage keys** | `whats-session-id`, `whats-user-name` (annotation identity); `whats-analysis-views-{id}` (saved analysis views). All card/project data is in Supabase. |
@@ -52,6 +52,7 @@ WHATS/
 ├── analysis.html           ← analysis dashboard (?project=id)
 ├── creative.html           ← creative / ideation spark view (?project=id)
 ├── print.html              ← PDF export (card-select grid → A4 PDF download)
+├── catalogue.html          ← book/catalogue print mode (editable cover, 2×3 grid, portrait-A4 PDF)
 ├── about.html
 ├── css/
 │   └── styles.css          ← all styles (design tokens, cards, landing, analysis, modal, print)
@@ -66,6 +67,7 @@ WHATS/
 │   ├── analysis.js         ← analysis dashboard logic (filter + all panels)
 │   ├── creative.js         ← creative-session dashboard (techniques + prompt library)
 │   ├── print.js            ← PDF export (html2canvas + jsPDF, one card per A4 page)
+│   ├── catalogue.js        ← book/catalogue layout engine (cover, dividers, 2×3 theme-headed grid, PDF)
 │   └── about.js            ← wires the shared project header on the About page
 ├── assets/
 │   └── images/
@@ -144,7 +146,8 @@ WHATS/
 | 31 | AI functionality | **On hold (2026-06-17).** No Anthropic-API / embeddings / LLM features for now — incl. creative-mode V2 (AI prompts), analysis auto-synthesis / "ask your project" / AI theme suggestions / embeddings clustering. Pursue non-AI options only until lifted. | Phase 8 |
 | 33 | Analysis dashboard | **Rebuilt as an exploration surface** (not diagnostics): one shared filter drives every panel (brushing) + hover previews; cut timeline/matrix/health; treemap, breadth & gaps, axis 2×2, two-level affinity, force-directed Connections, cross-tab, tag hygiene, per-category annotations, Compare, Saved views. Missing WI↔WIF links are a *nudge*, not a flag. Plan: [ANALYSIS-PLAN.md](ANALYSIS-PLAN.md). | Phase 8 |
 | 34 | Creative mode direction | **Session dashboard with several no-AI techniques** (not one): Constraint · Provocation · Random word · Combine two — combinatorial + constraint-based + provocation, grounded in [CreativeR&D.md](CreativeR&D.md). Resolves the combine-vs-constraint question as "both, as modes." V1 on branch `creative-redesign`; later-phase follow-up logged. | Phase 8 |
-| 35 | Colour scheme → Risograph | **Authentic Riso inks** (hoi! RISOklubb chart) replace the muted palette: Yellow #FFE800 · Fluo pink #FF48B0 · Red #F15060 · Orange #FF6C2F · Aqua #5EC8E5 · Blue #0078BF · Teal #00838A · Green #00A95C (+ `-ink` text variants). What is?=green, What if?=pink. 16-ink tag palette; two-ink halftone background; WI/WIF labels as ink-block chips. **Parked mid-pass — to be refined later** (see Follow ups). | Phase 8 |
+| 35 | Colour scheme → Risograph | **Authentic Riso inks** (hoi! RISOklubb chart) replace the muted palette: Yellow #FFE800 · Fluo pink #FF48B0 · Red #F15060 · Orange #FF6C2F · Aqua #5EC8E5 · Blue #0078BF · Teal #00838A · Green #00A95C (+ `-ink` text variants). What is?=green, What if?=pink. 16-ink tag palette; two-ink halftone background; WI/WIF labels as ink-block chips. Parked mid-pass, refined in Decision #36. | Phase 8 |
+| 36 | Palette refinement | **Ink-block chips extended** to landing hero "What is? / What if?" and method-panel titles. Panel surface warmed to `--color-surface: #ECE6D9`. Merged to `main` as stable version. Remaining items (halftone intensity, analysis stat numbers, references-strip legibility) parked for a later pass. | Phase 8 |
 
 ---
 
@@ -296,7 +299,7 @@ Candidate features (prioritise in Phase 8 based on real usage feedback):
 - [x] Landing page design — redesigned (hero, method panels, project tiles)
 - [x] Analysis page design — **rebuilt as an exploration dashboard** (Decision #33; ANALYSIS-PLAN.md), merged to `main`
 - [x] Creative page — **V1 session dashboard, four techniques** (Decision #34; CreativeR&D.md), merged to `main`; later-phase follow-up logged
-- [~] Risograph palette — moved to **authentic Riso inks** + 16-ink tag palette + halftone background + WI/WIF ink-block chips (Decision #35). Merged, **parked mid-pass for a refinement round**.
+- [x] Risograph palette — authentic Riso inks + 16-ink tag palette + halftone background + WI/WIF ink-block chips (Decision #35); refined in Decision #36 (method titles + hero chips, warm surface). **Merged to `main` as stable version.**
 - [ ] **User-controlled card image effects**: per-card halftone / riso / b&w / contrast filter in the editor (the fixed print filter was removed; this is the opt-in version)
 - [ ] References strip legibility pass
 - [x] Card surface + background — white cards; background now a **two-ink riso halftone on warm paper** (Decision #35, revisits #26)
@@ -363,4 +366,4 @@ A standalone view — separate nav link — for generative ideation. Not a galle
 
 ---
 
-*Last updated: 2026-06-22 — Creative V1, catalogue/book mode, and the Risograph palette (Decision #35, parked) all merged to `main`; sample images now self-contained placeholders (no picsum). **Page-by-page UX pass complete (9/9 pages).** Phase 8 now = polish/advanced backlog: palette refinement (parked), card type differentiation, user-controlled image effects, small UX wins (duplicate card, filter-bar, references), and the security backlog ([Critical] verify RLS). Decisions #31–35 logged.*
+*Last updated: 2026-06-23 — Palette refinement complete and merged to `main` as stable version (Decision #36): ink-block chips on method titles + landing hero, warm panel surface. **Page-by-page UX pass complete (9/9 pages).** Phase 8 now = security backlog ([Critical] verify Supabase RLS), card type differentiation, small UX wins, mobile pass. Decisions #31–36 logged.*
