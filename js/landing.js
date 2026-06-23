@@ -21,7 +21,7 @@ function openProject(p) {
   const existing = getProjectAccess(p.id);
   if (existing) { window.location.href = `gallery.html?project=${p.id}`; return; }
 
-  if (!p.editorPassword && !p.workshopPassword) {
+  if (!p.passwordRequired) {
     setProjectAccess(p.id, "editor");
     window.location.href = `gallery.html?project=${p.id}`;
     return;
@@ -37,15 +37,14 @@ function openProject(p) {
   setTimeout(() => modalPassword.focus(), 50);
 }
 
-function submitPassword() {
+async function submitPassword() {
   const pw = modalPassword.value;
   if (!pendingProject) return;
-  if (pendingProject.editorPassword && pw === pendingProject.editorPassword) {
-    setProjectAccess(pendingProject.id, "editor");
-    modalOverlay.hidden = true;
-    window.location.href = `gallery.html?project=${pendingProject.id}`;
-  } else if (pendingProject.workshopPassword && pw === pendingProject.workshopPassword) {
-    setProjectAccess(pendingProject.id, "workshop");
+  modalSubmit.disabled = true;
+  const level = await checkProjectPassword(pendingProject.id, pw);
+  modalSubmit.disabled = false;
+  if (level) {
+    setProjectAccess(pendingProject.id, level);
     modalOverlay.hidden = true;
     window.location.href = `gallery.html?project=${pendingProject.id}`;
   } else {
@@ -94,7 +93,7 @@ function renderProjects(query) {
   emptyMsg.hidden = list.length > 0;
 
   list.forEach(p => {
-    const isLocked  = !!(p.editorPassword || p.workshopPassword);
+    const isLocked  = !!p.passwordRequired;
     const cardCount = allCardsList.filter(c => c.projectId === p.id).length;
     const tile = document.createElement("div");
     tile.className = "project-tile";

@@ -13,7 +13,7 @@
   const modalOverlay = document.getElementById("modal-overlay");
 
   if (accessLevel === null) {
-    if (!activeProject.editorPassword && !activeProject.workshopPassword) {
+    if (!activeProject.passwordRequired) {
       setProjectAccess(projectId, "editor");
       accessLevel = "editor";
     } else {
@@ -28,14 +28,13 @@
 
       async function tryPassword() {
         const pw = pwInput.value;
-        if (pw === activeProject.editorPassword && pw !== "") {
-          setProjectAccess(projectId, "editor");
+        pwSubmit.disabled = true;
+        const level = await checkProjectPassword(projectId, pw);
+        pwSubmit.disabled = false;
+        if (level) {
+          setProjectAccess(projectId, level);
           modalOverlay.hidden = true;
-          await initGallery("editor");
-        } else if (pw === activeProject.workshopPassword && pw !== "") {
-          setProjectAccess(projectId, "workshop");
-          modalOverlay.hidden = true;
-          await initGallery("workshop");
+          await initGallery(level);
         } else {
           pwError.hidden = false;
           pwInput.focus();

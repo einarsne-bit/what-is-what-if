@@ -70,8 +70,7 @@ function _dbToProject(row) {
     projectBy:        row.project_by        || "",
     projectDate:      row.project_date      || "",
     collaborators:    row.collaborators     || "",
-    editorPassword:   row.editor_password   || "",
-    workshopPassword: row.workshop_password  || "",
+    passwordRequired: row.password_required ?? false,
     createdAt:        row.created_at        || "",
   };
 }
@@ -86,17 +85,28 @@ function dbResetReachable() { _dbReachable = true; }
 
 // ── Projects ──────────────────────────────────────────────────────────────────
 
+const PROJECT_SAFE_COLS = "id,name,description,project_by,project_date,collaborators,created_at,password_required";
+
 async function getProjects() {
-  const { data, error } = await _db.from("projects").select("*").order("created_at");
+  const { data, error } = await _db.from("projects").select(PROJECT_SAFE_COLS).order("created_at");
   if (error) { _dbFail("getProjects", error); return []; }
   return data.map(_dbToProject);
 }
 
 async function getProject(id) {
-  const { data, error } = await _db.from("projects").select("*").eq("id", id).maybeSingle();
+  const { data, error } = await _db.from("projects").select(PROJECT_SAFE_COLS).eq("id", id).maybeSingle();
   if (error) { _dbFail("getProject", error); return null; }
   if (!data) return null;
   return _dbToProject(data);
+}
+
+async function checkProjectPassword(projectId, password) {
+  const { data, error } = await _db.rpc("check_project_password", {
+    p_project_id: projectId,
+    p_password:   password,
+  });
+  if (error) { console.error("checkProjectPassword:", error); return null; }
+  return data; // 'editor', 'workshop', or null
 }
 
 async function saveProject(p) {
