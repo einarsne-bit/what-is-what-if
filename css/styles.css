@@ -3546,7 +3546,9 @@ button.affinity-group__header {
 }
 
 .landing-hero__wi {
-  color: var(--color-riso-green);
+  background: var(--color-riso-green);
+  color: var(--color-black);
+  padding: 0 20px;
 }
 
 .landing-hero__slash {
@@ -3559,7 +3561,9 @@ button.affinity-group__header {
 }
 
 .landing-hero__wif {
-  color: var(--color-riso-pink);
+  background: var(--color-riso-pink);
+  color: var(--color-black);
+  padding: 0 20px;
 }
 
 .landing-hero__desc-col {
